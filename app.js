@@ -1,10 +1,16 @@
 // ==========================================
-// NOVASHOP
-// Simple online store
+// NOVASHOP - SUPABASE STORE
 // ==========================================
 
+
+// ------------------------------------------
+// SUPABASE CONNECTION
+// ------------------------------------------
+
 const SUPABASE_URL = "https://tagbxmpizwlvgddgcpcl.supabase.co";
+
 const SUPABASE_KEY = "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0";
+
 
 const supabaseClient =
     window.supabase.createClient(
@@ -12,60 +18,20 @@ const supabaseClient =
         SUPABASE_KEY
     );
 
-// PRODUCTS
+
 // ------------------------------------------
+// STORE DATA
+// ------------------------------------------
+
 let products = [];
-async function loadProducts() {
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-        .from("products")
-        .select("*")
-        .order("id", {
-            ascending: true
-        });
-
-
-    if (error) {
-
-        console.error(
-            "Error loading products:",
-            error
-        );
-
-        alert(
-            "Could not load products."
-        );
-
-        return;
-    }
-
-
-    products = data.map(product => ({
-
-        ...product,
-
-        // Temporary placeholder
-        // until we add real product images
-        emoji: "🛍️"
-
-    }));
-
-
-    displayProducts();
-
-}
-
-// CART
-// ------------------------------------------
 
 let cart =
-    JSON.parse(localStorage.getItem("novashop-cart"))
-    || [];
+    JSON.parse(
+        localStorage.getItem("novashop-cart")
+    ) || [];
 
 
+// ------------------------------------------
 // ELEMENTS
 // ------------------------------------------
 
@@ -106,6 +72,297 @@ const searchInput =
     document.getElementById("searchInput");
 
 
+// ------------------------------------------
+// MONEY
+// ------------------------------------------
+
+function money(value) {
+
+    return "$" + Number(value).toFixed(2);
+
+}
+
+
+// ------------------------------------------
+// LOAD PRODUCTS FROM SUPABASE
+// ------------------------------------------
+
+async function loadProducts() {
+
+    console.log(
+        "Loading products from Supabase..."
+    );
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("products")
+        .select("*")
+        .order("id", {
+            ascending: true
+        });
+
+
+    console.log(
+        "Products returned:",
+        data
+    );
+
+
+    console.log(
+        "Supabase error:",
+        error
+    );
+
+
+    if (error) {
+
+        console.error(
+            "SUPABASE ERROR:",
+            error
+        );
+
+        productGrid.innerHTML = `
+            <p>
+                Could not load products.
+                Check the browser console.
+            </p>
+        `;
+
+        return;
+    }
+
+
+    products = data.map(product => ({
+
+        ...product,
+
+        emoji: "🛍️"
+
+    }));
+
+
+    displayProducts();
+
+}
+
+
+// ------------------------------------------
+// DISPLAY PRODUCTS
+// ------------------------------------------
+
+function displayProducts(
+    category = "all",
+    search = ""
+) {
+
+    const filteredProducts =
+        products.filter(product => {
+
+            const matchesCategory =
+                category === "all" ||
+                product.category === category;
+
+
+            const matchesSearch =
+                String(product.name)
+                    .toLowerCase()
+                    .includes(
+                        search.toLowerCase()
+                    );
+
+
+            return (
+                matchesCategory &&
+                matchesSearch
+            );
+
+        });
+
+
+    productGrid.innerHTML = "";
+
+
+    if (
+        filteredProducts.length === 0
+    ) {
+
+        productGrid.innerHTML = `
+            <p>
+                No products found.
+            </p>
+        `;
+
+        return;
+
+    }
+
+
+    filteredProducts.forEach(
+        product => {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "product-card";
+
+
+            card.innerHTML = `
+
+                <div class="product-image">
+                    ${product.emoji}
+                </div>
+
+                <div class="product-info">
+
+                    <p class="product-category">
+                        ${product.category}
+                    </p>
+
+                    <h3 class="product-name">
+                        ${product.name}
+                    </h3>
+
+                    <p>
+                        ${product.description || ""}
+                    </p>
+
+                    <p class="product-price">
+                        ${money(product.price)}
+                    </p>
+
+                    <button
+                        class="add-button"
+                        data-id="${product.id}"
+                    >
+                        Add to Cart
+                    </button>
+
+                </div>
+
+            `;
+
+
+            productGrid.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+// ------------------------------------------
+// ADD TO CART
+// ------------------------------------------
+
+function addToCart(productId) {
+
+    const existing =
+        cart.find(
+            item =>
+                item.id === productId
+        );
+
+
+    if (existing) {
+
+        existing.quantity++;
+
+    } else {
+
+        cart.push({
+
+            id: productId,
+
+            quantity: 1
+
+        });
+
+    }
+
+
+    saveCart();
+
+    updateCart();
+
+}
+
+
+// ------------------------------------------
+// REMOVE FROM CART
+// ------------------------------------------
+
+function removeFromCart(
+    productId
+) {
+
+    cart =
+        cart.filter(
+            item =>
+                item.id !== productId
+        );
+
+
+    saveCart();
+
+    updateCart();
+
+}
+
+
+// ------------------------------------------
+// CHANGE QUANTITY
+// ------------------------------------------
+
+function changeQuantity(
+    productId,
+    amount
+) {
+
+    const item =
+        cart.find(
+            item =>
+                item.id === productId
+        );
+
+
+    if (!item) {
+
+        return;
+
+    }
+
+
+    item.quantity += amount;
+
+
+    if (item.quantity <= 0) {
+
+        removeFromCart(
+            productId
+        );
+
+        return;
+
+    }
+
+
+    saveCart();
+
+    updateCart();
+
+}
+
+
+// ------------------------------------------
 // SAVE CART
 // ------------------------------------------
 
@@ -119,194 +376,7 @@ function saveCart() {
 }
 
 
-// FORMAT MONEY
 // ------------------------------------------
-
-function money(value) {
-
-    return "$" + value.toFixed(2);
-
-}
-
-
-// DISPLAY PRODUCTS
-// ------------------------------------------
-
-function displayProducts(
-    category = "all",
-    search = ""
-) {
-
-    const filteredProducts =
-        products.filter(product => {
-
-            const matchesCategory =
-                category === "all"
-                || product.category === category;
-
-            const matchesSearch =
-                product.name
-                    .toLowerCase()
-                    .includes(
-                        search.toLowerCase()
-                    );
-
-            return (
-                matchesCategory
-                && matchesSearch
-            );
-
-        });
-
-
-    productGrid.innerHTML = "";
-
-
-    if (filteredProducts.length === 0) {
-
-        productGrid.innerHTML = `
-            <p>
-                No products found.
-            </p>
-        `;
-
-        return;
-
-    }
-
-
-    filteredProducts.forEach(product => {
-
-        const card =
-            document.createElement("article");
-
-        card.className = "product-card";
-
-
-        card.innerHTML = `
-
-            <div class="product-image">
-                ${product.emoji}
-            </div>
-
-            <div class="product-info">
-
-                <p class="product-category">
-                    ${product.category}
-                </p>
-
-                <h3 class="product-name">
-                    ${product.name}
-                </h3>
-
-                <p class="product-price">
-                    ${money(product.price)}
-                </p>
-
-                <button
-                    class="add-button"
-                    data-id="${product.id}"
-                >
-                    Add to Cart
-                </button>
-
-            </div>
-
-        `;
-
-
-        productGrid.appendChild(card);
-
-    });
-
-}
-
-
-// ADD TO CART
-// ------------------------------------------
-
-function addToCart(productId) {
-
-    const existing =
-        cart.find(item =>
-            item.id === productId
-        );
-
-
-    if (existing) {
-
-        existing.quantity++;
-
-    } else {
-
-        cart.push({
-            id: productId,
-            quantity: 1
-        });
-
-    }
-
-
-    saveCart();
-
-    updateCart();
-
-}
-
-
-// REMOVE FROM CART
-// ------------------------------------------
-
-function removeFromCart(productId) {
-
-    cart =
-        cart.filter(item =>
-            item.id !== productId
-        );
-
-    saveCart();
-
-    updateCart();
-
-}
-
-
-// CHANGE QUANTITY
-// ------------------------------------------
-
-function changeQuantity(
-    productId,
-    amount
-) {
-
-    const item =
-        cart.find(
-            item => item.id === productId
-        );
-
-
-    if (!item) return;
-
-
-    item.quantity += amount;
-
-
-    if (item.quantity <= 0) {
-
-        removeFromCart(productId);
-
-        return;
-
-    }
-
-
-    saveCart();
-
-    updateCart();
-
-}
-
-
 // UPDATE CART
 // ------------------------------------------
 
@@ -340,11 +410,16 @@ function updateCart() {
             );
 
 
-        if (!product) return;
+        if (!product) {
+
+            return;
+
+        }
 
 
         const itemTotal =
-            product.price * item.quantity;
+            Number(product.price) *
+            item.quantity;
 
 
         total += itemTotal;
@@ -353,9 +428,13 @@ function updateCart() {
 
 
         const div =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
-        div.className = "cart-item";
+
+        div.className =
+            "cart-item";
 
 
         div.innerHTML = `
@@ -409,19 +488,25 @@ function updateCart() {
         `;
 
 
-        cartItems.appendChild(div);
+        cartItems.appendChild(
+            div
+        );
 
     });
 
 
-    cartCount.textContent = count;
+    cartCount.textContent =
+        count;
 
-    cartTotal.textContent = money(total);
+
+    cartTotal.textContent =
+        money(total);
 
 }
 
 
-// PRODUCT BUTTONS
+// ------------------------------------------
+// ADD BUTTONS
 // ------------------------------------------
 
 productGrid.addEventListener(
@@ -434,31 +519,43 @@ productGrid.addEventListener(
             );
 
 
-        if (!button) return;
+        if (!button) {
+
+            return;
+
+        }
 
 
         const productId =
-            Number(button.dataset.id);
+            Number(
+                button.dataset.id
+            );
 
 
-        addToCart(productId);
+        addToCart(
+            productId
+        );
 
 
         button.textContent =
             "Added ✓";
 
 
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            button.textContent =
-                "Add to Cart";
+                button.textContent =
+                    "Add to Cart";
 
-        }, 1000);
+            },
+            1000
+        );
 
     }
 );
 
 
+// ------------------------------------------
 // CART BUTTONS
 // ------------------------------------------
 
@@ -467,14 +564,22 @@ cartItems.addEventListener(
     event => {
 
         const button =
-            event.target.closest("button");
+            event.target.closest(
+                "button"
+            );
 
 
-        if (!button) return;
+        if (!button) {
+
+            return;
+
+        }
 
 
         const id =
-            Number(button.dataset.id);
+            Number(
+                button.dataset.id
+            );
 
 
         const action =
@@ -483,21 +588,29 @@ cartItems.addEventListener(
 
         if (action === "plus") {
 
-            changeQuantity(id, 1);
+            changeQuantity(
+                id,
+                1
+            );
 
         }
 
 
         if (action === "minus") {
 
-            changeQuantity(id, -1);
+            changeQuantity(
+                id,
+                -1
+            );
 
         }
 
 
         if (action === "remove") {
 
-            removeFromCart(id);
+            removeFromCart(
+                id
+            );
 
         }
 
@@ -505,6 +618,7 @@ cartItems.addEventListener(
 );
 
 
+// ------------------------------------------
 // OPEN CART
 // ------------------------------------------
 
@@ -520,6 +634,7 @@ cartButton.addEventListener(
 );
 
 
+// ------------------------------------------
 // CLOSE CART
 // ------------------------------------------
 
@@ -535,7 +650,8 @@ closeCart.addEventListener(
 );
 
 
-// CHECKOUT
+// ------------------------------------------
+// OPEN CHECKOUT
 // ------------------------------------------
 
 checkoutButton.addEventListener(
@@ -566,6 +682,7 @@ checkoutButton.addEventListener(
 );
 
 
+// ------------------------------------------
 // CLOSE CHECKOUT
 // ------------------------------------------
 
@@ -581,7 +698,8 @@ closeCheckout.addEventListener(
 );
 
 
-// PLACE ORDER
+// ------------------------------------------
+// CHECKOUT / CREATE ORDER
 // ------------------------------------------
 
 checkoutForm.addEventListener(
@@ -593,7 +711,9 @@ checkoutForm.addEventListener(
 
         if (cart.length === 0) {
 
-            alert("Your cart is empty.");
+            alert(
+                "Your cart is empty."
+            );
 
             return;
 
@@ -601,24 +721,32 @@ checkoutForm.addEventListener(
 
 
         const customerName =
-            document.getElementById(
-                "customerName"
-            ).value.trim();
+            document
+                .getElementById(
+                    "customerName"
+                )
+                .value
+                .trim();
 
 
         const customerEmail =
-            document.getElementById(
-                "customerEmail"
-            ).value.trim();
+            document
+                .getElementById(
+                    "customerEmail"
+                )
+                .value
+                .trim();
 
 
         const customerAddress =
-            document.getElementById(
-                "customerAddress"
-            ).value.trim();
+            document
+                .getElementById(
+                    "customerAddress"
+                )
+                .value
+                .trim();
 
 
-        // Calculate total
         let total = 0;
 
 
@@ -634,7 +762,9 @@ checkoutForm.addEventListener(
             if (product) {
 
                 total +=
-                    product.price *
+                    Number(
+                        product.price
+                    ) *
                     item.quantity;
 
             }
@@ -643,10 +773,6 @@ checkoutForm.addEventListener(
 
 
         try {
-
-            // -------------------------
-            // CREATE ORDER
-            // -------------------------
 
             const {
                 data: order,
@@ -677,18 +803,10 @@ checkoutForm.addEventListener(
 
             if (orderError) {
 
-                console.error(
-                    orderError
-                );
-
                 throw orderError;
 
             }
 
-
-            // -------------------------
-            // CREATE ORDER ITEMS
-            // -------------------------
 
             const orderItems =
                 cart.map(item => {
@@ -696,7 +814,8 @@ checkoutForm.addEventListener(
                     const product =
                         products.find(
                             product =>
-                                product.id === item.id
+                                product.id ===
+                                item.id
                         );
 
 
@@ -715,7 +834,9 @@ checkoutForm.addEventListener(
                             item.quantity,
 
                         price:
-                            product.price
+                            Number(
+                                product.price
+                            )
 
                     };
 
@@ -726,23 +847,17 @@ checkoutForm.addEventListener(
                 error: itemsError
             } = await supabaseClient
                 .from("order_items")
-                .insert(orderItems);
+                .insert(
+                    orderItems
+                );
 
 
             if (itemsError) {
-
-                console.error(
-                    itemsError
-                );
 
                 throw itemsError;
 
             }
 
-
-            // -------------------------
-            // SUCCESS
-            // -------------------------
 
             alert(
                 "Order placed successfully! " +
@@ -753,11 +868,13 @@ checkoutForm.addEventListener(
 
             cart = [];
 
+
             saveCart();
 
             updateCart();
 
             checkoutForm.reset();
+
 
             checkoutOverlay.classList.add(
                 "hidden"
@@ -773,7 +890,7 @@ checkoutForm.addEventListener(
 
 
             alert(
-                "There was a problem placing your order: " +
+                "Could not place order: " +
                 error.message
             );
 
@@ -782,51 +899,8 @@ checkoutForm.addEventListener(
     }
 );
 
-        const order = {
 
-            id:
-                "ORDER-" +
-                Date.now(),
-
-            customer,
-
-            products: cart,
-
-            createdAt:
-                new Date().toISOString()
-
-        };
-
-
-        console.log(
-            "ORDER CREATED:",
-            order
-        );
-
-
-        alert(
-            "Thank you for your order, " +
-            customer.name +
-            "!"
-        );
-
-
-        cart = [];
-
-        saveCart();
-
-        updateCart();
-
-        checkoutForm.reset();
-
-        checkoutOverlay.classList.add(
-            "hidden"
-        );
-
-    }
-);
-
-
+// ------------------------------------------
 // SEARCH
 // ------------------------------------------
 
@@ -841,7 +915,9 @@ searchInput.addEventListener(
 
 
         const category =
-            activeCategory.dataset.category;
+            activeCategory
+                ? activeCategory.dataset.category
+                : "all";
 
 
         displayProducts(
@@ -853,6 +929,7 @@ searchInput.addEventListener(
 );
 
 
+// ------------------------------------------
 // CATEGORY FILTER
 // ------------------------------------------
 
@@ -865,12 +942,16 @@ document
             () => {
 
                 document
-                    .querySelectorAll(".category")
-                    .forEach(btn =>
+                    .querySelectorAll(
+                        ".category"
+                    )
+                    .forEach(btn => {
+
                         btn.classList.remove(
                             "active"
-                        )
-                    );
+                        );
+
+                    });
 
 
                 button.classList.add(
@@ -889,7 +970,8 @@ document
     });
 
 
-// INITIALIZE
+// ------------------------------------------
+// START STORE
 // ------------------------------------------
 
 loadProducts();
