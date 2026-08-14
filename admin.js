@@ -90,6 +90,12 @@ const orderDetails =
         "orderDetails"
     );
 
+// Products
+
+const productsContainer =
+    document.getElementById(
+        "productsContainer"
+    );
 
 // Categories
 
