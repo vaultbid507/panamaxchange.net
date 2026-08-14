@@ -1196,4 +1196,130 @@ tbody tr:hover td {
     }
 
 }
+
+   /* =========================================================
+   ORDER MANAGEMENT
+========================================================= */
+
+.order-toolbar {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.order-toolbar .form-group {
+    margin-bottom: 0;
+}
+
+.order-details {
+    margin-top: 24px;
+}
+
+.order-details-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.order-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.order-details-header h3 {
+    margin: 4px 0 0;
+    font-size: 24px;
+}
+
+.order-customer,
+.order-items,
+.order-status-editor {
+    border-top: 1px solid #e5e7eb;
+    margin-top: 24px;
+    padding-top: 24px;
+}
+
+.order-customer h4,
+.order-items h4 {
+    margin-top: 0;
+}
+
+.order-customer p {
+    color: #64748b;
+    margin: 7px 0;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.order-item div div {
+    color: #64748b;
+    margin-top: 5px;
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.order-total strong {
+    font-size: 22px;
+}
+
+.order-status-editor {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.order-status-editor label {
+    width: 100%;
+    font-weight: 600;
+}
+
+.order-status-editor select {
+    min-width: 200px;
+}
+
+.status-info {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+@media (max-width: 700px) {
+
+    .order-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .order-details-card {
+        padding: 16px;
+    }
+
+    .order-status-editor {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .order-status-editor select,
+    .order-status-editor button {
+        width: 100%;
+    }
+
+}
+
+
 }
