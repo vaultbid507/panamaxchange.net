@@ -711,9 +711,7 @@ checkoutForm.addEventListener(
 
         if (cart.length === 0) {
 
-            alert(
-                "Your cart is empty."
-            );
+            alert("Your cart is empty.");
 
             return;
 
@@ -722,127 +720,56 @@ checkoutForm.addEventListener(
 
         const customerName =
             document
-                .getElementById(
-                    "customerName"
-                )
+                .getElementById("customerName")
                 .value
                 .trim();
 
 
         const customerEmail =
             document
-                .getElementById(
-                    "customerEmail"
-                )
+                .getElementById("customerEmail")
                 .value
                 .trim();
 
 
         const customerAddress =
             document
-                .getElementById(
-                    "customerAddress"
-                )
+                .getElementById("customerAddress")
                 .value
                 .trim();
 
 
-        let total = 0;
-
-
-        cart.forEach(item => {
-
-            const product =
-                products.find(
-                    product =>
-                        product.id === item.id
-                );
-
-
-            if (product) {
-
-                total +=
-                    Number(
-                        product.price
-                    ) *
-                    item.quantity;
-
-            }
-
-        });
-
-
         try {
 
-           const { error: orderError } =
-    await supabaseClient
-        .from("orders")
-        .insert({
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_address: customerAddress,
-            total: total,
-            status: "pending"
-        });
-
-if (orderError) {
-    throw orderError;
-}
-
-            if (orderError) {
-
-                throw orderError;
-
-            }
-
-
-            const orderItems =
-                cart.map(item => {
-
-                    const product =
-                        products.find(
-                            product =>
-                                product.id ===
-                                item.id
-                        );
-
-
-                    return {
-
-                        order_id:
-                            order.id,
-
-                        product_id:
-                            product.id,
-
-                        product_name:
-                            product.name,
-
-                        quantity:
-                            item.quantity,
-
-                        price:
-                            Number(
-                                product.price
-                            )
-
-                    };
-
-                });
-
-
             const {
-                error: itemsError
-            } = await supabaseClient
-                .from("order_items")
-                .insert(
-                    orderItems
+                data: orderId,
+                error
+            } = await supabaseClient.rpc(
+                "create_order",
+                {
+                    p_customer_name:
+                        customerName,
+
+                    p_customer_email:
+                        customerEmail,
+
+                    p_customer_address:
+                        customerAddress,
+
+                    p_items:
+                        cart
+                }
+            );
+
+
+            if (error) {
+
+                console.error(
+                    "CHECKOUT ERROR:",
+                    error
                 );
 
-
-            if (itemsError) {
-
-                throw itemsError;
+                throw error;
 
             }
 
@@ -850,19 +777,17 @@ if (orderError) {
             alert(
                 "Order placed successfully! " +
                 "Order #" +
-                order.id
+                orderId
             );
 
 
             cart = [];
-
 
             saveCart();
 
             updateCart();
 
             checkoutForm.reset();
-
 
             checkoutOverlay.classList.add(
                 "hidden"
@@ -886,7 +811,6 @@ if (orderError) {
 
     }
 );
-
 
 // ------------------------------------------
 // SEARCH
