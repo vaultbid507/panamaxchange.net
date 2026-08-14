@@ -738,36 +738,13 @@ function displayOrders(
 
             <thead>
 
-                <tr>
-
-                    <th>
-                        Order
-                    </th>
-
-                    <th>
-                        Customer
-                    </th>
-
-                    <th>
-                        Email
-                    </th>
-
-                    <th>
-                        Total
-                    </th>
-
-                    <th>
-                        Status
-                    </th>
-
-                    <th>
-                        Date
-                    </th>
-
-                    <th>
-                        Action
-                    </th>
-
+               <th>ID</th>
+<th>Customer</th>
+<th>Email</th>
+<th>Total</th>
+<th>Status</th>
+<th>Date</th>
+<th>Action</th>
                 </tr>
 
             </thead>
