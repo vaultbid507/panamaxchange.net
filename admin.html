@@ -22,42 +22,66 @@
 
 <body>
 
+
+<!-- ==========================================
+     ADMIN HEADER
+========================================== -->
+
 <header class="admin-header">
 
     <div class="admin-logo">
         Nova<span>Shop</span>
+        <small>Admin</small>
     </div>
 
-    <button
-        id="logoutButton"
-        class="logout-button hidden"
-    >
-        Logout
-    </button>
+
+    <div class="admin-header-right">
+
+        <span
+            id="adminEmail"
+            class="admin-email"
+        ></span>
+
+
+        <button
+            id="logoutButton"
+            class="logout-button hidden"
+            type="button"
+        >
+            Logout
+        </button>
+
+    </div>
 
 </header>
 
 
+<!-- ==========================================
+     MAIN
+========================================== -->
+
 <main class="admin-container">
 
 
-    <!-- ==========================================
+    <!-- ======================================
          LOGIN
-    =========================================== -->
+    ======================================= -->
 
     <section
         id="loginSection"
         class="login-card"
     >
 
-        <div class="login-icon">
-            NS
+        <div class="login-brand">
+            Nova<span>Shop</span>
         </div>
 
-        <h1>Admin Login</h1>
+        <h1>
+            Admin Login
+        </h1>
 
         <p class="login-description">
-            Sign in to manage your NovaShop store.
+            Sign in to manage your store.
         </p>
 
 
@@ -72,7 +96,7 @@
                 <input
                     type="email"
                     id="email"
-                    placeholder="admin@example.com"
+                    autocomplete="email"
                     required
                 >
 
@@ -88,7 +112,7 @@
                 <input
                     type="password"
                     id="password"
-                    placeholder="Your password"
+                    autocomplete="current-password"
                     required
                 >
 
@@ -97,7 +121,7 @@
 
             <button
                 type="submit"
-                class="primary-button full-button"
+                class="primary-button full-width"
             >
                 Login
             </button>
@@ -113,10 +137,9 @@
     </section>
 
 
-
-    <!-- ==========================================
+    <!-- ======================================
          DASHBOARD
-    =========================================== -->
+    ======================================= -->
 
     <section
         id="dashboard"
@@ -124,16 +147,22 @@
     >
 
 
-        <!-- Dashboard heading -->
+        <!-- PAGE HEADER -->
 
-        <div class="page-heading">
+        <div class="page-header">
 
             <div>
 
-                <h1>Dashboard</h1>
+                <p class="eyebrow">
+                    STORE ADMINISTRATION
+                </p>
+
+                <h1>
+                    Dashboard
+                </h1>
 
                 <p>
-                    Manage your NovaShop store.
+                    Manage your products, categories and orders.
                 </p>
 
             </div>
@@ -141,80 +170,70 @@
         </div>
 
 
-
-        <!-- ======================================
-             STATISTICS
-        ======================================= -->
+        <!-- ==================================
+             STATS
+        =================================== -->
 
         <div class="stats-grid">
 
 
             <div class="stat-card">
 
-                <div class="stat-label">
+                <span>
                     Products
-                </div>
+                </span>
 
-                <div
-                    id="productCount"
-                    class="stat-value"
-                >
+                <strong id="productCount">
                     0
-                </div>
+                </strong>
 
             </div>
 
 
             <div class="stat-card">
 
-                <div class="stat-label">
+                <span>
                     Orders
-                </div>
+                </span>
 
-                <div
-                    id="orderCount"
-                    class="stat-value"
-                >
+                <strong id="orderCount">
                     0
-                </div>
+                </strong>
 
             </div>
 
 
             <div class="stat-card">
 
-                <div class="stat-label">
+                <span>
                     Revenue
-                </div>
+                </span>
 
-                <div
-                    id="revenue"
-                    class="stat-value"
-                >
+                <strong id="revenue">
                     $0.00
-                </div>
+                </strong>
 
             </div>
-
 
         </div>
 
 
-
-        <!-- ======================================
-             CATEGORIES
-        ======================================= -->
+        <!-- ==================================
+             CATEGORY MANAGEMENT
+        =================================== -->
 
         <section class="admin-section">
 
-            <div class="section-heading">
+            <div class="section-header">
 
                 <div>
 
-                    <h2>Categories</h2>
+                    <h2>
+                        Categories
+                    </h2>
 
                     <p>
-                        Create and manage product categories.
+                        Create the categories used by your store.
                     </p>
 
                 </div>
@@ -222,7 +241,10 @@
             </div>
 
 
-            <form id="categoryForm">
+            <form
+                id="categoryForm"
+                class="category-form"
+            >
 
                 <input
                     type="hidden"
@@ -233,7 +255,7 @@
                 <div class="form-group">
 
                     <label for="categoryName">
-                        Category name
+                        Category Name
                     </label>
 
                     <input
@@ -249,7 +271,7 @@
                 <div class="form-group">
 
                     <label for="categorySlug">
-                        Category slug
+                        Slug
                     </label>
 
                     <input
@@ -262,14 +284,16 @@
                 </div>
 
 
-                <div class="form-actions">
+                <div class="category-form-actions">
 
                     <button
                         type="submit"
+                        id="categorySubmitButton"
                         class="primary-button"
                     >
                         Add Category
                     </button>
+
 
                     <button
                         type="button"
@@ -284,7 +308,10 @@
             </form>
 
 
-            <div id="categoriesContainer">
+            <div
+                id="categoriesContainer"
+                class="category-list"
+            >
 
                 <div class="loading">
                     Loading categories...
@@ -295,21 +322,22 @@
         </section>
 
 
-
-        <!-- ======================================
-             ADD / EDIT PRODUCT
-        ======================================= -->
+        <!-- ==================================
+             PRODUCT MANAGEMENT
+        =================================== -->
 
         <section class="admin-section">
 
-            <div class="section-heading">
+            <div class="section-header">
 
                 <div>
 
-                    <h2>Products</h2>
+                    <h2>
+                        Add Product
+                    </h2>
 
                     <p>
-                        Add and manage products in your store.
+                        Create or update products in your store.
                     </p>
 
                 </div>
@@ -317,19 +345,26 @@
             </div>
 
 
-            <form id="productForm">
-
+            <form
+                id="productForm"
+                class="product-form"
+            >
 
                 <input
                     type="hidden"
                     id="productId"
                 >
 
+                <input
+                    type="hidden"
+                    id="productImage"
+                >
+
 
                 <div class="form-group">
 
                     <label for="productName">
-                        Product name
+                        Product Name
                     </label>
 
                     <input
@@ -351,11 +386,25 @@
                     <input
                         type="number"
                         id="productPrice"
-                        placeholder="0.00"
                         step="0.01"
                         min="0"
+                        placeholder="0.00"
                         required
                     >
+
+                </div>
+
+
+                <div class="form-group full-width">
+
+                    <label for="productDescription">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="productDescription"
+                        placeholder="Product description"
+                    ></textarea>
 
                 </div>
 
@@ -389,8 +438,8 @@
                     <input
                         type="number"
                         id="productStock"
-                        placeholder="0"
                         min="0"
+                        value="0"
                         required
                     >
 
@@ -399,51 +448,39 @@
 
                 <div class="form-group full-width">
 
-                    <label for="productDescription">
-                        Description
-                    </label>
-
-                    <textarea
-                        id="productDescription"
-                        placeholder="Describe your product..."
-                    ></textarea>
-
-                </div>
-
-
-                <div class="form-group full-width">
-
                     <label for="productImageFile">
-                        Product image
+                        Product Image
                     </label>
 
                     <input
                         type="file"
                         id="productImageFile"
-                        accept="image/png,image/jpeg,image/webp"
+                        accept="image/jpeg,image/png,image/webp"
                     >
 
-                    <small class="help-text">
+                    <small class="form-help">
                         JPG, PNG or WebP. Maximum 5 MB.
                     </small>
+
+
+                    <div
+                        id="imagePreview"
+                        class="image-preview hidden"
+                    ></div>
 
                 </div>
 
 
-                <input
-                    type="hidden"
-                    id="productImage"
-                >
-
-
-                <div class="form-actions full-width">
+                <div class="product-form-actions">
 
                     <button
                         type="submit"
+                        id="productSubmitButton"
                         class="primary-button"
                     >
                         Add Product
                     </button>
+
 
                     <button
                         type="button"
@@ -455,27 +492,27 @@
 
                 </div>
 
-
             </form>
 
         </section>
 
 
-
-        <!-- ======================================
+        <!-- ==================================
              PRODUCT LIST
-        ======================================= -->
+        =================================== -->
 
         <section class="admin-section">
 
-            <div class="section-heading">
+            <div class="section-header">
 
                 <div>
 
-                    <h2>Product List</h2>
+                    <h2>
+                        Products
+                    </h2>
 
                     <p>
-                        Products currently available in your store.
+                        Manage products currently in your store.
                     </p>
 
                 </div>
@@ -483,7 +520,10 @@
             </div>
 
 
-            <div id="productsContainer">
+            <div
+                id="productsContainer"
+                class="table-wrapper"
+            >
 
                 <div class="loading">
                     Loading products...
@@ -494,18 +534,19 @@
         </section>
 
 
-
-        <!-- ======================================
+        <!-- ==================================
              ORDERS
-        ======================================= -->
+        =================================== -->
 
         <section class="admin-section">
 
-            <div class="section-heading">
+            <div class="section-header">
 
                 <div>
 
-                    <h2>Recent Orders</h2>
+                    <h2>
+                        Recent Orders
+                    </h2>
 
                     <p>
                         View your latest customer orders.
@@ -516,7 +557,10 @@
             </div>
 
 
-            <div id="ordersContainer">
+            <div
+                id="ordersContainer"
+                class="table-wrapper"
+            >
 
                 <div class="loading">
                     Loading orders...
@@ -526,21 +570,18 @@
 
         </section>
 
-
     </section>
 
 </main>
 
 
-<!-- Supabase -->
+<!-- ==========================================
+     SUPABASE
+========================================== -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-<!-- Admin JavaScript -->
-
 <script src="admin.js"></script>
-
 
 </body>
 
