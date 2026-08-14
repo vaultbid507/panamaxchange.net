@@ -17,427 +17,284 @@
         href="admin.css"
     >
 
+    <!-- Supabase -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+        defer
+    ></script>
+
+    <script
+        src="admin.js"
+        defer
+    ></script>
+
 </head>
 
 
 <body>
 
-
-<!-- ==========================================
-     ADMIN HEADER
-========================================== -->
-
-<header class="admin-header">
-
-    <div class="admin-logo">
-        Nova<span>Shop</span>
-        <small>Admin</small>
-    </div>
+<div class="admin-app">
 
 
-    <div class="admin-header-right">
-
-        <span
-            id="adminEmail"
-            class="admin-email"
-        ></span>
-
-
-        <button
-            id="logoutButton"
-            class="logout-button hidden"
-            type="button"
-        >
-            Logout
-        </button>
-
-    </div>
-
-</header>
-
-
-<!-- ==========================================
-     MAIN
-========================================== -->
-
-<main class="admin-container">
-
-
-    <!-- ======================================
+    <!-- =====================================================
          LOGIN
-    ======================================= -->
+         ===================================================== -->
 
     <section
         id="loginSection"
-        class="login-card"
+        class="login-section"
     >
 
-        <div class="login-brand">
-            Nova<span>Shop</span>
-        </div>
+        <div class="login-card">
 
-        <h1>
-            Admin Login
-        </h1>
-
-        <p class="login-description">
-            Sign in to manage your store.
-        </p>
-
-
-        <form id="loginForm">
-
-            <div class="form-group">
-
-                <label for="email">
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    id="email"
-                    autocomplete="email"
-                    required
-                >
-
+            <div class="login-logo">
+                NovaShop
             </div>
 
+            <h1>
+                Admin Login
+            </h1>
 
-          <div class="form-group">
-
-    <label for="password">
-        Password
-    </label>
-
-    <input
-        type="password"
-        id="password"
-        autocomplete="current-password"
-        required
-    >
-
-</div>
+            <p class="login-subtitle">
+                Sign in to manage your store.
+            </p>
 
 
-<div class="forgot-password">
+            <form id="loginForm">
 
-    <button
-        type="button"
-        id="forgotPasswordButton"
-    >
-        Forgot Password?
-    </button>
+                <div class="form-group">
 
-</div>
+                    <label for="email">
+                        Email
+                    </label>
 
-<p
-    id="forgotPasswordMessage"
-    class="message"
-></p>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="admin@example.com"
+                        autocomplete="email"
+                        required
+                    >
 
-            <button
-                type="submit"
-                class="primary-button full-width"
-            >
-                Login
-            </button>
-
-        </form>
+                </div>
 
 
-        <p
-            id="loginMessage"
-            class="message"
-        ></p>
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Your password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button login-button"
+                >
+                    Login
+                </button>
+
+
+                <button
+                    type="button"
+                    id="forgotPasswordButton"
+                    class="forgot-button"
+                >
+                    Forgot Password?
+                </button>
+
+
+                <div
+                    id="loginMessage"
+                    class="message"
+                ></div>
+
+
+                <div
+                    id="forgotPasswordMessage"
+                    class="message"
+                ></div>
+
+            </form>
+
+        </div>
 
     </section>
 
 
-    <!-- ======================================
+
+    <!-- =====================================================
          DASHBOARD
-    ======================================= -->
+         ===================================================== -->
 
     <section
         id="dashboard"
-        class="hidden"
+        class="dashboard hidden"
     >
 
 
-        <!-- PAGE HEADER -->
+        <!-- HEADER -->
 
-        <div class="page-header">
+        <header class="admin-header">
 
             <div>
 
-                <p class="eyebrow">
-                    STORE ADMINISTRATION
-                </p>
+                <div class="brand">
+                    NovaShop
+                </div>
 
-                <h1>
-                    Dashboard
-                </h1>
-
-                <p>
-                    Manage your products, categories and orders.
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==================================
-             STATS
-        =================================== -->
-
-        <div class="stats-grid">
-
-
-            <div class="stat-card">
-
-                <span>
-                    Products
-                </span>
-
-                <strong id="productCount">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span>
-                    Orders
-                </span>
-
-                <strong id="orderCount">
-                    0
-                </strong>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span>
-                    Revenue
-                </span>
-
-                <strong id="revenue">
-                    $0.00
-                </strong>
-
-            </div>
-
-        </div>
-
-
-        <!-- ==================================
-             CATEGORY MANAGEMENT
-        =================================== -->
-
-        <section class="admin-section">
-
-            <div class="section-header">
-
-                <div>
-
-                    <h2>
-                        Categories
-                    </h2>
-
-                    <p>
-                        Create the categories used by your store.
-                    </p>
-
+                <div class="admin-title">
+                    Administration
                 </div>
 
             </div>
 
 
-            <form
-                id="categoryForm"
-                class="category-form"
-            >
+            <div class="admin-header-right">
 
-                <input
-                    type="hidden"
-                    id="categoryId"
+                <span id="adminEmail"></span>
+
+                <button
+                    id="logoutButton"
+                    class="logout-button hidden"
+                    type="button"
                 >
-
-
-                <div class="form-group">
-
-                    <label for="categoryName">
-                        Category Name
-                    </label>
-
-                    <input
-                        type="text"
-                        id="categoryName"
-                        placeholder="Electronics"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="categorySlug">
-                        Slug
-                    </label>
-
-                    <input
-                        type="text"
-                        id="categorySlug"
-                        placeholder="electronics"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="category-form-actions">
-
-                    <button
-                        type="submit"
-                        id="categorySubmitButton"
-                        class="primary-button"
-                    >
-                        Add Category
-                    </button>
-
-
-                    <button
-                        type="button"
-                        id="cancelCategoryEdit"
-                        class="secondary-button hidden"
-                    >
-                        Cancel
-                    </button>
-
-                </div>
-
-            </form>
-
-
-            <div
-                id="categoriesContainer"
-                class="category-list"
-            >
-
-                <div class="loading">
-                    Loading categories...
-                </div>
+                    Logout
+                </button>
 
             </div>
 
-        </section>
+        </header>
 
 
-        <!-- ==================================
-             PRODUCT MANAGEMENT
-        =================================== -->
 
-        <section class="admin-section">
+        <main class="admin-main">
 
-            <div class="section-header">
 
-                <div>
+            <!-- =================================================
+                 STATISTICS
+                 ================================================= -->
 
-                    <h2>
-                        Add Product
-                    </h2>
+            <section class="stats-grid">
 
-                    <p>
-                        Create or update products in your store.
-                    </p>
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Products
+                    </div>
+
+                    <div
+                        id="productCount"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
 
                 </div>
 
-            </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-label">
+                        Orders
+                    </div>
+
+                    <div
+                        id="orderCount"
+                        class="stat-value"
+                    >
+                        0
+                    </div>
+
+                </div>
 
 
-            <form
-                id="productForm"
-                class="product-form"
-            >
+                <div class="stat-card">
 
-                <input
-                    type="hidden"
-                    id="productId"
-                >
+                    <div class="stat-label">
+                        Revenue
+                    </div>
 
-                <input
-                    type="hidden"
-                    id="productImage"
-                >
+                    <div
+                        id="revenue"
+                        class="stat-value"
+                    >
+                        $0.00
+                    </div>
+
+                </div>
+
+            </section>
 
 
-                <div class="form-group">
 
-                    <label for="productName">
-                        Product Name
-                    </label>
+            <!-- =================================================
+                 ORDERS
+                 ================================================= -->
+
+            <section class="admin-section">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Orders
+                        </h2>
+
+                        <p>
+                            Manage customer orders and update their status.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="orders-toolbar">
 
                     <input
-                        type="text"
-                        id="productName"
-                        placeholder="Product name"
-                        required
+                        type="search"
+                        id="orderSearch"
+                        placeholder="Search by order, customer or email..."
                     >
 
-                </div>
 
-
-                <div class="form-group">
-
-                    <label for="productPrice">
-                        Price
-                    </label>
-
-                    <input
-                        type="number"
-                        id="productPrice"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group full-width">
-
-                    <label for="productDescription">
-                        Description
-                    </label>
-
-                    <textarea
-                        id="productDescription"
-                        placeholder="Product description"
-                    ></textarea>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="productCategory">
-                        Category
-                    </label>
-
-                    <select
-                        id="productCategory"
-                        required
-                    >
+                    <select id="orderStatusFilter">
 
                         <option value="">
-                            Select category
+                            All statuses
+                        </option>
+
+                        <option value="pending">
+                            Pending
+                        </option>
+
+                        <option value="processing">
+                            Processing
+                        </option>
+
+                        <option value="shipped">
+                            Shipped
+                        </option>
+
+                        <option value="delivered">
+                            Delivered
+                        </option>
+
+                        <option value="cancelled">
+                            Cancelled
                         </option>
 
                     </select>
@@ -445,221 +302,339 @@
                 </div>
 
 
-                <div class="form-group">
+                <div
+                    id="ordersContainer"
+                    class="table-card"
+                >
+                    <div class="loading">
+                        Loading orders...
+                    </div>
+                </div>
 
-                    <label for="productStock">
-                        Stock
-                    </label>
 
-                    <input
-                        type="number"
-                        id="productStock"
-                        min="0"
-                        value="0"
-                        required
-                    >
+                <div
+                    id="orderDetails"
+                    class="hidden"
+                ></div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 CATEGORIES
+                 ================================================= -->
+
+            <section class="admin-section">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Categories
+                        </h2>
+
+                        <p>
+                            Create and manage product categories.
+                        </p>
+
+                    </div>
 
                 </div>
 
 
-                <div class="form-group full-width">
+                <div class="management-grid">
 
-                    <label for="productImageFile">
-                        Product Image
-                    </label>
 
-                    <input
-                        type="file"
-                        id="productImageFile"
-                        accept="image/jpeg,image/png,image/webp"
-                    >
+                    <!-- CATEGORY FORM -->
 
-                    <small class="form-help">
-                        JPG, PNG or WebP. Maximum 5 MB.
-                    </small>
+                    <div class="form-card">
 
+                        <h3>
+                            Add Category
+                        </h3>
+
+                        <form id="categoryForm">
+
+                            <input
+                                type="hidden"
+                                id="categoryId"
+                            >
+
+
+                            <div class="form-group">
+
+                                <label for="categoryName">
+                                    Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="categoryName"
+                                    placeholder="Electronics"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="categorySlug">
+                                    Slug
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="categorySlug"
+                                    placeholder="electronics"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="form-actions">
+
+                                <button
+                                    type="submit"
+                                    id="categorySubmitButton"
+                                    class="primary-button"
+                                >
+                                    Add Category
+                                </button>
+
+                                <button
+                                    type="button"
+                                    id="cancelCategoryEdit"
+                                    class="secondary-button hidden"
+                                >
+                                    Cancel
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+
+                    <!-- CATEGORY LIST -->
 
                     <div
-                        id="imagePreview"
-                        class="image-preview hidden"
-                    ></div>
-
-                </div>
-
-
-                <div class="product-form-actions">
-
-                    <button
-                        type="submit"
-                        id="productSubmitButton"
-                        class="primary-button"
+                        id="categoriesContainer"
+                        class="list-card"
                     >
-                        Add Product
-                    </button>
+                        <div class="loading">
+                            Loading categories...
+                        </div>
+                    </div>
+
+                </div>
+
+            </section>
 
 
-                    <button
-                        type="button"
-                        id="cancelEdit"
-                        class="secondary-button hidden"
+
+            <!-- =================================================
+                 PRODUCTS
+                 ================================================= -->
+
+            <section class="admin-section">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Products
+                        </h2>
+
+                        <p>
+                            Add, edit and remove products.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="product-layout">
+
+
+                    <!-- PRODUCT FORM -->
+
+                    <div class="form-card">
+
+                        <h3>
+                            Product
+                        </h3>
+
+
+                        <form id="productForm">
+
+                            <input
+                                type="hidden"
+                                id="productId"
+                            >
+
+
+                            <div class="form-group">
+
+                                <label for="productName">
+                                    Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="productName"
+                                    required
+                                >
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="productDescription">
+                                    Description
+                                </label>
+
+                                <textarea
+                                    id="productDescription"
+                                    rows="4"
+                                ></textarea>
+
+                            </div>
+
+
+                            <div class="two-columns">
+
+                                <div class="form-group">
+
+                                    <label for="productPrice">
+                                        Price
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        id="productPrice"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    >
+
+                                </div>
+
+
+                                <div class="form-group">
+
+                                    <label for="productStock">
+                                        Stock
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        id="productStock"
+                                        min="0"
+                                        step="1"
+                                        value="0"
+                                        required
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="productCategory">
+                                    Category
+                                </label>
+
+                                <select
+                                    id="productCategory"
+                                    required
+                                >
+
+                                    <option value="">
+                                        Select category
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="productImage">
+                                    Image URL
+                                </label>
+
+                                <input
+                                    type="url"
+                                    id="productImage"
+                                    placeholder="https://..."
+                                >
+
+                            </div>
+
+
+                            <div
+                                id="imagePreview"
+                                class="image-preview hidden"
+                            ></div>
+
+
+                            <div class="form-actions">
+
+                                <button
+                                    type="submit"
+                                    id="productSubmitButton"
+                                    class="primary-button"
+                                >
+                                    Add Product
+                                </button>
+
+                                <button
+                                    type="button"
+                                    id="cancelEdit"
+                                    class="secondary-button hidden"
+                                >
+                                    Cancel
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+
+                    <!-- PRODUCT LIST -->
+
+                    <div
+                        id="productsContainer"
+                        class="table-card"
                     >
-                        Cancel
-                    </button>
+                        <div class="loading">
+                            Loading products...
+                        </div>
+                    </div>
 
                 </div>
 
-            </form>
-
-        </section>
+            </section>
 
 
-        <!-- ==================================
-             PRODUCT LIST
-        =================================== -->
+        </main>
 
-        <section class="admin-section">
+    </section>
 
-            <div class="section-header">
-
-                <div>
-
-                    <h2>
-                        Products
-                    </h2>
-
-                    <p>
-                        Manage products currently in your store.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div
-                id="productsContainer"
-                class="table-wrapper"
-            >
-
-                <div class="loading">
-                    Loading products...
-                </div>
-
-            </div>
-
-        </section>
-
-
-<!-- ==================================
-     ORDER MANAGEMENT
-=================================== -->
-
-<section class="admin-section">
-
-    <div class="section-header">
-
-        <div>
-            <h2>
-                Order Management
-            </h2>
-
-            <p>
-                View and manage customer orders.
-            </p>
-        </div>
-
-    </div>
-
-
-    <!-- ORDER FILTERS -->
-
-    <div class="order-toolbar">
-
-        <div class="form-group">
-
-            <label for="orderSearch">
-                Search
-            </label>
-
-            <input
-                type="search"
-                id="orderSearch"
-                placeholder="Order ID, name or email..."
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label for="orderStatusFilter">
-                Status
-            </label>
-
-            <select id="orderStatusFilter">
-
-                <option value="">
-                    All statuses
-                </option>
-
-                <option value="pending">
-                    Pending
-                </option>
-
-                <option value="processing">
-                    Processing
-                </option>
-
-                <option value="shipped">
-                    Shipped
-                </option>
-
-                <option value="delivered">
-                    Delivered
-                </option>
-
-                <option value="cancelled">
-                    Cancelled
-                </option>
-
-            </select>
-
-        </div>
-
-    </div>
-
-
-    <!-- ORDERS -->
-
-    <div
-        id="ordersContainer"
-        class="table-wrapper"
-    >
-
-        <div class="loading">
-            Loading orders...
-        </div>
-
-    </div>
-
-
-    <!-- ORDER DETAILS -->
-
-    <div
-        id="orderDetails"
-        class="order-details hidden"
-    ></div>
-
-</section>
-
-<!-- ==========================================
-     SUPABASE
-========================================== -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="admin.js"></script>
+</div>
 
 </body>
-
 </html>
