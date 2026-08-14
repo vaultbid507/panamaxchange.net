@@ -1,6 +1,6 @@
 // =========================================================
 // NOVASHOP ADMIN
-// Supabase Administration
+// CLEAN SUPABASE ADMIN PANEL
 // =========================================================
 
 
@@ -39,6 +39,16 @@ const loginForm =
 const loginMessage =
     document.getElementById("loginMessage");
 
+const forgotPasswordButton =
+    document.getElementById(
+        "forgotPasswordButton"
+    );
+
+const forgotPasswordMessage =
+    document.getElementById(
+        "forgotPasswordMessage"
+    );
+
 const logoutButton =
     document.getElementById("logoutButton");
 
@@ -46,9 +56,7 @@ const adminEmail =
     document.getElementById("adminEmail");
 
 
-
-
-// Dashboard
+// Statistics
 
 const productCount =
     document.getElementById("productCount");
@@ -59,86 +67,124 @@ const orderCount =
 const revenue =
     document.getElementById("revenue");
 
-const productsContainer =
-    document.getElementById("productsContainer");
+
+// Orders
 
 const ordersContainer =
-    document.getElementById("ordersContainer");
-
-
-// Order management
+    document.getElementById(
+        "ordersContainer"
+    );
 
 const orderSearch =
-    document.getElementById("orderSearch");
+    document.getElementById(
+        "orderSearch"
+    );
 
 const orderStatusFilter =
-    document.getElementById("orderStatusFilter");
+    document.getElementById(
+        "orderStatusFilter"
+    );
 
 const orderDetails =
-    document.getElementById("orderDetails");
+    document.getElementById(
+        "orderDetails"
+    );
 
 
 // Categories
 
 const categoryForm =
-    document.getElementById("categoryForm");
+    document.getElementById(
+        "categoryForm"
+    );
 
 const categoryId =
-    document.getElementById("categoryId");
+    document.getElementById(
+        "categoryId"
+    );
 
 const categoryName =
-    document.getElementById("categoryName");
+    document.getElementById(
+        "categoryName"
+    );
 
 const categorySlug =
-    document.getElementById("categorySlug");
+    document.getElementById(
+        "categorySlug"
+    );
 
 const categorySubmitButton =
-    document.getElementById("categorySubmitButton");
+    document.getElementById(
+        "categorySubmitButton"
+    );
 
 const cancelCategoryEdit =
-    document.getElementById("cancelCategoryEdit");
+    document.getElementById(
+        "cancelCategoryEdit"
+    );
 
 const categoriesContainer =
-    document.getElementById("categoriesContainer");
+    document.getElementById(
+        "categoriesContainer"
+    );
 
 
 // Products
 
 const productForm =
-    document.getElementById("productForm");
+    document.getElementById(
+        "productForm"
+    );
 
 const productId =
-    document.getElementById("productId");
+    document.getElementById(
+        "productId"
+    );
 
 const productName =
-    document.getElementById("productName");
+    document.getElementById(
+        "productName"
+    );
 
 const productDescription =
-    document.getElementById("productDescription");
+    document.getElementById(
+        "productDescription"
+    );
 
 const productPrice =
-    document.getElementById("productPrice");
+    document.getElementById(
+        "productPrice"
+    );
 
 const productCategory =
-    document.getElementById("productCategory");
+    document.getElementById(
+        "productCategory"
+    );
 
 const productStock =
-    document.getElementById("productStock");
-
-const productImageFile =
-    document.getElementById("productImageFile");
+    document.getElementById(
+        "productStock"
+    );
 
 const productImage =
-    document.getElementById("productImage");
-
-const imagePreview =
-    document.getElementById("imagePreview");
+    document.getElementById(
+        "productImage"
+    );
 
 const productSubmitButton =
-    document.getElementById("productSubmitButton");
+    document.getElementById(
+        "productSubmitButton"
+    );
 
 const cancelEdit =
-    document.getElementById("cancelEdit");
+    document.getElementById(
+        "cancelEdit"
+    );
+
+const imagePreview =
+    document.getElementById(
+        "imagePreview"
+    );
 
 
 // =========================================================
@@ -164,23 +210,21 @@ function escapeHTML(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+
 }
 
 
 function money(value) {
 
-    return "$" +
-        Number(value || 0).toFixed(2);
-}
-
-
-function orderMoney(value) {
-
     return Number(value || 0)
-        .toLocaleString("en-US", {
-            style: "currency",
-            currency: "USD"
-        });
+        .toLocaleString(
+            "en-US",
+            {
+                style: "currency",
+                currency: "USD"
+            }
+        );
+
 }
 
 
@@ -189,43 +233,33 @@ function slugify(value) {
     return String(value || "")
         .trim()
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+        .replace(
+            /[^a-z0-9]+/g,
+            "-"
+        )
+        .replace(
+            /^-+|-+$/g,
+            ""
+        );
+
 }
 
 
-function normalizeOrderStatus(status) {
+function normalizeStatus(value) {
 
-    return String(status || "pending")
+    return String(
+        value || "pending"
+    )
         .trim()
         .toLowerCase();
+
 }
 
 
-function orderDate(value) {
-
-    if (!value) {
-        return "—";
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return "—";
-    }
-
-    return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric"
-    });
-}
-
-
-function orderStatusClass(status) {
+function statusClass(status) {
 
     switch (
-        normalizeOrderStatus(status)
+        normalizeStatus(status)
     ) {
 
         case "processing":
@@ -241,9 +275,312 @@ function orderStatusClass(status) {
         case "canceled":
             return "status-danger";
 
+        case "pending":
         default:
             return "status-pending";
     }
+
+}
+
+
+// =========================================================
+// ADMIN CHECK
+// =========================================================
+
+async function isAdmin(userId) {
+
+    if (!userId) {
+        return false;
+    }
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("admin_users")
+        .select("user_id")
+        .eq(
+            "user_id",
+            userId
+        )
+        .maybeSingle();
+
+    if (error) {
+
+        console.error(
+            "ADMIN CHECK ERROR:",
+            error
+        );
+
+        return false;
+    }
+
+    return !!data;
+}
+
+
+// =========================================================
+// CHECK LOGIN
+// =========================================================
+
+async function checkLogin() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient.auth.getSession();
+
+    if (error) {
+
+        console.error(
+            "SESSION ERROR:",
+            error
+        );
+
+        return;
+    }
+
+    if (!data.session) {
+        showLogin();
+        return;
+    }
+
+    const allowed =
+        await isAdmin(
+            data.session.user.id
+        );
+
+    if (!allowed) {
+
+        await supabaseClient.auth.signOut();
+
+        showLogin();
+
+        showLoginMessage(
+            "This account is not an administrator.",
+            "error"
+        );
+
+        return;
+    }
+
+    await showDashboard(
+        data.session
+    );
+}
+
+
+// =========================================================
+// SHOW LOGIN
+// =========================================================
+
+function showLogin() {
+
+    dashboard.classList.add(
+        "hidden"
+    );
+
+    loginSection.classList.remove(
+        "hidden"
+    );
+
+    logoutButton.classList.add(
+        "hidden"
+    );
+}
+
+
+// =========================================================
+// SHOW LOGIN MESSAGE
+// =========================================================
+
+function showLoginMessage(
+    message,
+    type = "error"
+) {
+
+    if (!loginMessage) {
+        return;
+    }
+
+    loginMessage.textContent =
+        message;
+
+    loginMessage.className =
+        "message " + type;
+}
+
+
+// =========================================================
+// LOGIN
+// =========================================================
+
+if (loginForm) {
+
+    loginForm.addEventListener(
+        "submit",
+        async event => {
+
+            event.preventDefault();
+
+            showLoginMessage("");
+
+            const email =
+                document
+                    .getElementById("email")
+                    .value
+                    .trim();
+
+            const password =
+                document
+                    .getElementById("password")
+                    .value;
+
+            const button =
+                loginForm.querySelector(
+                    "button[type='submit']"
+                );
+
+            button.disabled = true;
+
+            button.textContent =
+                "Signing in...";
+
+            try {
+
+                const {
+                    data,
+                    error
+                } =
+                    await supabaseClient.auth
+                        .signInWithPassword({
+                            email,
+                            password
+                        });
+
+                if (error) {
+                    throw error;
+                }
+
+                const allowed =
+                    await isAdmin(
+                        data.user.id
+                    );
+
+                if (!allowed) {
+
+                    await supabaseClient
+                        .auth
+                        .signOut();
+
+                    throw new Error(
+                        "This account is not registered as an administrator."
+                    );
+                }
+
+                await showDashboard(
+                    data.session
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "LOGIN ERROR:",
+                    error
+                );
+
+                showLoginMessage(
+                    error.message,
+                    "error"
+                );
+
+            } finally {
+
+                button.disabled = false;
+
+                button.textContent =
+                    "Login";
+            }
+
+        }
+    );
+
+}
+
+
+// =========================================================
+// SHOW DASHBOARD
+// =========================================================
+
+async function showDashboard(
+    session
+) {
+
+    loginSection.classList.add(
+        "hidden"
+    );
+
+    dashboard.classList.remove(
+        "hidden"
+    );
+
+    logoutButton.classList.remove(
+        "hidden"
+    );
+
+    if (
+        session &&
+        session.user
+    ) {
+
+        adminEmail.textContent =
+            session.user.email || "";
+
+    }
+
+    await refreshDashboard();
+}
+
+
+// =========================================================
+// REFRESH EVERYTHING
+// =========================================================
+
+async function refreshDashboard() {
+
+    await Promise.all([
+        loadCategories(),
+        loadProducts(),
+        loadOrders(),
+        loadStats()
+    ]);
+
+}
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
+if (logoutButton) {
+
+    logoutButton.addEventListener(
+        "click",
+        async () => {
+
+            await supabaseClient
+                .auth
+                .signOut();
+
+            showLogin();
+
+            loginForm.reset();
+
+            adminEmail.textContent = "";
+
+        }
+    );
+
 }
 
 
@@ -255,33 +592,23 @@ if (forgotPasswordButton) {
 
     forgotPasswordButton.addEventListener(
         "click",
-        async function () {
+        async () => {
 
             const emailInput =
-                document.getElementById("email");
-
-            if (!emailInput) {
-
-                console.error(
-                    "Email input was not found."
+                document.getElementById(
+                    "email"
                 );
-
-                return;
-            }
 
             const email =
                 emailInput.value.trim();
 
             if (!email) {
 
-                if (forgotPasswordMessage) {
+                forgotPasswordMessage.textContent =
+                    "Enter your email address first.";
 
-                    forgotPasswordMessage.textContent =
-                        "Enter your admin email address first.";
-
-                    forgotPasswordMessage.className =
-                        "message error";
-                }
+                forgotPasswordMessage.className =
+                    "message error";
 
                 emailInput.focus();
 
@@ -294,9 +621,8 @@ if (forgotPasswordButton) {
             forgotPasswordButton.textContent =
                 "Sending...";
 
-            if (forgotPasswordMessage) {
-                forgotPasswordMessage.textContent = "";
-            }
+            forgotPasswordMessage.textContent =
+                "";
 
             try {
 
@@ -317,14 +643,11 @@ if (forgotPasswordButton) {
                     throw error;
                 }
 
-                if (forgotPasswordMessage) {
+                forgotPasswordMessage.textContent =
+                    "Password reset instructions have been sent to your email.";
 
-                    forgotPasswordMessage.textContent =
-                        "Password reset instructions have been sent to your email.";
-
-                    forgotPasswordMessage.className =
-                        "message success";
-                }
+                forgotPasswordMessage.className =
+                    "message success";
 
             } catch (error) {
 
@@ -333,15 +656,11 @@ if (forgotPasswordButton) {
                     error
                 );
 
-                if (forgotPasswordMessage) {
+                forgotPasswordMessage.textContent =
+                    error.message;
 
-                    forgotPasswordMessage.textContent =
-                        "Could not send reset email: " +
-                        error.message;
-
-                    forgotPasswordMessage.className =
-                        "message error";
-                }
+                forgotPasswordMessage.className =
+                    "message error";
 
             } finally {
 
@@ -351,236 +670,10 @@ if (forgotPasswordButton) {
                 forgotPasswordButton.textContent =
                     "Forgot Password?";
             }
+
         }
     );
-}
 
-
-// =========================================================
-// LOGIN CHECK
-// =========================================================
-
-async function checkLogin() {
-
-    const {
-        data,
-        error
-    } =
-        await supabaseClient.auth.getSession();
-
-    if (error) {
-
-        console.error(
-            "SESSION ERROR:",
-            error
-        );
-
-        return;
-    }
-
-    if (data.session) {
-
-        showDashboard(
-            data.session
-        );
-    }
-}
-
-
-// =========================================================
-// LOGIN
-// =========================================================
-
-if (loginForm) {
-
-    loginForm.addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-            if (loginMessage) {
-                loginMessage.textContent = "";
-            }
-
-            const emailInput =
-                document.getElementById("email");
-
-            const passwordInput =
-                document.getElementById("password");
-
-            if (!emailInput || !passwordInput) {
-                return;
-            }
-
-            const email =
-                emailInput.value.trim();
-
-            const password =
-                passwordInput.value;
-
-            const submitButton =
-                loginForm.querySelector(
-                    "button[type='submit']"
-                );
-
-            if (submitButton) {
-
-                submitButton.disabled =
-                    true;
-
-                submitButton.textContent =
-                    "Signing in...";
-            }
-
-            try {
-
-                const {
-                    data,
-                    error
-                } =
-                    await supabaseClient.auth
-                        .signInWithPassword({
-                            email,
-                            password
-                        });
-
-                if (error) {
-                    throw error;
-                }
-
-                showDashboard(
-                    data.session
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "LOGIN ERROR:",
-                    error
-                );
-
-                if (loginMessage) {
-
-                    loginMessage.textContent =
-                        error.message;
-
-                    loginMessage.className =
-                        "auth-message error";
-                }
-
-            } finally {
-
-                if (submitButton) {
-
-                    submitButton.disabled =
-                        false;
-
-                    submitButton.textContent =
-                        "Login";
-                }
-            }
-        }
-    );
-}
-
-
-// =========================================================
-// SHOW DASHBOARD
-// =========================================================
-
-async function showDashboard(session) {
-
-    if (loginSection) {
-
-        loginSection.classList.add(
-            "hidden"
-        );
-    }
-
-    if (dashboard) {
-
-        dashboard.classList.remove(
-            "hidden"
-        );
-    }
-
-    if (logoutButton) {
-
-        logoutButton.classList.remove(
-            "hidden"
-        );
-    }
-
-    if (
-        session &&
-        session.user &&
-        adminEmail
-    ) {
-
-        adminEmail.textContent =
-            session.user.email || "";
-    }
-
-    await refreshDashboard();
-}
-
-
-// =========================================================
-// REFRESH DASHBOARD
-// =========================================================
-
-async function refreshDashboard() {
-
-    await loadCategories();
-
-    await loadProducts();
-
-    await loadOrders();
-
-    await loadStats();
-}
-
-
-// =========================================================
-// LOGOUT
-// =========================================================
-
-if (logoutButton) {
-
-    logoutButton.addEventListener(
-        "click",
-        async () => {
-
-            await supabaseClient.auth.signOut();
-
-            if (dashboard) {
-
-                dashboard.classList.add(
-                    "hidden"
-                );
-            }
-
-            if (loginSection) {
-
-                loginSection.classList.remove(
-                    "hidden"
-                );
-            }
-
-            logoutButton.classList.add(
-                "hidden"
-            );
-
-            if (adminEmail) {
-                adminEmail.textContent = "";
-            }
-
-            if (loginForm) {
-                loginForm.reset();
-            }
-        }
-    );
 }
 
 
@@ -592,73 +685,71 @@ async function loadStats() {
 
     const {
         count: productsTotal,
-        error: productsError
+        error: productError
     } =
         await supabaseClient
             .from("products")
             .select(
-                "*",
+                "id",
                 {
                     count: "exact",
                     head: true
                 }
             );
 
-    if (productsError) {
+    if (productError) {
 
         console.error(
             "PRODUCT COUNT ERROR:",
-            productsError
+            productError
         );
     }
 
+
     const {
         data: orders,
-        error: ordersError
+        error: orderError
     } =
         await supabaseClient
             .from("orders")
-            .select("id, total");
+            .select(
+                "id,total"
+            );
 
-    if (ordersError) {
+    if (orderError) {
 
         console.error(
-            "ORDER COUNT ERROR:",
-            ordersError
+            "ORDER STATS ERROR:",
+            orderError
         );
 
         return;
     }
 
-    if (productCount) {
 
-        productCount.textContent =
-            productsTotal || 0;
-    }
+    productCount.textContent =
+        productsTotal || 0;
 
-    if (orderCount) {
+    orderCount.textContent =
+        orders?.length || 0;
 
-        orderCount.textContent =
-            orders.length;
-    }
 
-    const totalRevenue =
-        orders.reduce(
-            (total, order) => {
-
-                return total +
+    const total =
+        (orders || [])
+            .reduce(
+                (
+                    sum,
+                    order
+                ) =>
+                    sum +
                     Number(
                         order.total || 0
-                    );
-            },
-            0
-        );
+                    ),
+                0
+            );
 
-    if (revenue) {
-
-        revenue.textContent =
-            money(totalRevenue);
-    }
+    revenue.textContent =
+        money(total);
 }
 
 
@@ -678,29 +769,46 @@ async function loadOrders() {
         </div>
     `;
 
-    const {
-        data,
-        error
-    } =
-        await supabaseClient
-            .from("orders")
-            .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            );
+    try {
 
-    if (error) {
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("orders")
+                .select("*")
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        allOrders =
+            data || [];
+
+        renderOrders();
+
+        console.log(
+            "ORDERS LOADED:",
+            allOrders.length
+        );
+
+    } catch (error) {
 
         console.error(
-            "ORDERS ERROR:",
+            "LOAD ORDERS ERROR:",
             error
         );
 
         ordersContainer.innerHTML = `
             <div class="empty-state">
+
                 <strong>
                     Could not load orders.
                 </strong>
@@ -710,82 +818,82 @@ async function loadOrders() {
                 ${escapeHTML(
                     error.message
                 )}
+
             </div>
         `;
-
-        return;
     }
-
-    allOrders =
-        data || [];
-
-    renderOrders();
 }
 
 
 // =========================================================
-// RENDER / FILTER ORDERS
+// RENDER ORDERS
 // =========================================================
 
 function renderOrders() {
 
-    if (!ordersContainer) {
-        return;
-    }
-
     const search =
         (
-            orderSearch?.value || ""
+            orderSearch?.value ||
+            ""
         )
         .trim()
         .toLowerCase();
 
     const selectedStatus =
-        normalizeOrderStatus(
-            orderStatusFilter?.value || ""
+        (
+            orderStatusFilter?.value ||
+            ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const filtered =
+        allOrders.filter(
+            order => {
+
+                const id =
+                    String(
+                        order.id || ""
+                    )
+                    .toLowerCase();
+
+                const name =
+                    String(
+                        order.customer_name || ""
+                    )
+                    .toLowerCase();
+
+                const email =
+                    String(
+                        order.customer_email || ""
+                    )
+                    .toLowerCase();
+
+                const status =
+                    normalizeStatus(
+                        order.status
+                    );
+
+                const searchMatch =
+                    !search ||
+                    id.includes(search) ||
+                    name.includes(search) ||
+                    email.includes(search);
+
+                const statusMatch =
+                    !selectedStatus ||
+                    status === selectedStatus;
+
+                return (
+                    searchMatch &&
+                    statusMatch
+                );
+            }
         );
 
-    const filteredOrders =
-        allOrders.filter(order => {
-
-            const id =
-                String(
-                    order.id || ""
-                ).toLowerCase();
-
-            const name =
-                String(
-                    order.customer_name || ""
-                ).toLowerCase();
-
-            const email =
-                String(
-                    order.customer_email || ""
-                ).toLowerCase();
-
-            const status =
-                normalizeOrderStatus(
-                    order.status
-                );
-
-            const matchesSearch =
-                !search ||
-                id.includes(search) ||
-                name.includes(search) ||
-                email.includes(search);
-
-            const matchesStatus =
-                !selectedStatus ||
-                status === selectedStatus;
-
-            return (
-                matchesSearch &&
-                matchesStatus
-            );
-        });
-
     displayOrders(
-        filteredOrders
+        filtered
     );
 }
 
@@ -794,7 +902,9 @@ function renderOrders() {
 // DISPLAY ORDERS
 // =========================================================
 
-function displayOrders(orders) {
+function displayOrders(
+    orders
+) {
 
     if (!ordersContainer) {
         return;
@@ -811,6 +921,7 @@ function displayOrders(orders) {
         return;
     }
 
+
     let html = `
 
         <table>
@@ -819,22 +930,29 @@ function displayOrders(orders) {
 
                 <tr>
 
-                    <th>ID</th>
-                    
-                    <td>
-    <div class="order-customer-name">
-        ${escapeHTML(order.customer_name || "—")}
-    </div>
+                    <th>
+                        Order
+                    </th>
 
-    <div class="order-customer-email">
-        ${escapeHTML(order.customer_email || "—")}
-    </div>
-</td>
+                    <th>
+                        Customer
+                    </th>
 
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                    <th>Action</th>
+                    <th>
+                        Total
+                    </th>
+
+                    <th>
+                        Status
+                    </th>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <th>
+                        Action
+                    </th>
 
                 </tr>
 
@@ -843,85 +961,125 @@ function displayOrders(orders) {
             <tbody>
     `;
 
-    orders.forEach(order => {
 
-        const status =
-            normalizeOrderStatus(
-                order.status
-            );
+    orders.forEach(
+        order => {
 
-        const statusLabel =
-            status.charAt(0).toUpperCase() +
-            status.slice(1);
+            const status =
+                normalizeStatus(
+                    order.status
+                );
 
-        html += `
-
-            <tr>
-
-                <td>
-                    <strong>
-                        #${escapeHTML(order.id)}
-                    </strong>
-                </td>
-
-                <td>
-                    ${escapeHTML(
-                        order.customer_name
-                    )}
-                </td>
-
-                <td>
-                    ${escapeHTML(
-                        order.customer_email
-                    )}
-                </td>
-
-                <td>
-                    ${orderMoney(
-                        order.total
-                    )}
-                </td>
-
-                <td>
-
-                    <span
-                        class="status ${orderStatusClass(status)}"
-                    >
-                        ${escapeHTML(
-                            statusLabel
-                        )}
-                    </span>
-
-                </td>
-
-                <td>
-                    ${orderDate(
+            const date =
+                order.created_at
+                    ? new Date(
                         order.created_at
-                    )}
-                </td>
+                    ).toLocaleDateString()
+                    : "—";
 
-                <td>
 
-                    <button
-                        type="button"
-                        class="edit-button"
-                        onclick="viewOrder(${Number(order.id)})"
-                    >
-                        View
-                    </button>
+            html += `
 
-                </td>
+                <tr>
 
-            </tr>
-        `;
-    });
+                    <td>
+
+                        <strong>
+                            #${escapeHTML(
+                                order.id
+                            )}
+                        </strong>
+
+                    </td>
+
+
+                    <td>
+
+                        <div class="order-customer-name">
+
+                            ${escapeHTML(
+                                order.customer_name ||
+                                "—"
+                            )}
+
+                        </div>
+
+                        <div class="order-customer-email">
+
+                            ${escapeHTML(
+                                order.customer_email ||
+                                "—"
+                            )}
+
+                        </div>
+
+                    </td>
+
+
+                    <td>
+
+                        ${money(
+                            order.total
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <span
+                            class="status ${statusClass(
+                                status
+                            )}"
+                        >
+
+                            ${escapeHTML(
+                                status
+                            )}
+
+                        </span>
+
+                    </td>
+
+
+                    <td>
+
+                        ${escapeHTML(
+                            date
+                        )}
+
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="order-view-button"
+                            onclick="viewOrder(${Number(
+                                order.id
+                            )})"
+                        >
+                            View
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+        }
+    );
+
 
     html += `
 
             </tbody>
 
         </table>
+
     `;
+
 
     ordersContainer.innerHTML =
         html;
@@ -932,14 +1090,11 @@ function displayOrders(orders) {
 // VIEW ORDER
 // =========================================================
 
-async function viewOrder(orderId) {
+async function viewOrder(
+    orderId
+) {
 
     if (!orderDetails) {
-
-        console.error(
-            "orderDetails container was not found."
-        );
-
         return;
     }
 
@@ -949,73 +1104,74 @@ async function viewOrder(orderId) {
 
     orderDetails.innerHTML = `
         <div class="loading">
-            Loading order details...
+            Loading order...
         </div>
     `;
 
-    const {
-        data: order,
-        error: orderError
-    } =
-        await supabaseClient
-            .from("orders")
-            .select("*")
-            .eq("id", orderId)
-            .single();
 
-    if (orderError) {
+    try {
+
+        const {
+            data: order,
+            error: orderError
+        } =
+            await supabaseClient
+                .from("orders")
+                .select("*")
+                .eq(
+                    "id",
+                    orderId
+                )
+                .single();
+
+        if (orderError) {
+            throw orderError;
+        }
+
+
+        const {
+            data: items,
+            error: itemsError
+        } =
+            await supabaseClient
+                .from("order_items")
+                .select("*")
+                .eq(
+                    "order_id",
+                    orderId
+                )
+                .order(
+                    "id",
+                    {
+                        ascending: true
+                    }
+                );
+
+        if (itemsError) {
+            throw itemsError;
+        }
+
+
+        renderOrderDetails(
+            order,
+            items || []
+        );
+
+    } catch (error) {
 
         console.error(
-            "ORDER ERROR:",
-            orderError
+            "VIEW ORDER ERROR:",
+            error
         );
 
         orderDetails.innerHTML = `
             <div class="empty-state">
-
-                <strong>
-                    Could not load order.
-                </strong>
-
-                <br><br>
-
                 ${escapeHTML(
-                    orderError.message
+                    error.message
                 )}
-
             </div>
         `;
-
-        return;
     }
-
-    const {
-        data: items,
-        error: itemsError
-    } =
-        await supabaseClient
-            .from("order_items")
-            .select("*")
-            .eq("order_id", orderId)
-            .order(
-                "id",
-                {
-                    ascending: true
-                }
-            );
-
-    if (itemsError) {
-
-        console.error(
-            "ORDER ITEMS ERROR:",
-            itemsError
-        );
-    }
-
-    renderOrderDetails(
-        order,
-        items || []
-    );
 }
 
 
@@ -1028,77 +1184,89 @@ function renderOrderDetails(
     items
 ) {
 
-    if (!orderDetails) {
-        return;
-    }
-
     const currentStatus =
-        normalizeOrderStatus(
+        normalizeStatus(
             order.status
         );
 
+
     let itemsHTML = "";
+
 
     if (!items.length) {
 
         itemsHTML = `
             <div class="empty-state">
-                No products were recorded
-                for this order.
+                No products recorded for this order.
             </div>
         `;
 
     } else {
 
         itemsHTML =
-            items.map(item => {
+            items
+                .map(
+                    item => {
 
-                const quantity =
-                    Number(
-                        item.quantity || 0
-                    );
+                        const quantity =
+                            Number(
+                                item.quantity || 0
+                            );
 
-                const price =
-                    Number(
-                        item.price || 0
-                    );
+                        const price =
+                            Number(
+                                item.price || 0
+                            );
 
-                const lineTotal =
-                    quantity * price;
+                        const total =
+                            quantity * price;
 
-                return `
 
-                    <div class="order-item">
+                        return `
 
-                        <div>
+                            <div class="order-item">
 
-                            <strong>
-                                ${escapeHTML(
-                                    item.product_name
-                                )}
-                            </strong>
+                                <div>
 
-                            <div>
-                                ${quantity}
-                                ×
-                                ${orderMoney(price)}
+                                    <strong>
+
+                                        ${escapeHTML(
+                                            item.product_name ||
+                                            "Product"
+                                        )}
+
+                                    </strong>
+
+                                    <div>
+
+                                        ${quantity}
+                                        ×
+                                        ${money(price)}
+
+                                    </div>
+
+                                </div>
+
+
+                                <strong>
+
+                                    ${money(total)}
+
+                                </strong>
+
                             </div>
 
-                        </div>
-
-                        <strong>
-                            ${orderMoney(lineTotal)}
-                        </strong>
-
-                    </div>
-                `;
-
-            }).join("");
+                        `;
+                    }
+                )
+                .join("");
     }
+
 
     orderDetails.innerHTML = `
 
         <div class="order-details-card">
+
 
             <div class="order-details-header">
 
@@ -1109,10 +1277,13 @@ function renderOrderDetails(
                     </p>
 
                     <h3>
-                        #${escapeHTML(order.id)}
+                        #${escapeHTML(
+                            order.id
+                        )}
                     </h3>
 
                 </div>
+
 
                 <button
                     type="button"
@@ -1132,11 +1303,13 @@ function renderOrderDetails(
                 </h4>
 
                 <p>
+
                     <strong>
                         ${escapeHTML(
                             order.customer_name
                         )}
                     </strong>
+
                 </p>
 
                 <p>
@@ -1151,22 +1324,15 @@ function renderOrderDetails(
                     )}
                 </p>
 
-            </div>
-
-
-            <div class="order-customer">
-
-                <h4>
-                    Order Information
-                </h4>
-
                 <p>
                     Order date:
-                    <strong>
-                        ${orderDate(
-                            order.created_at
-                        )}
-                    </strong>
+                    ${escapeHTML(
+                        order.created_at
+                            ? new Date(
+                                order.created_at
+                            ).toLocaleString()
+                            : "—"
+                    )}
                 </p>
 
             </div>
@@ -1190,7 +1356,7 @@ function renderOrderDetails(
                 </span>
 
                 <strong>
-                    ${orderMoney(
+                    ${money(
                         order.total
                     )}
                 </strong>
@@ -1201,15 +1367,17 @@ function renderOrderDetails(
             <div class="order-status-editor">
 
                 <label for="orderStatus">
-                    Order Status
+                    Status
                 </label>
+
 
                 <select id="orderStatus">
 
                     <option
                         value="pending"
                         ${
-                            currentStatus === "pending"
+                            currentStatus ===
+                            "pending"
                                 ? "selected"
                                 : ""
                         }
@@ -1217,10 +1385,12 @@ function renderOrderDetails(
                         Pending
                     </option>
 
+
                     <option
                         value="processing"
                         ${
-                            currentStatus === "processing"
+                            currentStatus ===
+                            "processing"
                                 ? "selected"
                                 : ""
                         }
@@ -1228,10 +1398,12 @@ function renderOrderDetails(
                         Processing
                     </option>
 
+
                     <option
                         value="shipped"
                         ${
-                            currentStatus === "shipped"
+                            currentStatus ===
+                            "shipped"
                                 ? "selected"
                                 : ""
                         }
@@ -1239,10 +1411,12 @@ function renderOrderDetails(
                         Shipped
                     </option>
 
+
                     <option
                         value="delivered"
                         ${
-                            currentStatus === "delivered"
+                            currentStatus ===
+                            "delivered"
                                 ? "selected"
                                 : ""
                         }
@@ -1250,10 +1424,12 @@ function renderOrderDetails(
                         Delivered
                     </option>
 
+
                     <option
                         value="cancelled"
                         ${
-                            currentStatus === "cancelled"
+                            currentStatus ===
+                            "cancelled"
                                 ? "selected"
                                 : ""
                         }
@@ -1263,12 +1439,15 @@ function renderOrderDetails(
 
                 </select>
 
+
                 <button
                     type="button"
                     class="primary-button"
-                    onclick="updateOrderStatus(${Number(order.id)})"
+                    onclick="updateOrderStatus(${Number(
+                        order.id
+                    )})"
                 >
-                    Save Status
+                    Update Status
                 </button>
 
             </div>
@@ -1279,6 +1458,7 @@ function renderOrderDetails(
                 class="order-status-message"
             ></div>
 
+
         </div>
     `;
 }
@@ -1288,9 +1468,11 @@ function renderOrderDetails(
 // UPDATE ORDER STATUS
 // =========================================================
 
-async function updateOrderStatus(orderId) {
+async function updateOrderStatus(
+    orderId
+) {
 
-    const statusSelect =
+    const select =
         document.getElementById(
             "orderStatus"
         );
@@ -1300,80 +1482,89 @@ async function updateOrderStatus(orderId) {
             "orderStatusMessage"
         );
 
-    if (!statusSelect) {
+
+    if (!select) {
         return;
     }
 
+
     const newStatus =
-        normalizeOrderStatus(
-            statusSelect.value
+        normalizeStatus(
+            select.value
         );
+
 
     if (message) {
         message.textContent =
             "Saving...";
     }
 
-    const {
-        error
-    } =
-        await supabaseClient
-            .from("orders")
-            .update({
-                status: newStatus
-            })
-            .eq(
-                "id",
-                orderId
+
+    try {
+
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("orders")
+                .update({
+                    status: newStatus
+                })
+                .eq(
+                    "id",
+                    orderId
+                );
+
+        if (error) {
+            throw error;
+        }
+
+
+        const localOrder =
+            allOrders.find(
+                order =>
+                    Number(order.id) ===
+                    Number(orderId)
             );
 
-    if (error) {
 
-        console.error(
-            "STATUS UPDATE ERROR:",
-            error
-        );
+        if (localOrder) {
+            localOrder.status =
+                newStatus;
+        }
+
+
+        renderOrders();
+
 
         if (message) {
 
-            message.innerHTML = `
-                <span class="status-danger-text">
-                    Could not update order:
-                    ${escapeHTML(
-                        error.message
-                    )}
-                </span>
-            `;
+            message.textContent =
+                "Order status updated successfully.";
+
+            message.className =
+                "order-status-message status-success-text";
         }
 
-        return;
-    }
 
-    const localOrder =
-        allOrders.find(
-            order =>
-                Number(order.id) ===
-                Number(orderId)
+    } catch (error) {
+
+        console.error(
+            "UPDATE STATUS ERROR:",
+            error
         );
 
-    if (localOrder) {
 
-        localOrder.status =
-            newStatus;
+        if (message) {
+
+            message.textContent =
+                "Could not update order: " +
+                error.message;
+
+            message.className =
+                "order-status-message status-danger-text";
+        }
     }
-
-    renderOrders();
-
-    if (message) {
-
-        message.innerHTML = `
-            <span class="status-success-text">
-                Order status updated successfully.
-            </span>
-        `;
-    }
-
-    await loadStats();
 }
 
 
@@ -1410,7 +1601,7 @@ if (orderSearch) {
 
 
 // =========================================================
-// ORDER STATUS FILTER
+// ORDER FILTER
 // =========================================================
 
 if (orderStatusFilter) {
@@ -1438,52 +1629,58 @@ async function loadCategories() {
         </div>
     `;
 
-    const {
-        data,
-        error
-    } =
-        await supabaseClient
-            .from("categories")
-            .select(
-                "id, name, slug"
-            )
-            .order(
-                "name",
-                {
-                    ascending: true
-                }
-            );
 
-    if (error) {
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .select(
+                    "id,name,slug"
+                )
+                .order(
+                    "name",
+                    {
+                        ascending: true
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+
+        categories =
+            data || [];
+
+
+        displayCategories(
+            categories
+        );
+
+
+        populateCategorySelect(
+            categories
+        );
+
+    } catch (error) {
 
         console.error(
-            "CATEGORY ERROR:",
+            "LOAD CATEGORIES ERROR:",
             error
         );
 
         categoriesContainer.innerHTML = `
             <div class="empty-state">
-                Could not load categories.
-                <br>
                 ${escapeHTML(
                     error.message
                 )}
             </div>
         `;
-
-        return;
     }
-
-    categories =
-        data || [];
-
-    displayCategories(
-        categories
-    );
-
-    populateCategorySelect(
-        categories
-    );
 }
 
 
@@ -1491,11 +1688,9 @@ async function loadCategories() {
 // DISPLAY CATEGORIES
 // =========================================================
 
-function displayCategories(list) {
-
-    if (!categoriesContainer) {
-        return;
-    }
+function displayCategories(
+    list
+) {
 
     if (!list.length) {
 
@@ -1508,108 +1703,65 @@ function displayCategories(list) {
         return;
     }
 
-    let html = "";
-
-    list.forEach(category => {
-
-        html += `
-
-            <div
-                class="category-card"
-                data-id="${category.id}"
-            >
-
-                <div>
-
-                    <div class="category-name">
-                        ${escapeHTML(
-                            category.name
-                        )}
-                    </div>
-
-                    <div class="category-slug">
-                        ${escapeHTML(
-                            category.slug
-                        )}
-                    </div>
-
-                </div>
-
-                <div class="category-actions">
-
-                    <button
-                        type="button"
-                        class="edit-button"
-                        data-action="edit-category"
-                        data-id="${category.id}"
-                    >
-                        Edit
-                    </button>
-
-                    <button
-                        type="button"
-                        class="danger-button"
-                        data-action="delete-category"
-                        data-id="${category.id}"
-                    >
-                        Delete
-                    </button>
-
-                </div>
-
-            </div>
-        `;
-    });
 
     categoriesContainer.innerHTML =
-        html;
-}
+        list
+            .map(
+                category => `
+
+                    <div class="category-card">
+
+                        <div>
+
+                            <div class="category-name">
+
+                                ${escapeHTML(
+                                    category.name
+                                )}
+
+                            </div>
+
+                            <div class="category-slug">
+
+                                ${escapeHTML(
+                                    category.slug
+                                )}
+
+                            </div>
+
+                        </div>
 
 
-// =========================================================
-// CATEGORY BUTTONS
-// =========================================================
+                        <div class="category-actions">
 
-if (categoriesContainer) {
+                            <button
+                                type="button"
+                                class="edit-button"
+                                onclick="editCategory(${Number(
+                                    category.id
+                                )})"
+                            >
+                                Edit
+                            </button>
 
-    categoriesContainer.addEventListener(
-        "click",
-        event => {
 
-            const button =
-                event.target.closest(
-                    "button"
-                );
+                            <button
+                                type="button"
+                                class="danger-button"
+                                onclick="deleteCategory(${Number(
+                                    category.id
+                                )})"
+                            >
+                                Delete
+                            </button>
 
-            if (!button) {
-                return;
-            }
+                        </div>
 
-            const id =
-                Number(
-                    button.dataset.id
-                );
+                    </div>
 
-            const action =
-                button.dataset.action;
-
-            if (
-                action ===
-                "edit-category"
-            ) {
-
-                editCategory(id);
-            }
-
-            if (
-                action ===
-                "delete-category"
-            ) {
-
-                deleteCategory(id);
-            }
-        }
-    );
+                `
+            )
+            .join("");
 }
 
 
@@ -1625,6 +1777,7 @@ if (categoryForm) {
 
             event.preventDefault();
 
+
             const name =
                 categoryName.value.trim();
 
@@ -1633,76 +1786,78 @@ if (categoryForm) {
                     categorySlug.value
                 );
 
+
             if (!name || !slug) {
 
                 alert(
-                    "Please enter a category name and slug."
+                    "Enter a category name and slug."
                 );
 
                 return;
             }
+
 
             categorySubmitButton.disabled =
                 true;
 
-            categorySubmitButton.textContent =
-                categoryId.value
-                    ? "Updating..."
-                    : "Adding...";
 
-            let result;
+            try {
 
-            if (categoryId.value) {
+                let result;
 
-                result =
-                    await supabaseClient
-                        .from("categories")
-                        .update({
-                            name,
-                            slug
-                        })
-                        .eq(
-                            "id",
-                            categoryId.value
-                        );
 
-            } else {
+                if (categoryId.value) {
 
-                result =
-                    await supabaseClient
-                        .from("categories")
-                        .insert({
-                            name,
-                            slug
-                        });
-            }
+                    result =
+                        await supabaseClient
+                            .from("categories")
+                            .update({
+                                name,
+                                slug
+                            })
+                            .eq(
+                                "id",
+                                categoryId.value
+                            );
 
-            categorySubmitButton.disabled =
-                false;
+                } else {
 
-            if (result.error) {
+                    result =
+                        await supabaseClient
+                            .from("categories")
+                            .insert({
+                                name,
+                                slug
+                            });
+                }
+
+
+                if (result.error) {
+                    throw result.error;
+                }
+
+
+                resetCategoryForm();
+
+                await loadCategories();
+
+            } catch (error) {
 
                 console.error(
-                    "CATEGORY SAVE ERROR:",
-                    result.error
+                    "SAVE CATEGORY ERROR:",
+                    error
                 );
 
                 alert(
                     "Could not save category:\n" +
-                    result.error.message
+                    error.message
                 );
 
-                categorySubmitButton.textContent =
-                    categoryId.value
-                        ? "Update Category"
-                        : "Add Category";
+            } finally {
 
-                return;
+                categorySubmitButton.disabled =
+                    false;
             }
-
-            resetCategoryForm();
-
-            await loadCategories();
         }
     );
 }
@@ -1746,31 +1901,22 @@ function editCategory(id) {
 
 
 // =========================================================
-// RESET CATEGORY FORM
+// CANCEL CATEGORY
 // =========================================================
 
 function resetCategoryForm() {
 
-    if (categoryForm) {
-        categoryForm.reset();
-    }
+    categoryForm.reset();
 
-    if (categoryId) {
-        categoryId.value = "";
-    }
+    categoryId.value =
+        "";
 
-    if (categorySubmitButton) {
+    categorySubmitButton.textContent =
+        "Add Category";
 
-        categorySubmitButton.textContent =
-            "Add Category";
-    }
-
-    if (cancelCategoryEdit) {
-
-        cancelCategoryEdit.classList.add(
-            "hidden"
-        );
-    }
+    cancelCategoryEdit.classList.add(
+        "hidden"
+    );
 }
 
 
@@ -1800,14 +1946,15 @@ async function deleteCategory(id) {
         return;
     }
 
-    const confirmed =
-        confirm(
-            `Delete category "${category.name}"?`
-        );
 
-    if (!confirmed) {
+    if (
+        !confirm(
+            `Delete category "${category.name}"?`
+        )
+    ) {
         return;
     }
+
 
     const {
         error
@@ -1820,10 +1967,11 @@ async function deleteCategory(id) {
                 id
             );
 
+
     if (error) {
 
         console.error(
-            "CATEGORY DELETE ERROR:",
+            "DELETE CATEGORY ERROR:",
             error
         );
 
@@ -1835,7 +1983,31 @@ async function deleteCategory(id) {
         return;
     }
 
+
     await loadCategories();
+}
+
+
+// =========================================================
+// AUTO CATEGORY SLUG
+// =========================================================
+
+if (categoryName) {
+
+    categoryName.addEventListener(
+        "input",
+        () => {
+
+            if (categoryId.value) {
+                return;
+            }
+
+            categorySlug.value =
+                slugify(
+                    categoryName.value
+                );
+        }
+    );
 }
 
 
@@ -1843,14 +2015,18 @@ async function deleteCategory(id) {
 // CATEGORY SELECT
 // =========================================================
 
-function populateCategorySelect(list) {
+function populateCategorySelect(
+    list
+) {
 
     if (!productCategory) {
         return;
     }
 
-    const currentValue =
+
+    const current =
         productCategory.value;
+
 
     productCategory.innerHTML = `
         <option value="">
@@ -1858,28 +2034,31 @@ function populateCategorySelect(list) {
         </option>
     `;
 
-    list.forEach(category => {
 
-        const option =
-            document.createElement(
-                "option"
+    list.forEach(
+        category => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                category.slug;
+
+            option.textContent =
+                category.name;
+
+            productCategory.appendChild(
+                option
             );
+        }
+    );
 
-        option.value =
-            category.slug;
 
-        option.textContent =
-            category.name;
-
-        productCategory.appendChild(
-            option
-        );
-    });
-
-    if (currentValue) {
-
+    if (current) {
         productCategory.value =
-            currentValue;
+            current;
     }
 }
 
@@ -1900,46 +2079,51 @@ async function loadProducts() {
         </div>
     `;
 
-    const {
-        data,
-        error
-    } =
-        await supabaseClient
-            .from("products")
-            .select("*")
-            .order(
-                "id",
-                {
-                    ascending: false
-                }
-            );
 
-    if (error) {
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("products")
+                .select("*")
+                .order(
+                    "id",
+                    {
+                        ascending: false
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+
+        products =
+            data || [];
+
+
+        displayProducts(
+            products
+        );
+
+    } catch (error) {
 
         console.error(
-            "PRODUCT ERROR:",
+            "LOAD PRODUCTS ERROR:",
             error
         );
 
         productsContainer.innerHTML = `
             <div class="empty-state">
-                Could not load products.
-                <br>
                 ${escapeHTML(
                     error.message
                 )}
             </div>
         `;
-
-        return;
     }
-
-    products =
-        data || [];
-
-    displayProducts(
-        products
-    );
 }
 
 
@@ -1947,11 +2131,9 @@ async function loadProducts() {
 // DISPLAY PRODUCTS
 // =========================================================
 
-function displayProducts(list) {
-
-    if (!productsContainer) {
-        return;
-    }
+function displayProducts(
+    list
+) {
 
     if (!list.length) {
 
@@ -1964,20 +2146,38 @@ function displayProducts(list) {
         return;
     }
 
+
     let html = `
 
-        <table class="product-table">
+        <table>
 
             <thead>
 
                 <tr>
 
-                    <th>Image</th>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Category</th>
-                    <th>Stock</th>
-                    <th>Actions</th>
+                    <th>
+                        Image
+                    </th>
+
+                    <th>
+                        Product
+                    </th>
+
+                    <th>
+                        Price
+                    </th>
+
+                    <th>
+                        Category
+                    </th>
+
+                    <th>
+                        Stock
+                    </th>
+
+                    <th>
+                        Actions
+                    </th>
 
                 </tr>
 
@@ -1986,90 +2186,107 @@ function displayProducts(list) {
             <tbody>
     `;
 
-    list.forEach(product => {
 
-        const image =
-            product.image_url
-                ? `
-                    <img
-                        src="${escapeHTML(
-                            product.image_url
-                        )}"
-                        alt="${escapeHTML(
-                            product.name
-                        )}"
-                        class="product-table-image"
-                    >
-                `
-                : `
-                    <div class="product-placeholder">
-                        🛍️
-                    </div>
-                `;
+    list.forEach(
+        product => {
 
-        html += `
+            const image =
+                product.image_url
+                    ? `
+                        <img
+                            src="${escapeHTML(
+                                product.image_url
+                            )}"
+                            alt="${escapeHTML(
+                                product.name
+                            )}"
+                            class="product-table-image"
+                        >
+                    `
+                    : `
+                        <div class="product-placeholder">
+                            🛍️
+                        </div>
+                    `;
 
-            <tr>
 
-                <td>
-                    ${image}
-                </td>
+            html += `
 
-                <td>
-                    <strong>
-                        ${escapeHTML(
-                            product.name
+                <tr>
+
+                    <td>
+                        ${image}
+                    </td>
+
+
+                    <td>
+
+                        <strong>
+                            ${escapeHTML(
+                                product.name
+                            )}
+                        </strong>
+
+                    </td>
+
+
+                    <td>
+                        ${money(
+                            product.price
                         )}
-                    </strong>
-                </td>
+                    </td>
 
-                <td>
-                    ${money(
-                        product.price
-                    )}
-                </td>
 
-                <td>
-                    ${escapeHTML(
-                        product.category || "—"
-                    )}
-                </td>
+                    <td>
+                        ${escapeHTML(
+                            product.category ||
+                            "—"
+                        )}
+                    </td>
 
-                <td>
-                    ${Number(
-                        product.stock || 0
-                    )}
-                </td>
 
-                <td>
+                    <td>
+                        ${Number(
+                            product.stock || 0
+                        )}
+                    </td>
 
-                    <div class="table-actions">
 
-                        <button
-                            type="button"
-                            class="edit-button"
-                            data-action="edit-product"
-                            data-id="${product.id}"
-                        >
-                            Edit
-                        </button>
+                    <td>
 
-                        <button
-                            type="button"
-                            class="danger-button"
-                            data-action="delete-product"
-                            data-id="${product.id}"
-                        >
-                            Delete
-                        </button>
+                        <div class="table-actions">
 
-                    </div>
+                            <button
+                                type="button"
+                                class="edit-button"
+                                onclick="editProduct(${Number(
+                                    product.id
+                                )})"
+                            >
+                                Edit
+                            </button>
 
-                </td>
 
-            </tr>
-        `;
-    });
+                            <button
+                                type="button"
+                                class="danger-button"
+                                onclick="deleteProduct(${Number(
+                                    product.id
+                                )})"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            `;
+        }
+    );
+
 
     html += `
 
@@ -2078,55 +2295,9 @@ function displayProducts(list) {
         </table>
     `;
 
+
     productsContainer.innerHTML =
         html;
-}
-
-
-// =========================================================
-// PRODUCT BUTTONS
-// =========================================================
-
-if (productsContainer) {
-
-    productsContainer.addEventListener(
-        "click",
-        event => {
-
-            const button =
-                event.target.closest(
-                    "button"
-                );
-
-            if (!button) {
-                return;
-            }
-
-            const id =
-                Number(
-                    button.dataset.id
-                );
-
-            const action =
-                button.dataset.action;
-
-            if (
-                action ===
-                "edit-product"
-            ) {
-
-                editProduct(id);
-            }
-
-            if (
-                action ===
-                "delete-product"
-            ) {
-
-                deleteProduct(id);
-            }
-        }
-    );
 }
 
 
@@ -2142,11 +2313,10 @@ if (productForm) {
 
             event.preventDefault();
 
+
             const id =
                 productId.value;
 
-            const imageFile =
-                productImageFile.files[0];
 
             const product = {
 
@@ -2171,25 +2341,29 @@ if (productForm) {
 
                 image_url:
                     productImage.value.trim()
+
             };
+
 
             if (!product.name) {
 
                 alert(
-                    "Please enter a product name."
+                    "Enter a product name."
                 );
 
                 return;
             }
+
 
             if (!product.category) {
 
                 alert(
-                    "Please select a category."
+                    "Select a category."
                 );
 
                 return;
             }
+
 
             if (
                 Number.isNaN(
@@ -2198,11 +2372,12 @@ if (productForm) {
             ) {
 
                 alert(
-                    "Please enter a valid price."
+                    "Enter a valid price."
                 );
 
                 return;
             }
+
 
             if (
                 Number.isNaN(
@@ -2211,115 +2386,36 @@ if (productForm) {
             ) {
 
                 alert(
-                    "Please enter a valid stock quantity."
+                    "Enter a valid stock quantity."
                 );
 
                 return;
             }
 
+
             productSubmitButton.disabled =
                 true;
+
 
             productSubmitButton.textContent =
                 id
                     ? "Updating..."
                     : "Adding...";
 
+
             try {
 
-                // IMAGE UPLOAD
-
-                if (imageFile) {
-
-                    if (
-                        !imageFile.type.startsWith(
-                            "image/"
-                        )
-                    ) {
-
-                        throw new Error(
-                            "Please select an image file."
-                        );
-                    }
-
-                    if (
-                        imageFile.size >
-                        5 * 1024 * 1024
-                    ) {
-
-                        throw new Error(
-                            "Image must be smaller than 5 MB."
-                        );
-                    }
-
-                    const extension =
-                        imageFile.name
-                            .split(".")
-                            .pop()
-                            .toLowerCase();
-
-                    const fileName =
-                        crypto.randomUUID() +
-                        "." +
-                        extension;
-
-                    const filePath =
-                        "products/" +
-                        fileName;
-
-                    const {
-                        error:
-                            uploadError
-                    } =
-                        await supabaseClient
-                            .storage
-                            .from(
-                                "product-images"
-                            )
-                            .upload(
-                                filePath,
-                                imageFile,
-                                {
-                                    cacheControl:
-                                        "3600",
-
-                                    upsert:
-                                        false
-                                }
-                            );
-
-                    if (uploadError) {
-                        throw uploadError;
-                    }
-
-                    const {
-                        data:
-                            publicUrlData
-                    } =
-                        supabaseClient
-                            .storage
-                            .from(
-                                "product-images"
-                            )
-                            .getPublicUrl(
-                                filePath
-                            );
-
-                    product.image_url =
-                        publicUrlData.publicUrl;
-                }
-
-
-                // SAVE PRODUCT
-
                 let result;
+
 
                 if (id) {
 
                     result =
                         await supabaseClient
                             .from("products")
-                            .update(product)
+                            .update(
+                                product
+                            )
                             .eq(
                                 "id",
                                 id
@@ -2330,18 +2426,16 @@ if (productForm) {
                     result =
                         await supabaseClient
                             .from("products")
-                            .insert(product);
+                            .insert(
+                                product
+                            );
                 }
+
 
                 if (result.error) {
                     throw result.error;
                 }
 
-                alert(
-                    id
-                        ? "Product updated successfully!"
-                        : "Product added successfully!"
-                );
 
                 resetProductForm();
 
@@ -2349,10 +2443,11 @@ if (productForm) {
 
                 await loadStats();
 
+
             } catch (error) {
 
                 console.error(
-                    "PRODUCT SAVE ERROR:",
+                    "SAVE PRODUCT ERROR:",
                     error
                 );
 
@@ -2393,6 +2488,7 @@ function editProduct(id) {
         return;
     }
 
+
     productId.value =
         product.id;
 
@@ -2414,12 +2510,11 @@ function editProduct(id) {
     productImage.value =
         product.image_url || "";
 
-    productImageFile.value =
-        "";
 
     showImagePreview(
         product.image_url
     );
+
 
     productSubmitButton.textContent =
         "Update Product";
@@ -2427,6 +2522,7 @@ function editProduct(id) {
     cancelEdit.classList.remove(
         "hidden"
     );
+
 
     productForm.scrollIntoView({
         behavior: "smooth",
@@ -2436,49 +2532,32 @@ function editProduct(id) {
 
 
 // =========================================================
-// RESET PRODUCT FORM
+// RESET PRODUCT
 // =========================================================
 
 function resetProductForm() {
 
-    if (productForm) {
-        productForm.reset();
-    }
+    productForm.reset();
 
-    if (productId) {
-        productId.value = "";
-    }
+    productId.value =
+        "";
 
-    if (productImage) {
-        productImage.value = "";
-    }
+    productStock.value =
+        "0";
 
-    if (productStock) {
-        productStock.value = "0";
-    }
+    productSubmitButton.textContent =
+        "Add Product";
 
-    if (productSubmitButton) {
+    cancelEdit.classList.add(
+        "hidden"
+    );
 
-        productSubmitButton.textContent =
-            "Add Product";
-    }
+    imagePreview.innerHTML =
+        "";
 
-    if (cancelEdit) {
-
-        cancelEdit.classList.add(
-            "hidden"
-        );
-    }
-
-    if (imagePreview) {
-
-        imagePreview.innerHTML =
-            "";
-
-        imagePreview.classList.add(
-            "hidden"
-        );
-    }
+    imagePreview.classList.add(
+        "hidden"
+    );
 }
 
 
@@ -2508,14 +2587,15 @@ async function deleteProduct(id) {
         return;
     }
 
-    const confirmed =
-        confirm(
-            `Delete "${product.name}"?`
-        );
 
-    if (!confirmed) {
+    if (
+        !confirm(
+            `Delete "${product.name}"?`
+        )
+    ) {
         return;
     }
+
 
     const {
         error
@@ -2528,10 +2608,11 @@ async function deleteProduct(id) {
                 id
             );
 
+
     if (error) {
 
         console.error(
-            "PRODUCT DELETE ERROR:",
+            "DELETE PRODUCT ERROR:",
             error
         );
 
@@ -2543,13 +2624,6 @@ async function deleteProduct(id) {
         return;
     }
 
-    if (
-        Number(productId.value) ===
-        Number(id)
-    ) {
-
-        resetProductForm();
-    }
 
     await loadProducts();
 
@@ -2561,57 +2635,21 @@ async function deleteProduct(id) {
 // IMAGE PREVIEW
 // =========================================================
 
-if (productImageFile) {
+if (productImage) {
 
-    productImageFile.addEventListener(
-        "change",
+    productImage.addEventListener(
+        "input",
         () => {
 
-            const file =
-                productImageFile.files[0];
-
-            if (!file) {
-                return;
-            }
-
-            if (
-                !file.type.startsWith(
-                    "image/"
-                )
-            ) {
-
-                alert(
-                    "Please select an image."
-                );
-
-                productImageFile.value =
-                    "";
-
-                return;
-            }
-
-            const url =
-                URL.createObjectURL(
-                    file
-                );
-
             showImagePreview(
-                url
+                productImage.value.trim()
             );
         }
     );
 }
 
 
-// =========================================================
-// SHOW IMAGE PREVIEW
-// =========================================================
-
 function showImagePreview(url) {
-
-    if (!imagePreview) {
-        return;
-    }
 
     if (!url) {
 
@@ -2625,42 +2663,19 @@ function showImagePreview(url) {
         return;
     }
 
+
     imagePreview.innerHTML = `
 
         <img
             src="${escapeHTML(url)}"
-            alt="Product image preview"
+            alt="Product preview"
+            onerror="this.parentElement.classList.add('hidden')"
         >
 
     `;
 
     imagePreview.classList.remove(
         "hidden"
-    );
-}
-
-
-// =========================================================
-// AUTO SLUG
-// =========================================================
-
-if (categoryName) {
-
-    categoryName.addEventListener(
-        "input",
-        () => {
-
-            if (
-                categoryId.value
-            ) {
-                return;
-            }
-
-            categorySlug.value =
-                slugify(
-                    categoryName.value
-                );
-        }
     );
 }
 
@@ -2680,26 +2695,8 @@ supabaseClient.auth.onAuthStateChange(
             "SIGNED_OUT"
         ) {
 
-            if (dashboard) {
+            showLogin();
 
-                dashboard.classList.add(
-                    "hidden"
-                );
-            }
-
-            if (loginSection) {
-
-                loginSection.classList.remove(
-                    "hidden"
-                );
-            }
-
-            if (logoutButton) {
-
-                logoutButton.classList.add(
-                    "hidden"
-                );
-            }
         }
 
     }
@@ -2707,7 +2704,7 @@ supabaseClient.auth.onAuthStateChange(
 
 
 // =========================================================
-// START ADMIN
+// START
 // =========================================================
 
 checkLogin();
