@@ -795,17 +795,200 @@ footer {
     background: #b52a37;
 }
 
+/* ==========================================
+   CATEGORY MANAGEMENT
+========================================== */
+
+.category-management {
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 24px;
+    margin: 30px 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+
+/* Add category form */
+
+.category-management form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+
+.category-management input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #dcdcdc;
+    border-radius: 9px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+    transition: border-color 0.2s,
+                box-shadow 0.2s;
+}
+
+
+.category-management input:focus {
+    border-color: #111;
+    box-shadow:
+        0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+
+/* Category list */
+
+.category-list {
+    display: grid;
+    grid-template-columns:
+        repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+}
+
+
+/* Individual category */
+
+.category-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 16px;
+
+    background: #fafafa;
+
+    border: 1px solid #eeeeee;
+
+    border-radius: 12px;
+
+    transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        border-color 0.2s;
+}
+
+
+.category-row:hover {
+    transform: translateY(-2px);
+
+    border-color: #ddd;
+
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+
+/* Category name */
+
+.category-row strong {
+    display: block;
+
+    font-size: 15px;
+
+    color: #171717;
+
+    margin-bottom: 4px;
+}
+
+
+.category-row small {
+    color: #888;
+
+    font-size: 12px;
+}
+
+
+/* Buttons */
+
+.category-actions {
+    display: flex;
+
+    gap: 6px;
+}
+
+
+.category-actions button {
+    border: none;
+
+    border-radius: 7px;
+
+    padding: 8px 11px;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s,
+        transform 0.2s;
+}
+
+
+.category-actions button:hover {
+    transform: translateY(-1px);
+}
+
+
+/* Edit */
+
+.category-actions button:first-child {
+    background: #eeeeee;
+
+    color: #333;
+}
+
+
+.category-actions button:first-child:hover {
+    background: #e2e2e2;
+}
+
+
+/* Delete */
+
+.category-actions .danger {
+    background: #fff0f0;
+
+    color: #d93025;
+}
+
+
+.category-actions .danger:hover {
+    background: #ffe0e0;
+}
+
+
+/* Mobile */
+
 @media (max-width: 700px) {
 
-    .category-management form {
-        flex-direction: column;
+    .category-management {
+        padding: 18px;
     }
 
-    .category-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
+
+    .category-management form {
+        grid-template-columns: 1fr;
     }
+
+
+    .category-list {
+        grid-template-columns: 1fr;
+    }
+
+
+    .category-row {
+        align-items: flex-start;
+    }
+
+}
 
 }
     
