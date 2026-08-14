@@ -1104,23 +1104,46 @@ function displayAdminProducts(
 }
 
     // ==========================================
-// LOAD CATEGORIES
+// ==========================================
+// CATEGORY MANAGEMENT
 // ==========================================
 
+const categoryForm =
+    document.getElementById(
+        "categoryForm"
+    );
+
+const categoryName =
+    document.getElementById(
+        "categoryName"
+    );
+
+const categorySlug =
+    document.getElementById(
+        "categorySlug"
+    );
+
+const categoryId =
+    document.getElementById(
+        "categoryId"
+    );
+
+const categoriesContainer =
+    document.getElementById(
+        "categoriesContainer"
+    );
+
+const cancelCategoryEdit =
+    document.getElementById(
+        "cancelCategoryEdit"
+    );
+
+
+// ------------------------------------------
+// LOAD CATEGORIES
+// ------------------------------------------
+
 async function loadCategories() {
-
-    const categorySelect =
-        document.getElementById(
-            "productCategory"
-        );
-
-
-    if (!categorySelect) {
-
-        return;
-
-    }
-
 
     const {
         data,
@@ -1140,10 +1163,11 @@ async function loadCategories() {
             error
         );
 
-        categorySelect.innerHTML = `
-            <option value="">
-                Could not load categories
-            </option>
+        categoriesContainer.innerHTML = `
+            <p>
+                Could not load categories:
+                ${error.message}
+            </p>
         `;
 
         return;
@@ -1151,37 +1175,407 @@ async function loadCategories() {
     }
 
 
-    categorySelect.innerHTML = `
+    displayCategories(data);
+
+    populateCategorySelect(data);
+
+}
+
+
+// ------------------------------------------
+// DISPLAY CATEGORY LIST
+// ------------------------------------------
+
+function displayCategories(
+    categories
+) {
+
+    if (!categories.length) {
+
+        categoriesContainer.innerHTML = `
+            <p>No categories yet.</p>
+        `;
+
+        return;
+
+    }
+
+
+    let html =
+        `<div class="category-list">`;
+
+
+    categories.forEach(
+        category => {
+
+            html += `
+
+                <div class="category-row">
+
+                    <div>
+
+                        <strong>
+                            ${category.name}
+                        </strong>
+
+                        <small>
+                            (${category.slug})
+                        </small>
+
+                    </div>
+
+
+                    <div class="category-actions">
+
+                        <button
+                            type="button"
+                            onclick="editCategory(
+                                ${category.id},
+                                '${escapeCategoryText(category.name)}',
+                                '${escapeCategoryText(category.slug)}'
+                            )"
+                        >
+                            Edit
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="danger"
+                            onclick="deleteCategory(
+                                ${category.id}
+                            )"
+                        >
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+    );
+
+
+    html += `</div>`;
+
+
+    categoriesContainer.innerHTML =
+        html;
+
+}
+
+
+// ------------------------------------------
+// CATEGORY DROPDOWN
+// ------------------------------------------
+
+function populateCategorySelect(
+    categories
+) {
+
+    const select =
+        document.getElementById(
+            "productCategory"
+        );
+
+
+    if (!select) {
+
+        return;
+
+    }
+
+
+    const currentValue =
+        select.value;
+
+
+    select.innerHTML = `
         <option value="">
             Select category
         </option>
     `;
 
 
-    data.forEach(category => {
+    categories.forEach(
+        category => {
 
-        const option =
-            document.createElement(
-                "option"
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+
+            option.value =
+                category.slug;
+
+
+            option.textContent =
+                category.name;
+
+
+            select.appendChild(
+                option
             );
 
-
-        option.value =
-            category.slug;
-
-
-        option.textContent =
-            category.name;
+        }
+    );
 
 
-        categorySelect.appendChild(
-            option
-        );
+    if (currentValue) {
 
-    });
+        select.value =
+            currentValue;
+
+    }
 
 }
 
+
+// ------------------------------------------
+// ADD / UPDATE CATEGORY
+// ------------------------------------------
+
+categoryForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+
+        const name =
+            categoryName.value.trim();
+
+
+        const slug =
+            categorySlug.value
+                .trim()
+                .toLowerCase()
+                .replace(
+                    /\s+/g,
+                    "-"
+                );
+
+
+        if (!name || !slug) {
+
+            alert(
+                "Please enter a category name and slug."
+            );
+
+            return;
+
+        }
+
+
+        let result;
+
+
+        if (categoryId.value) {
+
+            result =
+                await supabaseClient
+                    .from("categories")
+                    .update({
+                        name: name,
+                        slug: slug
+                    })
+                    .eq(
+                        "id",
+                        categoryId.value
+                    );
+
+        } else {
+
+            result =
+                await supabaseClient
+                    .from("categories")
+                    .insert({
+                        name: name,
+                        slug: slug
+                    });
+
+        }
+
+
+        if (result.error) {
+
+            console.error(
+                result.error
+            );
+
+            alert(
+                "Could not save category: " +
+                result.error.message
+            );
+
+            return;
+
+        }
+
+
+        alert(
+            categoryId.value
+                ? "Category updated!"
+                : "Category added!"
+        );
+
+
+        resetCategoryForm();
+
+        await loadCategories();
+
+    }
+);
+
+
+// ------------------------------------------
+// EDIT CATEGORY
+// ------------------------------------------
+
+function editCategory(
+    id,
+    name,
+    slug
+) {
+
+    categoryId.value =
+        id;
+
+    categoryName.value =
+        name;
+
+    categorySlug.value =
+        slug;
+
+
+    categoryForm
+        .querySelector(
+            "button[type='submit']"
+        )
+        .textContent =
+        "Update Category";
+
+
+    cancelCategoryEdit.classList.remove(
+        "hidden"
+    );
+
+}
+
+
+// ------------------------------------------
+// CANCEL CATEGORY EDIT
+// ------------------------------------------
+
+cancelCategoryEdit.addEventListener(
+    "click",
+    resetCategoryForm
+);
+
+
+function resetCategoryForm() {
+
+    categoryForm.reset();
+
+    categoryId.value = "";
+
+
+    categoryForm
+        .querySelector(
+            "button[type='submit']"
+        )
+        .textContent =
+        "Add Category";
+
+
+    cancelCategoryEdit.classList.add(
+        "hidden"
+    );
+
+}
+
+
+// ------------------------------------------
+// DELETE CATEGORY
+// ------------------------------------------
+
+async function deleteCategory(
+    id
+) {
+
+    const confirmed =
+        confirm(
+            "Delete this category?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const {
+        error
+    } = await supabaseClient
+        .from("categories")
+        .delete()
+        .eq(
+            "id",
+            id
+        );
+
+
+    if (error) {
+
+        alert(
+            "Could not delete category: " +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    alert(
+        "Category deleted."
+    );
+
+
+    await loadCategories();
+
+}
+
+
+// ------------------------------------------
+// SAFE TEXT FOR BUTTONS
+// ------------------------------------------
+
+function escapeCategoryText(
+    text
+) {
+
+    return String(text)
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        );
+
+}
 // ------------------------------------------
 // ADD / EDIT PRODUCT
 // ------------------------------------------
