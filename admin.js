@@ -689,26 +689,7 @@ async function loadStats() {
 
 }
 
-// =========================================================
-// ORDER MANAGEMENT
-// =========================================================
 
-let allOrders = [];
-
-const orderSearch =
-    document.getElementById(
-        "orderSearch"
-    );
-
-const orderStatusFilter =
-    document.getElementById(
-        "orderStatusFilter"
-    );
-
-const orderDetails =
-    document.getElementById(
-        "orderDetails"
-    );
 
 
 // =========================================================
