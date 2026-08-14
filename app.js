@@ -774,32 +774,20 @@ checkoutForm.addEventListener(
 
         try {
 
-            const {
-                data: order,
-                error: orderError
-            } = await supabaseClient
-                .from("orders")
-                .insert({
+           const { error: orderError } =
+    await supabaseClient
+        .from("orders")
+        .insert({
+            customer_name: customerName,
+            customer_email: customerEmail,
+            customer_address: customerAddress,
+            total: total,
+            status: "pending"
+        });
 
-                    customer_name:
-                        customerName,
-
-                    customer_email:
-                        customerEmail,
-
-                    customer_address:
-                        customerAddress,
-
-                    total:
-                        total,
-
-                    status:
-                        "pending"
-
-                })
-                .select()
-                .single();
-
+if (orderError) {
+    throw orderError;
+}
 
             if (orderError) {
 
