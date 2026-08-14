@@ -13,7 +13,62 @@
     <title>NovaShop Admin</title>
 
     <style>
+.product-form {
+    background: #f7f7f7;
 
+    padding: 25px;
+
+    border-radius: 12px;
+
+    margin-bottom: 30px;
+}
+
+.product-form form {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 15px;
+}
+
+.product-form label {
+    margin: 0;
+}
+
+.product-form button {
+    margin-top: 10px;
+}
+
+.product-table img {
+    width: 60px;
+
+    height: 60px;
+
+    object-fit: cover;
+
+    border-radius: 8px;
+}
+
+.danger {
+    background: #dc3545;
+}
+
+.danger:hover {
+    background: #b52a37;
+}
+
+.edit-button {
+    background: #555;
+}
+
+@media(max-width:700px) {
+
+    .product-form form {
+        grid-template-columns: 1fr;
+    }
+
+}
         * {
             box-sizing: border-box;
         }
@@ -332,7 +387,108 @@
             </div>
 
         </div>
+<h2>Products</h2>
 
+<div class="product-form">
+
+    <form id="productForm">
+
+        <input
+            type="hidden"
+            id="productId"
+        >
+
+        <label>
+            Product name
+
+            <input
+                type="text"
+                id="productName"
+                required
+            >
+        </label>
+
+
+        <label>
+            Description
+
+            <input
+                type="text"
+                id="productDescription"
+            >
+        </label>
+
+
+        <label>
+            Price
+
+            <input
+                type="number"
+                id="productPrice"
+                step="0.01"
+                min="0"
+                required
+            >
+        </label>
+
+
+        <label>
+            Category
+
+            <input
+                type="text"
+                id="productCategory"
+                placeholder="electronics"
+                required
+            >
+        </label>
+
+
+        <label>
+            Stock
+
+            <input
+                type="number"
+                id="productStock"
+                min="0"
+                required
+            >
+        </label>
+
+
+        <label>
+            Image URL
+
+            <input
+                type="url"
+                id="productImage"
+                placeholder="https://..."
+            >
+        </label>
+
+
+        <button type="submit">
+            Add Product
+        </button>
+
+        <button
+            type="button"
+            id="cancelEdit"
+            class="hidden"
+        >
+            Cancel Edit
+        </button>
+
+    </form>
+
+</div>
+
+
+<h2>Product List</h2>
+
+<div id="productsContainer">
+    Loading products...
+</div>
 
         <h2>Recent Orders</h2>
 
@@ -483,6 +639,7 @@ async function showDashboard() {
 
 
     await loadDashboard();
+    await loadProducts();
 
 }
 
@@ -696,6 +853,462 @@ logoutButton.addEventListener(
     logout
 );
 
+    // ==========================================
+// PRODUCT MANAGEMENT
+// ==========================================
+
+const productForm =
+    document.getElementById(
+        "productForm"
+    );
+
+const productsContainer =
+    document.getElementById(
+        "productsContainer"
+    );
+
+const cancelEdit =
+    document.getElementById(
+        "cancelEdit"
+    );
+
+
+async function loadProducts() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("products")
+        .select("*")
+        .order(
+            "id",
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(error);
+
+        productsContainer.innerHTML =
+            `<p>${error.message}</p>`;
+
+        return;
+
+    }
+
+
+    displayAdminProducts(data);
+
+}
+
+
+function displayAdminProducts(
+    products
+) {
+
+    if (products.length === 0) {
+
+        productsContainer.innerHTML =
+            "<p>No products yet.</p>";
+
+        return;
+
+    }
+
+
+    let html = `
+
+        <table class="product-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Image</th>
+
+                    <th>Name</th>
+
+                    <th>Price</th>
+
+                    <th>Category</th>
+
+                    <th>Stock</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+    `;
+
+
+    products.forEach(
+        product => {
+
+            html += `
+
+                <tr>
+
+                    <td>
+
+                        ${
+                            product.image_url
+
+                            ? `<img
+                                src="${product.image_url}"
+                                alt="${product.name}"
+                              >`
+
+                            : "🛍️"
+                        }
+
+                    </td>
+
+
+                    <td>
+                        ${product.name}
+                    </td>
+
+
+                    <td>
+                        $${Number(
+                            product.price
+                        ).toFixed(2)}
+                    </td>
+
+
+                    <td>
+                        ${product.category}
+                    </td>
+
+
+                    <td>
+                        ${product.stock ?? 0}
+                    </td>
+
+
+                    <td>
+
+                        <button
+                            class="edit-button"
+                            onclick='editProduct(
+                                ${JSON.stringify(product)}
+                            )'
+                        >
+                            Edit
+                        </button>
+
+
+                        <button
+                            class="danger"
+                            onclick="deleteProduct(
+                                ${product.id}
+                            )"
+                        >
+                            Delete
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
+
+
+    html += `
+
+            </tbody>
+
+        </table>
+
+    `;
+
+
+    productsContainer.innerHTML =
+        html;
+
+}
+
+
+// ------------------------------------------
+// ADD / EDIT PRODUCT
+// ------------------------------------------
+
+productForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+
+        const productId =
+            document.getElementById(
+                "productId"
+            ).value;
+
+
+        const product = {
+
+            name:
+                document.getElementById(
+                    "productName"
+                ).value.trim(),
+
+            description:
+                document.getElementById(
+                    "productDescription"
+                ).value.trim(),
+
+            price:
+                Number(
+                    document.getElementById(
+                        "productPrice"
+                    ).value
+                ),
+
+            category:
+                document.getElementById(
+                    "productCategory"
+                ).value.trim(),
+
+            stock:
+                Number(
+                    document.getElementById(
+                        "productStock"
+                    ).value
+                ),
+
+            image_url:
+                document.getElementById(
+                    "productImage"
+                ).value.trim()
+
+        };
+
+
+        let result;
+
+
+        if (productId) {
+
+            result =
+                await supabaseClient
+                    .from("products")
+                    .update(product)
+                    .eq(
+                        "id",
+                        productId
+                    );
+
+        } else {
+
+            result =
+                await supabaseClient
+                    .from("products")
+                    .insert(product);
+
+        }
+
+
+        if (result.error) {
+
+            console.error(
+                result.error
+            );
+
+            alert(
+                "Could not save product: " +
+                result.error.message
+            );
+
+            return;
+
+        }
+
+
+        alert(
+            productId
+                ? "Product updated!"
+                : "Product added!"
+        );
+
+
+        resetProductForm();
+
+        await loadProducts();
+
+        await loadDashboard();
+
+    }
+);
+
+
+// ------------------------------------------
+// EDIT PRODUCT
+// ------------------------------------------
+
+function editProduct(
+    product
+) {
+
+    document.getElementById(
+        "productId"
+    ).value =
+        product.id;
+
+
+    document.getElementById(
+        "productName"
+    ).value =
+        product.name || "";
+
+
+    document.getElementById(
+        "productDescription"
+    ).value =
+        product.description || "";
+
+
+    document.getElementById(
+        "productPrice"
+    ).value =
+        product.price;
+
+
+    document.getElementById(
+        "productCategory"
+    ).value =
+        product.category || "";
+
+
+    document.getElementById(
+        "productStock"
+    ).value =
+        product.stock || 0;
+
+
+    document.getElementById(
+        "productImage"
+    ).value =
+        product.image_url || "";
+
+
+    productForm.querySelector(
+        "button[type='submit']"
+    ).textContent =
+        "Update Product";
+
+
+    cancelEdit.classList.remove(
+        "hidden"
+    );
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+
+// ------------------------------------------
+// CANCEL EDIT
+// ------------------------------------------
+
+cancelEdit.addEventListener(
+    "click",
+    resetProductForm
+);
+
+
+function resetProductForm() {
+
+    productForm.reset();
+
+
+    document.getElementById(
+        "productId"
+    ).value = "";
+
+
+    productForm.querySelector(
+        "button[type='submit']"
+    ).textContent =
+        "Add Product";
+
+
+    cancelEdit.classList.add(
+        "hidden"
+    );
+
+}
+
+
+// ------------------------------------------
+// DELETE PRODUCT
+// ------------------------------------------
+
+async function deleteProduct(
+    productId
+) {
+
+    const confirmed =
+        confirm(
+            "Are you sure you want to delete this product?"
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const {
+        error
+    } = await supabaseClient
+        .from("products")
+        .delete()
+        .eq(
+            "id",
+            productId
+        );
+
+
+    if (error) {
+
+        alert(
+            "Could not delete product: " +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    alert(
+        "Product deleted."
+    );
+
+
+    await loadProducts();
+
+    await loadDashboard();
+
+}
 
 checkLogin();
 
