@@ -820,8 +820,17 @@ function displayOrders(orders) {
                 <tr>
 
                     <th>ID</th>
-                    <th>Customer</th>
-                    <th>Email</th>
+                    
+                    <td>
+    <div class="order-customer-name">
+        ${escapeHTML(order.customer_name || "—")}
+    </div>
+
+    <div class="order-customer-email">
+        ${escapeHTML(order.customer_email || "—")}
+    </div>
+</td>
+
                     <th>Total</th>
                     <th>Status</th>
                     <th>Date</th>
