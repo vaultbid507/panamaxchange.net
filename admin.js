@@ -1,7 +1,6 @@
-
 // =========================================================
 // NOVASHOP ADMIN
-// Supabase Admin Dashboard
+// Supabase Administration
 // =========================================================
 
 
@@ -15,6 +14,7 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
     "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0";
 
+
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
@@ -26,55 +26,107 @@ const supabaseClient =
 // ELEMENTS
 // =========================================================
 
+// Login
+
 const loginSection =
     document.getElementById(
         "loginSection"
     );
+
 
 const dashboard =
     document.getElementById(
         "dashboard"
     );
 
+
 const loginForm =
     document.getElementById(
         "loginForm"
     );
+
 
 const loginMessage =
     document.getElementById(
         "loginMessage"
     );
 
+
 const logoutButton =
     document.getElementById(
         "logoutButton"
     );
 
-const productForm =
+
+const adminEmail =
     document.getElementById(
-        "productForm"
+        "adminEmail"
     );
+
+
+// Dashboard
+
+const productCount =
+    document.getElementById(
+        "productCount"
+    );
+
+
+const orderCount =
+    document.getElementById(
+        "orderCount"
+    );
+
+
+const revenue =
+    document.getElementById(
+        "revenue"
+    );
+
 
 const productsContainer =
     document.getElementById(
         "productsContainer"
     );
 
+
+const ordersContainer =
+    document.getElementById(
+        "ordersContainer"
+    );
+
+
+// Categories
+
 const categoryForm =
     document.getElementById(
         "categoryForm"
     );
 
-const categoriesContainer =
+
+const categoryId =
     document.getElementById(
-        "categoriesContainer"
+        "categoryId"
     );
 
-const cancelEdit =
+
+const categoryName =
     document.getElementById(
-        "cancelEdit"
+        "categoryName"
     );
+
+
+const categorySlug =
+    document.getElementById(
+        "categorySlug"
+    );
+
+
+const categorySubmitButton =
+    document.getElementById(
+        "categorySubmitButton"
+    );
+
 
 const cancelCategoryEdit =
     document.getElementById(
@@ -82,8 +134,138 @@ const cancelCategoryEdit =
     );
 
 
+const categoriesContainer =
+    document.getElementById(
+        "categoriesContainer"
+    );
+
+
+// Products
+
+const productForm =
+    document.getElementById(
+        "productForm"
+    );
+
+
+const productId =
+    document.getElementById(
+        "productId"
+    );
+
+
+const productName =
+    document.getElementById(
+        "productName"
+    );
+
+
+const productDescription =
+    document.getElementById(
+        "productDescription"
+    );
+
+
+const productPrice =
+    document.getElementById(
+        "productPrice"
+    );
+
+
+const productCategory =
+    document.getElementById(
+        "productCategory"
+    );
+
+
+const productStock =
+    document.getElementById(
+        "productStock"
+    );
+
+
+const productImageFile =
+    document.getElementById(
+        "productImageFile"
+    );
+
+
+const productImage =
+    document.getElementById(
+        "productImage"
+    );
+
+
+const imagePreview =
+    document.getElementById(
+        "imagePreview"
+    );
+
+
+const productSubmitButton =
+    document.getElementById(
+        "productSubmitButton"
+    );
+
+
+const cancelEdit =
+    document.getElementById(
+        "cancelEdit"
+    );
+
+
 // =========================================================
-// LOGIN
+// STATE
+// =========================================================
+
+let categories = [];
+
+let products = [];
+
+
+// =========================================================
+// HELPERS
+// =========================================================
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function money(value) {
+
+    return "$" +
+        Number(value || 0).toFixed(2);
+
+}
+
+
+function slugify(value) {
+
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(
+            /[^a-z0-9]+/g,
+            "-"
+        )
+        .replace(
+            /^-+|-+$/g,
+            ""
+        );
+
+}
+
+
+// =========================================================
+// LOGIN CHECK
 // =========================================================
 
 async function checkLogin() {
@@ -91,9 +273,7 @@ async function checkLogin() {
     const {
         data,
         error
-    } = await supabaseClient
-        .auth
-        .getSession();
+    } = await supabaseClient.auth.getSession();
 
 
     if (error) {
@@ -110,93 +290,18 @@ async function checkLogin() {
 
     if (data.session) {
 
-        await showDashboard();
+        showDashboard(
+            data.session
+        );
 
     }
 
 }
 
 
-async function login(
-    email,
-    password
-) {
-
-    loginMessage.textContent = "";
-
-
-    const {
-        error
-    } = await supabaseClient
-        .auth
-        .signInWithPassword({
-
-            email,
-            password
-
-        });
-
-
-    if (error) {
-
-        loginMessage.textContent =
-            error.message;
-
-        return;
-
-    }
-
-
-    await showDashboard();
-
-}
-
-
-async function logout() {
-
-    await supabaseClient
-        .auth
-        .signOut();
-
-
-    dashboard.classList.add(
-        "hidden"
-    );
-
-    loginSection.classList.remove(
-        "hidden"
-    );
-
-    logoutButton.classList.add(
-        "hidden"
-    );
-
-}
-
-
-async function showDashboard() {
-
-    loginSection.classList.add(
-        "hidden"
-    );
-
-    dashboard.classList.remove(
-        "hidden"
-    );
-
-    logoutButton.classList.remove(
-        "hidden"
-    );
-
-
-    await loadCategories();
-
-    await loadProducts();
-
-    await loadDashboard();
-
-}
-
+// =========================================================
+// LOGIN
+// =========================================================
 
 loginForm.addEventListener(
     "submit",
@@ -205,60 +310,197 @@ loginForm.addEventListener(
         event.preventDefault();
 
 
+        loginMessage.textContent =
+            "";
+
+
         const email =
             document
-                .getElementById("email")
+                .getElementById(
+                    "email"
+                )
                 .value
                 .trim();
 
 
         const password =
             document
-                .getElementById("password")
+                .getElementById(
+                    "password"
+                )
                 .value;
 
 
-        await login(
-            email,
-            password
+        const submitButton =
+            loginForm.querySelector(
+                "button[type='submit']"
+            );
+
+
+        submitButton.disabled =
+            true;
+
+
+        submitButton.textContent =
+            "Signing in...";
+
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.signInWithPassword(
+                {
+                    email,
+                    password
+                }
+            );
+
+
+        submitButton.disabled =
+            false;
+
+
+        submitButton.textContent =
+            "Login";
+
+
+        if (error) {
+
+            loginMessage.textContent =
+                error.message;
+
+            return;
+
+        }
+
+
+        showDashboard(
+            data.session
         );
 
     }
 );
 
 
+// =========================================================
+// SHOW DASHBOARD
+// =========================================================
+
+async function showDashboard(
+    session
+) {
+
+    loginSection.classList.add(
+        "hidden"
+    );
+
+
+    dashboard.classList.remove(
+        "hidden"
+    );
+
+
+    logoutButton.classList.remove(
+        "hidden"
+    );
+
+
+    if (
+        session &&
+        session.user
+    ) {
+
+        adminEmail.textContent =
+            session.user.email || "";
+
+    }
+
+
+    await refreshDashboard();
+
+}
+
+
+// =========================================================
+// REFRESH DASHBOARD
+// =========================================================
+
+async function refreshDashboard() {
+
+    await loadCategories();
+
+    await loadProducts();
+
+    await loadOrders();
+
+    await loadStats();
+
+}
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
 logoutButton.addEventListener(
     "click",
-    logout
-);
+    async () => {
+
+        await supabaseClient.auth.signOut();
 
 
-
-// =========================================================
-// DASHBOARD
-// =========================================================
-
-async function loadDashboard() {
-
-    const {
-        count: productCount,
-        error: productError
-    } = await supabaseClient
-        .from("products")
-        .select(
-            "*",
-            {
-                count: "exact",
-                head: true
-            }
+        dashboard.classList.add(
+            "hidden"
         );
 
 
-    if (productError) {
+        loginSection.classList.remove(
+            "hidden"
+        );
+
+
+        logoutButton.classList.add(
+            "hidden"
+        );
+
+
+        adminEmail.textContent =
+            "";
+
+
+        loginForm.reset();
+
+    }
+);
+
+
+// =========================================================
+// LOAD STATS
+// =========================================================
+
+async function loadStats() {
+
+    const {
+        count: productsTotal,
+        error: productsError
+    } =
+        await supabaseClient
+            .from("products")
+            .select(
+                "*",
+                {
+                    count: "exact",
+                    head: true
+                }
+            );
+
+
+    if (productsError) {
 
         console.error(
             "PRODUCT COUNT ERROR:",
-            productError
+            productsError
         );
 
     }
@@ -266,16 +508,86 @@ async function loadDashboard() {
 
     const {
         data: orders,
-        error
-    } = await supabaseClient
-        .from("orders")
-        .select("*")
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
+        error: ordersError
+    } =
+        await supabaseClient
+            .from("orders")
+            .select(
+                "id, total"
+            );
+
+
+    if (ordersError) {
+
+        console.error(
+            "ORDER COUNT ERROR:",
+            ordersError
         );
+
+        return;
+
+    }
+
+
+    productCount.textContent =
+        productsTotal || 0;
+
+
+    orderCount.textContent =
+        orders.length;
+
+
+    const totalRevenue =
+        orders.reduce(
+            (
+                total,
+                order
+            ) => {
+
+                return total +
+                    Number(
+                        order.total || 0
+                    );
+
+            },
+            0
+        );
+
+
+    revenue.textContent =
+        money(
+            totalRevenue
+        );
+
+}
+
+
+// =========================================================
+// LOAD ORDERS
+// =========================================================
+
+async function loadOrders() {
+
+    ordersContainer.innerHTML = `
+        <div class="loading">
+            Loading orders...
+        </div>
+    `;
+
+
+    const {
+        data,
+        error
+    } =
+        await supabaseClient
+            .from("orders")
+            .select("*")
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
 
 
     if (error) {
@@ -285,71 +597,40 @@ async function loadDashboard() {
             error
         );
 
+
+        ordersContainer.innerHTML = `
+            <div class="empty-state">
+                Could not load orders.
+                <br>
+                ${escapeHTML(error.message)}
+            </div>
+        `;
+
         return;
 
     }
 
 
-    document.getElementById(
-        "productCount"
-    ).textContent =
-        productCount || 0;
-
-
-    document.getElementById(
-        "orderCount"
-    ).textContent =
-        orders.length;
-
-
-    const revenue =
-        orders.reduce(
-            (
-                total,
-                order
-            ) => {
-
-                return (
-                    total +
-                    Number(order.total || 0)
-                );
-
-            },
-            0
-        );
-
-
-    document.getElementById(
-        "revenue"
-    ).textContent =
-        money(revenue);
-
-
     displayOrders(
-        orders
+        data || []
     );
 
 }
 
 
-
 // =========================================================
-// ORDERS
+// DISPLAY ORDERS
 // =========================================================
 
 function displayOrders(
     orders
 ) {
 
-    const container =
-        document.getElementById(
-            "ordersContainer"
-        );
+    if (
+        orders.length === 0
+    ) {
 
-
-    if (!orders.length) {
-
-        container.innerHTML = `
+        ordersContainer.innerHTML = `
             <div class="empty-state">
                 No orders yet.
             </div>
@@ -362,45 +643,90 @@ function displayOrders(
 
     let html = `
 
-        <div class="table-wrapper">
+        <table>
 
-            <table>
+            <thead>
 
-                <thead>
+                <tr>
 
-                    <tr>
+                    <th>
+                        ID
+                    </th>
 
-                        <th>
-                            ID
-                        </th>
+                    <th>
+                        Customer
+                    </th>
 
-                        <th>
-                            Customer
-                        </th>
+                    <th>
+                        Email
+                    </th>
 
-                        <th>
-                            Total
-                        </th>
+                    <th>
+                        Total
+                    </th>
 
-                        <th>
-                            Status
-                        </th>
+                    <th>
+                        Status
+                    </th>
 
-                        <th>
-                            Date
-                        </th>
+                    <th>
+                        Date
+                    </th>
 
-                    </tr>
+                </tr>
 
-                </thead>
+            </thead>
 
-                <tbody>
+            <tbody>
 
     `;
 
 
     orders.forEach(
         order => {
+
+            const status =
+                String(
+                    order.status ||
+                    "pending"
+                )
+                .toLowerCase();
+
+
+            let statusClass =
+                "status-pending";
+
+
+            if (
+                status === "completed" ||
+                status === "paid" ||
+                status === "delivered"
+            ) {
+
+                statusClass =
+                    "status-success";
+
+            }
+
+
+            if (
+                status === "cancelled" ||
+                status === "canceled"
+            ) {
+
+                statusClass =
+                    "status-danger";
+
+            }
+
+
+            const date =
+                order.created_at
+                    ? new Date(
+                        order.created_at
+                    ).toLocaleDateString()
+                    : "";
+
 
             html += `
 
@@ -417,19 +743,32 @@ function displayOrders(
                     </td>
 
                     <td>
-                        ${money(order.total)}
-                    </td>
-
-                    <td>
                         ${escapeHTML(
-                            order.status || "Pending"
+                            order.customer_email
                         )}
                     </td>
 
                     <td>
-                        ${formatDate(
-                            order.created_at
+                        ${money(
+                            order.total
                         )}
+                    </td>
+
+                    <td>
+
+                        <span
+                            class="status ${statusClass}"
+                        >
+                            ${escapeHTML(
+                                order.status ||
+                                "pending"
+                            )}
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${escapeHTML(date)}
                     </td>
 
                 </tr>
@@ -442,40 +781,47 @@ function displayOrders(
 
     html += `
 
-                </tbody>
+            </tbody>
 
-            </table>
-
-        </div>
+        </table>
 
     `;
 
 
-    container.innerHTML =
+    ordersContainer.innerHTML =
         html;
 
 }
 
 
-
 // =========================================================
-// CATEGORIES
+// LOAD CATEGORIES
 // =========================================================
 
 async function loadCategories() {
 
+    categoriesContainer.innerHTML = `
+        <div class="loading">
+            Loading categories...
+        </div>
+    `;
+
+
     const {
         data,
         error
-    } = await supabaseClient
-        .from("categories")
-        .select("*")
-        .order(
-            "name",
-            {
-                ascending: true
-            }
-        );
+    } =
+        await supabaseClient
+            .from("categories")
+            .select(
+                "id, name, slug"
+            )
+            .order(
+                "name",
+                {
+                    ascending: true
+                }
+            );
 
 
     if (error) {
@@ -487,8 +833,9 @@ async function loadCategories() {
 
 
         categoriesContainer.innerHTML = `
-            <div class="message">
-                Could not load categories:
+            <div class="empty-state">
+                Could not load categories.
+                <br>
                 ${escapeHTML(error.message)}
             </div>
         `;
@@ -498,23 +845,33 @@ async function loadCategories() {
     }
 
 
+    categories =
+        data || [];
+
+
     displayCategories(
-        data || []
+        categories
     );
 
 
     populateCategorySelect(
-        data || []
+        categories
     );
 
 }
 
 
+// =========================================================
+// DISPLAY CATEGORIES
+// =========================================================
+
 function displayCategories(
-    categories
+    list
 ) {
 
-    if (!categories.length) {
+    if (
+        list.length === 0
+    ) {
 
         categoriesContainer.innerHTML = `
             <div class="empty-state">
@@ -527,16 +884,18 @@ function displayCategories(
     }
 
 
-    let html =
-        `<div class="category-list">`;
+    let html = "";
 
 
-    categories.forEach(
+    list.forEach(
         category => {
 
             html += `
 
-                <div class="category-row">
+                <div
+                    class="category-card"
+                    data-id="${category.id}"
+                >
 
                     <div>
 
@@ -546,11 +905,11 @@ function displayCategories(
                             )}
                         </div>
 
-                        <span class="category-slug">
-                            /${escapeHTML(
+                        <div class="category-slug">
+                            ${escapeHTML(
                                 category.slug
                             )}
-                        </span>
+                        </div>
 
                     </div>
 
@@ -560,7 +919,8 @@ function displayCategories(
                         <button
                             type="button"
                             class="edit-button"
-                            data-edit-category="${category.id}"
+                            data-action="edit-category"
+                            data-id="${category.id}"
                         >
                             Edit
                         </button>
@@ -568,8 +928,9 @@ function displayCategories(
 
                         <button
                             type="button"
-                            class="danger"
-                            data-delete-category="${category.id}"
+                            class="danger-button"
+                            data-action="delete-category"
+                            data-id="${category.id}"
                         >
                             Delete
                         </button>
@@ -584,77 +945,60 @@ function displayCategories(
     );
 
 
-    html += `</div>`;
-
-
     categoriesContainer.innerHTML =
         html;
 
 }
 
 
+// =========================================================
+// CATEGORY LIST BUTTONS
+// =========================================================
+
 categoriesContainer.addEventListener(
     "click",
-    async event => {
+    event => {
 
-        const editButton =
+        const button =
             event.target.closest(
-                "[data-edit-category]"
+                "button"
             );
 
 
-        if (editButton) {
-
-            const id =
-                Number(
-                    editButton.dataset
-                        .editCategory
-                );
-
-
-            const {
-                data,
-                error
-            } = await supabaseClient
-                .from("categories")
-                .select("*")
-                .eq("id", id)
-                .single();
-
-
-            if (error) {
-
-                alert(
-                    error.message
-                );
-
-                return;
-
-            }
-
-
-            editCategory(
-                data
-            );
+        if (!button) {
 
             return;
 
         }
 
 
-        const deleteButton =
-            event.target.closest(
-                "[data-delete-category]"
+        const id =
+            Number(
+                button.dataset.id
             );
 
 
-        if (deleteButton) {
+        const action =
+            button.dataset.action;
 
-            await deleteCategory(
-                Number(
-                    deleteButton.dataset
-                        .deleteCategory
-                )
+
+        if (
+            action === "edit-category"
+        ) {
+
+            editCategory(
+                id
+            );
+
+        }
+
+
+        if (
+            action === "delete-category"
+        ) {
+
+            deleteCategory(
+                id
             );
 
         }
@@ -663,33 +1007,289 @@ categoriesContainer.addEventListener(
 );
 
 
+// =========================================================
+// CATEGORY FORM
+// =========================================================
+
+categoryForm.addEventListener(
+    "submit",
+    async event => {
+
+        event.preventDefault();
+
+
+        const name =
+            categoryName.value.trim();
+
+
+        const slug =
+            slugify(
+                categorySlug.value
+            );
+
+
+        if (
+            !name ||
+            !slug
+        ) {
+
+            alert(
+                "Please enter a category name and slug."
+            );
+
+            return;
+
+        }
+
+
+        categorySubmitButton.disabled =
+            true;
+
+
+        categorySubmitButton.textContent =
+            categoryId.value
+                ? "Updating..."
+                : "Adding...";
+
+
+        let result;
+
+
+        if (
+            categoryId.value
+        ) {
+
+            result =
+                await supabaseClient
+                    .from("categories")
+                    .update({
+                        name,
+                        slug
+                    })
+                    .eq(
+                        "id",
+                        categoryId.value
+                    );
+
+        } else {
+
+            result =
+                await supabaseClient
+                    .from("categories")
+                    .insert({
+                        name,
+                        slug
+                    });
+
+        }
+
+
+        categorySubmitButton.disabled =
+            false;
+
+
+        if (result.error) {
+
+            console.error(
+                "CATEGORY SAVE ERROR:",
+                result.error
+            );
+
+
+            alert(
+                "Could not save category:\n" +
+                result.error.message
+            );
+
+
+            categorySubmitButton.textContent =
+                categoryId.value
+                    ? "Update Category"
+                    : "Add Category";
+
+            return;
+
+        }
+
+
+        resetCategoryForm();
+
+        await loadCategories();
+
+    }
+);
+
 
 // =========================================================
-// CATEGORY DROPDOWN
+// EDIT CATEGORY
 // =========================================================
 
-function populateCategorySelect(
-    categories
+function editCategory(
+    id
 ) {
 
-    const select =
-        document.getElementById(
-            "productCategory"
+    const category =
+        categories.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
         );
 
 
+    if (!category) {
+
+        return;
+
+    }
+
+
+    categoryId.value =
+        category.id;
+
+
+    categoryName.value =
+        category.name;
+
+
+    categorySlug.value =
+        category.slug;
+
+
+    categorySubmitButton.textContent =
+        "Update Category";
+
+
+    cancelCategoryEdit.classList.remove(
+        "hidden"
+    );
+
+
+    categoryName.focus();
+
+}
+
+
+// =========================================================
+// CANCEL CATEGORY EDIT
+// =========================================================
+
+cancelCategoryEdit.addEventListener(
+    "click",
+    resetCategoryForm
+);
+
+
+function resetCategoryForm() {
+
+    categoryForm.reset();
+
+
+    categoryId.value =
+        "";
+
+
+    categorySubmitButton.textContent =
+        "Add Category";
+
+
+    cancelCategoryEdit.classList.add(
+        "hidden"
+    );
+
+}
+
+
+// =========================================================
+// DELETE CATEGORY
+// =========================================================
+
+async function deleteCategory(
+    id
+) {
+
+    const category =
+        categories.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!category) {
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete category "${category.name}"?`
+        );
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+    const {
+        error
+    } =
+        await supabaseClient
+            .from("categories")
+            .delete()
+            .eq(
+                "id",
+                id
+            );
+
+
+    if (error) {
+
+        console.error(
+            "CATEGORY DELETE ERROR:",
+            error
+        );
+
+
+        alert(
+            "Could not delete category:\n" +
+            error.message
+        );
+
+        return;
+
+    }
+
+
+    await loadCategories();
+
+}
+
+
+// =========================================================
+// PRODUCT CATEGORY DROPDOWN
+// =========================================================
+
+function populateCategorySelect(
+    list
+) {
+
     const currentValue =
-        select.value;
+        productCategory.value;
 
 
-    select.innerHTML = `
+    productCategory.innerHTML = `
         <option value="">
             Select category
         </option>
     `;
 
 
-    categories.forEach(
+    list.forEach(
         category => {
 
             const option =
@@ -706,7 +1306,7 @@ function populateCategorySelect(
                 category.name;
 
 
-            select.appendChild(
+            productCategory.appendChild(
                 option
             );
 
@@ -714,9 +1314,11 @@ function populateCategorySelect(
     );
 
 
-    if (currentValue) {
+    if (
+        currentValue
+    ) {
 
-        select.value =
+        productCategory.value =
             currentValue;
 
     }
@@ -724,252 +1326,32 @@ function populateCategorySelect(
 }
 
 
-
 // =========================================================
-// ADD / EDIT CATEGORY
-// =========================================================
-
-categoryForm.addEventListener(
-    "submit",
-    async event => {
-
-        event.preventDefault();
-
-
-        const id =
-            document.getElementById(
-                "categoryId"
-            ).value;
-
-
-        const name =
-            document.getElementById(
-                "categoryName"
-            ).value.trim();
-
-
-        const slug =
-            document.getElementById(
-                "categorySlug"
-            ).value
-                .trim()
-                .toLowerCase()
-                .replace(
-                    /\s+/g,
-                    "-"
-                );
-
-
-        if (!name || !slug) {
-
-            alert(
-                "Please enter a category name and slug."
-            );
-
-            return;
-
-        }
-
-
-        let result;
-
-
-        if (id) {
-
-            result =
-                await supabaseClient
-                    .from("categories")
-                    .update({
-
-                        name,
-                        slug
-
-                    })
-                    .eq(
-                        "id",
-                        id
-                    );
-
-        } else {
-
-            result =
-                await supabaseClient
-                    .from("categories")
-                    .insert({
-
-                        name,
-                        slug
-
-                    });
-
-        }
-
-
-        if (result.error) {
-
-            console.error(
-                result.error
-            );
-
-            alert(
-                "Could not save category: " +
-                result.error.message
-            );
-
-            return;
-
-        }
-
-
-        resetCategoryForm();
-
-        await loadCategories();
-
-        await loadProducts();
-
-    }
-);
-
-
-
-function editCategory(
-    category
-) {
-
-    document.getElementById(
-        "categoryId"
-    ).value =
-        category.id;
-
-
-    document.getElementById(
-        "categoryName"
-    ).value =
-        category.name;
-
-
-    document.getElementById(
-        "categorySlug"
-    ).value =
-        category.slug;
-
-
-    categoryForm
-        .querySelector(
-            "button[type='submit']"
-        )
-        .textContent =
-        "Update Category";
-
-
-    cancelCategoryEdit.classList.remove(
-        "hidden"
-    );
-
-
-    categoryForm.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-}
-
-
-cancelCategoryEdit.addEventListener(
-    "click",
-    resetCategoryForm
-);
-
-
-function resetCategoryForm() {
-
-    categoryForm.reset();
-
-
-    document.getElementById(
-        "categoryId"
-    ).value = "";
-
-
-    categoryForm
-        .querySelector(
-            "button[type='submit']"
-        )
-        .textContent =
-        "Add Category";
-
-
-    cancelCategoryEdit.classList.add(
-        "hidden"
-    );
-
-}
-
-
-async function deleteCategory(
-    id
-) {
-
-    if (
-        !confirm(
-            "Delete this category?"
-        )
-    ) {
-
-        return;
-
-    }
-
-
-    const {
-        error
-    } = await supabaseClient
-        .from("categories")
-        .delete()
-        .eq(
-            "id",
-            id
-        );
-
-
-    if (error) {
-
-        alert(
-            "Could not delete category: " +
-            error.message
-        );
-
-        return;
-
-    }
-
-
-    await loadCategories();
-
-    await loadProducts();
-
-}
-
-
-
-// =========================================================
-// PRODUCTS
+// LOAD PRODUCTS
 // =========================================================
 
 async function loadProducts() {
 
+    productsContainer.innerHTML = `
+        <div class="loading">
+            Loading products...
+        </div>
+    `;
+
+
     const {
         data,
         error
-    } = await supabaseClient
-        .from("products")
-        .select("*")
-        .order(
-            "id",
-            {
-                ascending: false
-            }
-        );
+    } =
+        await supabaseClient
+            .from("products")
+            .select("*")
+            .order(
+                "id",
+                {
+                    ascending: false
+                }
+            );
 
 
     if (error) {
@@ -981,7 +1363,9 @@ async function loadProducts() {
 
 
         productsContainer.innerHTML = `
-            <div class="message">
+            <div class="empty-state">
+                Could not load products.
+                <br>
                 ${escapeHTML(error.message)}
             </div>
         `;
@@ -991,18 +1375,28 @@ async function loadProducts() {
     }
 
 
-    displayAdminProducts(
-        data || []
+    products =
+        data || [];
+
+
+    displayProducts(
+        products
     );
 
 }
 
 
-function displayAdminProducts(
-    products
+// =========================================================
+// DISPLAY PRODUCTS
+// =========================================================
+
+function displayProducts(
+    list
 ) {
 
-    if (!products.length) {
+    if (
+        list.length === 0
+    ) {
 
         productsContainer.innerHTML = `
             <div class="empty-state">
@@ -1017,63 +1411,66 @@ function displayAdminProducts(
 
     let html = `
 
-        <div class="table-wrapper">
+        <table class="product-table">
 
-            <table class="product-table">
+            <thead>
 
-                <thead>
+                <tr>
 
-                    <tr>
+                    <th>
+                        Image
+                    </th>
 
-                        <th>
-                            Image
-                        </th>
+                    <th>
+                        Product
+                    </th>
 
-                        <th>
-                            Name
-                        </th>
+                    <th>
+                        Price
+                    </th>
 
-                        <th>
-                            Price
-                        </th>
+                    <th>
+                        Category
+                    </th>
 
-                        <th>
-                            Category
-                        </th>
+                    <th>
+                        Stock
+                    </th>
 
-                        <th>
-                            Stock
-                        </th>
+                    <th>
+                        Actions
+                    </th>
 
-                        <th>
-                            Actions
-                        </th>
+                </tr>
 
-                    </tr>
+            </thead>
 
-                </thead>
-
-                <tbody>
+            <tbody>
 
     `;
 
 
-    products.forEach(
+    list.forEach(
         product => {
 
             const image =
                 product.image_url
                     ? `
                         <img
-                            src="${escapeAttribute(
+                            src="${escapeHTML(
                                 product.image_url
                             )}"
-                            alt="${escapeAttribute(
+                            alt="${escapeHTML(
                                 product.name
                             )}"
+                            class="product-table-image"
                         >
                     `
-                    : "🛍️";
+                    : `
+                        <div class="product-placeholder">
+                            🛍️
+                        </div>
+                    `;
 
 
             html += `
@@ -1085,9 +1482,13 @@ function displayAdminProducts(
                     </td>
 
                     <td>
-                        ${escapeHTML(
-                            product.name
-                        )}
+
+                        <strong>
+                            ${escapeHTML(
+                                product.name
+                            )}
+                        </strong>
+
                     </td>
 
                     <td>
@@ -1098,7 +1499,7 @@ function displayAdminProducts(
 
                     <td>
                         ${escapeHTML(
-                            product.category || "-"
+                            product.category || "—"
                         )}
                     </td>
 
@@ -1110,19 +1511,27 @@ function displayAdminProducts(
 
                     <td>
 
-                        <button
-                            class="edit-button"
-                            data-edit-product="${product.id}"
-                        >
-                            Edit
-                        </button>
+                        <div class="table-actions">
 
-                        <button
-                            class="danger"
-                            data-delete-product="${product.id}"
-                        >
-                            Delete
-                        </button>
+                            <button
+                                type="button"
+                                class="edit-button"
+                                data-action="edit-product"
+                                data-id="${product.id}"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                type="button"
+                                class="danger-button"
+                                data-action="delete-product"
+                                data-id="${product.id}"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
 
                     </td>
 
@@ -1136,11 +1545,9 @@ function displayAdminProducts(
 
     html += `
 
-                </tbody>
+            </tbody>
 
-            </table>
-
-        </div>
+        </table>
 
     `;
 
@@ -1151,68 +1558,54 @@ function displayAdminProducts(
 }
 
 
+// =========================================================
+// PRODUCT TABLE BUTTONS
+// =========================================================
+
 productsContainer.addEventListener(
     "click",
-    async event => {
+    event => {
 
-        const editButton =
+        const button =
             event.target.closest(
-                "[data-edit-product]"
+                "button"
             );
 
 
-        if (editButton) {
-
-            const id =
-                Number(
-                    editButton.dataset
-                        .editProduct
-                );
-
-
-            const {
-                data,
-                error
-            } = await supabaseClient
-                .from("products")
-                .select("*")
-                .eq("id", id)
-                .single();
-
-
-            if (error) {
-
-                alert(
-                    error.message
-                );
-
-                return;
-
-            }
-
-
-            editProduct(
-                data
-            );
+        if (!button) {
 
             return;
 
         }
 
 
-        const deleteButton =
-            event.target.closest(
-                "[data-delete-product]"
+        const id =
+            Number(
+                button.dataset.id
             );
 
 
-        if (deleteButton) {
+        const action =
+            button.dataset.action;
 
-            await deleteProduct(
-                Number(
-                    deleteButton.dataset
-                        .deleteProduct
-                )
+
+        if (
+            action === "edit-product"
+        ) {
+
+            editProduct(
+                id
+            );
+
+        }
+
+
+        if (
+            action === "delete-product"
+        ) {
+
+            deleteProduct(
+                id
             );
 
         }
@@ -1221,9 +1614,8 @@ productsContainer.addEventListener(
 );
 
 
-
 // =========================================================
-// PRODUCT ADD / UPDATE
+// PRODUCT FORM
 // =========================================================
 
 productForm.addEventListener(
@@ -1233,197 +1625,47 @@ productForm.addEventListener(
         event.preventDefault();
 
 
-        const productId =
-            document.getElementById(
-                "productId"
-            ).value;
+        const id =
+            productId.value;
 
 
         const imageFile =
-            document.getElementById(
-                "productImageFile"
-            ).files[0];
-
-
-        const existingImage =
-            document.getElementById(
-                "productImage"
-            ).value.trim();
+            productImageFile.files[0];
 
 
         const product = {
 
             name:
-                document.getElementById(
-                    "productName"
-                ).value.trim(),
+                productName.value.trim(),
 
             description:
-                document.getElementById(
-                    "productDescription"
-                ).value.trim(),
+                productDescription.value.trim(),
 
             price:
                 Number(
-                    document.getElementById(
-                        "productPrice"
-                    ).value
+                    productPrice.value
                 ),
 
             category:
-                document.getElementById(
-                    "productCategory"
-                ).value,
+                productCategory.value,
 
             stock:
                 Number(
-                    document.getElementById(
-                        "productStock"
-                    ).value
+                    productStock.value
                 ),
 
             image_url:
-                existingImage || null
+                productImage.value.trim()
 
         };
 
 
-        // Validate image
-
-        if (imageFile) {
-
-            if (
-                !imageFile.type.startsWith(
-                    "image/"
-                )
-            ) {
-
-                alert(
-                    "Please select an image."
-                );
-
-                return;
-
-            }
-
-
-            if (
-                imageFile.size >
-                5 * 1024 * 1024
-            ) {
-
-                alert(
-                    "Image must be smaller than 5 MB."
-                );
-
-                return;
-
-            }
-
-
-            const extension =
-                imageFile.name
-                    .split(".")
-                    .pop()
-                    .toLowerCase();
-
-
-            const fileName =
-                crypto.randomUUID() +
-                "." +
-                extension;
-
-
-            const filePath =
-                "products/" +
-                fileName;
-
-
-            const {
-                error: uploadError
-            } = await supabaseClient
-                .storage
-                .from(
-                    "product-images"
-                )
-                .upload(
-                    filePath,
-                    imageFile,
-                    {
-                        cacheControl: "3600",
-                        upsert: false
-                    }
-                );
-
-
-            if (uploadError) {
-
-                console.error(
-                    uploadError
-                );
-
-                alert(
-                    "Image upload failed: " +
-                    uploadError.message
-                );
-
-                return;
-
-            }
-
-
-            const {
-                data: publicUrlData
-            } =
-                supabaseClient
-                    .storage
-                    .from(
-                        "product-images"
-                    )
-                    .getPublicUrl(
-                        filePath
-                    );
-
-
-            product.image_url =
-                publicUrlData.publicUrl;
-
-        }
-
-
-        let result;
-
-
-        if (productId) {
-
-            result =
-                await supabaseClient
-                    .from("products")
-                    .update(product)
-                    .eq(
-                        "id",
-                        productId
-                    );
-
-        } else {
-
-            result =
-                await supabaseClient
-                    .from("products")
-                    .insert(product);
-
-        }
-
-
-        if (result.error) {
-
-            console.error(
-                result.error
-            );
+        if (
+            !product.name
+        ) {
 
             alert(
-                "Could not save product: " +
-                result.error.message
+                "Please enter a product name."
             );
 
             return;
@@ -1431,84 +1673,307 @@ productForm.addEventListener(
         }
 
 
-        resetProductForm();
+        if (
+            !product.category
+        ) {
 
-        await loadProducts();
+            alert(
+                "Please select a category."
+            );
 
-        await loadDashboard();
+            return;
+
+        }
 
 
-        alert(
-            productId
-                ? "Product updated!"
-                : "Product added!"
-        );
+        if (
+            Number.isNaN(
+                product.price
+            )
+        ) {
+
+            alert(
+                "Please enter a valid price."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            Number.isNaN(
+                product.stock
+            )
+        ) {
+
+            alert(
+                "Please enter a valid stock quantity."
+            );
+
+            return;
+
+        }
+
+
+        productSubmitButton.disabled =
+            true;
+
+
+        productSubmitButton.textContent =
+            id
+                ? "Updating..."
+                : "Adding...";
+
+
+        try {
+
+            // --------------------------------
+            // IMAGE UPLOAD
+            // --------------------------------
+
+            if (imageFile) {
+
+                if (
+                    !imageFile.type.startsWith(
+                        "image/"
+                    )
+                ) {
+
+                    throw new Error(
+                        "Please select an image file."
+                    );
+
+                }
+
+
+                if (
+                    imageFile.size >
+                    5 * 1024 * 1024
+                ) {
+
+                    throw new Error(
+                        "Image must be smaller than 5 MB."
+                    );
+
+                }
+
+
+                const extension =
+                    imageFile.name
+                        .split(".")
+                        .pop()
+                        .toLowerCase();
+
+
+                const fileName =
+                    crypto.randomUUID() +
+                    "." +
+                    extension;
+
+
+                const filePath =
+                    "products/" +
+                    fileName;
+
+
+                const {
+                    error:
+                        uploadError
+                } =
+                    await supabaseClient
+                        .storage
+                        .from(
+                            "product-images"
+                        )
+                        .upload(
+                            filePath,
+                            imageFile,
+                            {
+                                cacheControl:
+                                    "3600",
+
+                                upsert:
+                                    false
+                            }
+                        );
+
+
+                if (
+                    uploadError
+                ) {
+
+                    throw uploadError;
+
+                }
+
+
+                const {
+                    data:
+                        publicUrlData
+                } =
+                    supabaseClient
+                        .storage
+                        .from(
+                            "product-images"
+                        )
+                        .getPublicUrl(
+                            filePath
+                        );
+
+
+                product.image_url =
+                    publicUrlData.publicUrl;
+
+            }
+
+
+            // --------------------------------
+            // SAVE PRODUCT
+            // --------------------------------
+
+            let result;
+
+
+            if (id) {
+
+                result =
+                    await supabaseClient
+                        .from("products")
+                        .update(
+                            product
+                        )
+                        .eq(
+                            "id",
+                            id
+                        );
+
+            } else {
+
+                result =
+                    await supabaseClient
+                        .from("products")
+                        .insert(
+                            product
+                        );
+
+            }
+
+
+            if (
+                result.error
+            ) {
+
+                throw result.error;
+
+            }
+
+
+            alert(
+                id
+                    ? "Product updated successfully!"
+                    : "Product added successfully!"
+            );
+
+
+            resetProductForm();
+
+
+            await loadProducts();
+
+            await loadStats();
+
+        } catch (error) {
+
+            console.error(
+                "PRODUCT SAVE ERROR:",
+                error
+            );
+
+
+            alert(
+                "Could not save product:\n" +
+                error.message
+            );
+
+        } finally {
+
+            productSubmitButton.disabled =
+                false;
+
+
+            productSubmitButton.textContent =
+                productId.value
+                    ? "Update Product"
+                    : "Add Product";
+
+        }
 
     }
 );
-
 
 
 // =========================================================
 // EDIT PRODUCT
 // =========================================================
 
-async function editProduct(
-    product
+function editProduct(
+    id
 ) {
 
-    document.getElementById(
-        "productId"
-    ).value =
+    const product =
+        products.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!product) {
+
+        return;
+
+    }
+
+
+    productId.value =
         product.id;
 
 
-    document.getElementById(
-        "productName"
-    ).value =
+    productName.value =
         product.name || "";
 
 
-    document.getElementById(
-        "productDescription"
-    ).value =
+    productDescription.value =
         product.description || "";
 
 
-    document.getElementById(
-        "productPrice"
-    ).value =
-        product.price || 0;
+    productPrice.value =
+        product.price ?? "";
 
 
-    document.getElementById(
-        "productCategory"
-    ).value =
+    productCategory.value =
         product.category || "";
 
 
-    document.getElementById(
-        "productStock"
-    ).value =
-        product.stock || 0;
+    productStock.value =
+        product.stock ?? 0;
 
 
-    document.getElementById(
-        "productImage"
-    ).value =
+    productImage.value =
         product.image_url || "";
 
 
-    document.getElementById(
-        "productImageFile"
-    ).value = "";
+    productImageFile.value =
+        "";
 
 
-    productForm
-        .querySelector(
-            "button[type='submit']"
-        )
-        .textContent =
+    showImagePreview(
+        product.image_url
+    );
+
+
+    productSubmitButton.textContent =
         "Update Product";
 
 
@@ -1519,11 +1984,15 @@ async function editProduct(
 
     productForm.scrollIntoView({
         behavior: "smooth",
-        block: "center"
+        block: "start"
     });
 
 }
 
+
+// =========================================================
+// CANCEL PRODUCT EDIT
+// =========================================================
 
 cancelEdit.addEventListener(
     "click",
@@ -1536,21 +2005,19 @@ function resetProductForm() {
     productForm.reset();
 
 
-    document.getElementById(
-        "productId"
-    ).value = "";
+    productId.value =
+        "";
 
 
-    document.getElementById(
-        "productImage"
-    ).value = "";
+    productImage.value =
+        "";
 
 
-    productForm
-        .querySelector(
-            "button[type='submit']"
-        )
-        .textContent =
+    productStock.value =
+        "0";
+
+
+    productSubmitButton.textContent =
         "Add Product";
 
 
@@ -1558,8 +2025,16 @@ function resetProductForm() {
         "hidden"
     );
 
-}
 
+    imagePreview.innerHTML =
+        "";
+
+
+    imagePreview.classList.add(
+        "hidden"
+    );
+
+}
 
 
 // =========================================================
@@ -1570,11 +2045,28 @@ async function deleteProduct(
     id
 ) {
 
-    if (
-        !confirm(
-            "Are you sure you want to delete this product?"
-        )
-    ) {
+    const product =
+        products.find(
+            item =>
+                Number(item.id) ===
+                Number(id)
+        );
+
+
+    if (!product) {
+
+        return;
+
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete "${product.name}"?`
+        );
+
+
+    if (!confirmed) {
 
         return;
 
@@ -1583,19 +2075,26 @@ async function deleteProduct(
 
     const {
         error
-    } = await supabaseClient
-        .from("products")
-        .delete()
-        .eq(
-            "id",
-            id
-        );
+    } =
+        await supabaseClient
+            .from("products")
+            .delete()
+            .eq(
+                "id",
+                id
+            );
 
 
     if (error) {
 
+        console.error(
+            "PRODUCT DELETE ERROR:",
+            error
+        );
+
+
         alert(
-            "Could not delete product: " +
+            "Could not delete product:\n" +
             error.message
         );
 
@@ -1604,98 +2103,171 @@ async function deleteProduct(
     }
 
 
-    await loadProducts();
+    if (
+        Number(productId.value) ===
+        Number(id)
+    ) {
 
-    await loadDashboard();
-
-}
-
-
-
-// =========================================================
-// HELPERS
-// =========================================================
-
-function money(
-    value
-) {
-
-    return (
-        "$" +
-        Number(
-            value || 0
-        ).toFixed(2)
-    );
-
-}
-
-
-function formatDate(
-    value
-) {
-
-    if (!value) {
-
-        return "-";
+        resetProductForm();
 
     }
 
 
-    return new Date(
-        value
-    ).toLocaleDateString(
-        undefined,
-        {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        }
-    );
+    await loadProducts();
+
+    await loadStats();
 
 }
 
 
-function escapeHTML(
-    value
-) {
+// =========================================================
+// IMAGE PREVIEW
+// =========================================================
 
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
+productImageFile.addEventListener(
+    "change",
+    () => {
+
+        const file =
+            productImageFile.files[0];
+
+
+        if (!file) {
+
+            return;
+
+        }
+
+
+        if (
+            !file.type.startsWith(
+                "image/"
+            )
+        ) {
+
+            alert(
+                "Please select an image."
+            );
+
+            productImageFile.value =
+                "";
+
+            return;
+
+        }
+
+
+        const url =
+            URL.createObjectURL(
+                file
+            );
+
+
+        showImagePreview(
+            url
         );
 
-}
+    }
+);
 
 
-function escapeAttribute(
-    value
+// =========================================================
+// SHOW IMAGE PREVIEW
+// =========================================================
+
+function showImagePreview(
+    url
 ) {
 
-    return escapeHTML(
-        value
+    if (!url) {
+
+        imagePreview.innerHTML =
+            "";
+
+        imagePreview.classList.add(
+            "hidden"
+        );
+
+        return;
+
+    }
+
+
+    imagePreview.innerHTML = `
+
+        <img
+            src="${escapeHTML(url)}"
+            alt="Product image preview"
+        >
+
+    `;
+
+
+    imagePreview.classList.remove(
+        "hidden"
     );
 
 }
 
+
+// =========================================================
+// AUTO SLUG
+// =========================================================
+
+categoryName.addEventListener(
+    "input",
+    () => {
+
+        if (
+            categoryId.value
+        ) {
+
+            return;
+
+        }
+
+
+        categorySlug.value =
+            slugify(
+                categoryName.value
+            );
+
+    }
+);
+
+
+// =========================================================
+// AUTH STATE
+// =========================================================
+
+supabaseClient.auth.onAuthStateChange(
+    (
+        event,
+        session
+    ) => {
+
+        if (
+            event === "SIGNED_OUT"
+        ) {
+
+            dashboard.classList.add(
+                "hidden"
+            );
+
+
+            loginSection.classList.remove(
+                "hidden"
+            );
+
+
+            logoutButton.classList.add(
+                "hidden"
+            );
+
+        }
+
+    }
+);
 
 
 // =========================================================
