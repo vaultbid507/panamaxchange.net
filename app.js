@@ -3,16 +3,15 @@
 // ==========================================
 
 
-// ------------------------------------------
+// ==========================================
 // SUPABASE CONNECTION
-// ------------------------------------------
+// ==========================================
 
 const SUPABASE_URL =
     "https://tagbxmpizwlvgddgcpcl.supabase.co";
 
 const SUPABASE_KEY =
     "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0";
-
 
 const supabaseClient =
     window.supabase.createClient(
@@ -21,11 +20,13 @@ const supabaseClient =
     );
 
 
-// ------------------------------------------
+// ==========================================
 // STORE DATA
-// ------------------------------------------
+// ==========================================
 
 let products = [];
+
+let categories = [];
 
 let cart =
     JSON.parse(
@@ -33,12 +34,18 @@ let cart =
     ) || [];
 
 
-// ------------------------------------------
+// ==========================================
 // ELEMENTS
-// ------------------------------------------
+// ==========================================
 
 const productGrid =
     document.getElementById("productGrid");
+
+const categoriesContainer =
+    document.getElementById("categories");
+
+const searchInput =
+    document.getElementById("searchInput");
 
 const cartButton =
     document.getElementById("cartButton");
@@ -70,24 +77,222 @@ const closeCheckout =
 const checkoutForm =
     document.getElementById("checkoutForm");
 
-const searchInput =
-    document.getElementById("searchInput");
 
-
-// ------------------------------------------
+// ==========================================
 // MONEY
-// ------------------------------------------
+// ==========================================
 
 function money(value) {
 
-    return "$" + Number(value).toFixed(2);
+    return "$" + Number(value || 0).toFixed(2);
 
 }
 
 
-// ------------------------------------------
+// ==========================================
+// HTML ESCAPE
+// ==========================================
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+// ==========================================
+// LOAD CATEGORIES
+// ==========================================
+
+async function loadCategories() {
+
+    console.log(
+        "Loading categories from Supabase..."
+    );
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("categories")
+        .select("*")
+        .order("name", {
+            ascending: true
+        });
+
+
+    if (error) {
+
+        console.error(
+            "CATEGORY ERROR:",
+            error
+        );
+
+
+        categoriesContainer.innerHTML = `
+            <button
+                type="button"
+                class="category active"
+                data-category="all"
+            >
+                All
+            </button>
+        `;
+
+
+        return;
+
+    }
+
+
+    categories = data || [];
+
+
+    console.log(
+        "Categories:",
+        categories
+    );
+
+
+    displayCategories();
+
+}
+
+
+// ==========================================
+// DISPLAY CATEGORIES
+// ==========================================
+
+function displayCategories() {
+
+    categoriesContainer.innerHTML = "";
+
+
+    // ALL BUTTON
+
+    const allButton =
+        document.createElement("button");
+
+
+    allButton.type = "button";
+
+    allButton.className =
+        "category active";
+
+    allButton.dataset.category =
+        "all";
+
+    allButton.textContent =
+        "All";
+
+
+    categoriesContainer.appendChild(
+        allButton
+    );
+
+
+    // DATABASE CATEGORIES
+
+    categories.forEach(
+        category => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type =
+                "button";
+
+
+            button.className =
+                "category";
+
+
+            button.dataset.category =
+                String(
+                    category.slug || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
+            button.textContent =
+                category.name;
+
+
+            categoriesContainer.appendChild(
+                button
+            );
+
+        }
+    );
+
+
+    setupCategoryButtons();
+
+}
+
+
+// ==========================================
+// CATEGORY BUTTON EVENTS
+// ==========================================
+
+function setupCategoryButtons() {
+
+    const buttons =
+        categoriesContainer.querySelectorAll(
+            ".category"
+        );
+
+
+    buttons.forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    buttons.forEach(
+                        btn => {
+
+                            btn.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    displayProducts(
+                        button.dataset.category,
+                        searchInput.value
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+// ==========================================
 // LOAD PRODUCTS
-// ------------------------------------------
+// ==========================================
 
 async function loadProducts() {
 
@@ -107,39 +312,34 @@ async function loadProducts() {
         });
 
 
-    console.log(
-        "Products returned:",
-        data
-    );
-
-
     if (error) {
 
         console.error(
-            "SUPABASE ERROR:",
+            "PRODUCT ERROR:",
             error
         );
 
 
         productGrid.innerHTML = `
-            <p>
-                Could not load products.
-            </p>
+            <div class="empty-message">
+                <p>
+                    Could not load products.
+                </p>
+            </div>
         `;
+
 
         return;
 
     }
 
 
-    products = data.map(
-        product => ({
+    products = data || [];
 
-            ...product,
 
-            emoji: "🛍️"
-
-        })
+    console.log(
+        "Products:",
+        products
     );
 
 
@@ -148,9 +348,9 @@ async function loadProducts() {
 }
 
 
-// ------------------------------------------
+// ==========================================
 // DISPLAY PRODUCTS
-// ------------------------------------------
+// ==========================================
 
 function displayProducts(
     category = "all",
@@ -181,6 +381,20 @@ function displayProducts(
                     .toLowerCase();
 
 
+                const productName =
+                    String(
+                        product.name || ""
+                    )
+                    .toLowerCase();
+
+
+                const productDescription =
+                    String(
+                        product.description || ""
+                    )
+                    .toLowerCase();
+
+
                 const matchesCategory =
                     selectedCategory === "all" ||
                     productCategory ===
@@ -188,11 +402,10 @@ function displayProducts(
 
 
                 const matchesSearch =
-                    String(
-                        product.name || ""
-                    )
-                    .toLowerCase()
-                    .includes(
+                    productName.includes(
+                        searchText
+                    ) ||
+                    productDescription.includes(
                         searchText
                     );
 
@@ -214,9 +427,13 @@ function displayProducts(
     ) {
 
         productGrid.innerHTML = `
-            <p>
-                No products found.
-            </p>
+            <div class="empty-message">
+
+                <p>
+                    No products found.
+                </p>
+
+            </div>
         `;
 
         return;
@@ -237,37 +454,68 @@ function displayProducts(
                 "product-card";
 
 
+            // PRODUCT IMAGE
+
             let imageHTML;
 
 
             if (
                 product.image_url &&
-                product.image_url.trim() !== ""
+                String(
+                    product.image_url
+                ).trim() !== ""
             ) {
 
                 imageHTML = `
+                    <div class="product-image">
 
-                    <img
-                        src="${product.image_url}"
-                        alt="${product.name}"
-                        class="product-photo"
-                        loading="lazy"
-                    >
+                        <img
+                            src="${escapeHTML(
+                                product.image_url
+                            )}"
+                            alt="${escapeHTML(
+                                product.name
+                            )}"
+                            loading="lazy"
+                        >
 
+                    </div>
                 `;
 
             } else {
 
                 imageHTML = `
-
                     <div class="product-image">
                         🛍️
                     </div>
-
                 `;
 
             }
 
+
+            // CATEGORY NAME
+
+            const category =
+                categories.find(
+                    item =>
+                        String(
+                            item.slug
+                        )
+                        .toLowerCase() ===
+                        String(
+                            product.category || ""
+                        )
+                        .toLowerCase()
+                );
+
+
+            const categoryName =
+                category
+                    ? category.name
+                    : product.category || "";
+
+
+            // PRODUCT CARD
 
             card.innerHTML = `
 
@@ -276,22 +524,31 @@ function displayProducts(
                 <div class="product-info">
 
                     <p class="product-category">
-                        ${product.category || ""}
+                        ${escapeHTML(
+                            categoryName
+                        )}
                     </p>
 
                     <h3 class="product-name">
-                        ${product.name}
+                        ${escapeHTML(
+                            product.name
+                        )}
                     </h3>
 
-                    <p>
-                        ${product.description || ""}
+                    <p class="product-description">
+                        ${escapeHTML(
+                            product.description || ""
+                        )}
                     </p>
 
                     <p class="product-price">
-                        ${money(product.price)}
+                        ${money(
+                            product.price
+                        )}
                     </p>
 
                     <button
+                        type="button"
                         class="add-button"
                         data-id="${product.id}"
                     >
@@ -313,28 +570,29 @@ function displayProducts(
 }
 
 
-// ------------------------------------------
+// ==========================================
 // ADD TO CART
-// ------------------------------------------
+// ==========================================
 
 function addToCart(productId) {
 
     const existing =
         cart.find(
             item =>
-                item.id === productId
+                Number(item.id) ===
+                Number(productId)
         );
 
 
     if (existing) {
 
-        existing.quantity++;
+        existing.quantity += 1;
 
     } else {
 
         cart.push({
 
-            id: productId,
+            id: Number(productId),
 
             quantity: 1
 
@@ -350,9 +608,9 @@ function addToCart(productId) {
 }
 
 
-// ------------------------------------------
+// ==========================================
 // REMOVE FROM CART
-// ------------------------------------------
+// ==========================================
 
 function removeFromCart(
     productId
@@ -361,7 +619,8 @@ function removeFromCart(
     cart =
         cart.filter(
             item =>
-                item.id !== productId
+                Number(item.id) !==
+                Number(productId)
         );
 
 
@@ -372,9 +631,9 @@ function removeFromCart(
 }
 
 
-// ------------------------------------------
+// ==========================================
 // CHANGE QUANTITY
-// ------------------------------------------
+// ==========================================
 
 function changeQuantity(
     productId,
@@ -384,7 +643,8 @@ function changeQuantity(
     const item =
         cart.find(
             item =>
-                item.id === productId
+                Number(item.id) ===
+                Number(productId)
         );
 
 
@@ -416,9 +676,9 @@ function changeQuantity(
 }
 
 
-// ------------------------------------------
+// ==========================================
 // SAVE CART
-// ------------------------------------------
+// ==========================================
 
 function saveCart() {
 
@@ -430,9 +690,9 @@ function saveCart() {
 }
 
 
-// ------------------------------------------
+// ==========================================
 // UPDATE CART
-// ------------------------------------------
+// ==========================================
 
 function updateCart() {
 
@@ -447,7 +707,7 @@ function updateCart() {
     if (cart.length === 0) {
 
         cartItems.innerHTML = `
-            <p style="color:#777">
+            <p class="empty-cart">
                 Your cart is empty.
             </p>
         `;
@@ -461,8 +721,12 @@ function updateCart() {
             const product =
                 products.find(
                     product =>
-                        product.id ===
-                        item.id
+                        Number(
+                            product.id
+                        ) ===
+                        Number(
+                            item.id
+                        )
                 );
 
 
@@ -493,15 +757,30 @@ function updateCart() {
                 "cart-item";
 
 
-            const cartImage =
+            let cartImage;
+
+
+            if (
                 product.image_url
-                    ? `
-                        <img
-                            src="${product.image_url}"
-                            alt="${product.name}"
-                        >
-                      `
-                    : "🛍️";
+            ) {
+
+                cartImage = `
+                    <img
+                        src="${escapeHTML(
+                            product.image_url
+                        )}"
+                        alt="${escapeHTML(
+                            product.name
+                        )}"
+                    >
+                `;
+
+            } else {
+
+                cartImage =
+                    "🛍️";
+
+            }
 
 
             div.innerHTML = `
@@ -513,16 +792,21 @@ function updateCart() {
                 <div class="cart-item-info">
 
                     <h4>
-                        ${product.name}
+                        ${escapeHTML(
+                            product.name
+                        )}
                     </h4>
 
                     <p>
-                        ${money(product.price)}
+                        ${money(
+                            product.price
+                        )}
                     </p>
 
                     <div class="quantity">
 
                         <button
+                            type="button"
                             data-action="minus"
                             data-id="${product.id}"
                         >
@@ -534,6 +818,7 @@ function updateCart() {
                         </span>
 
                         <button
+                            type="button"
                             data-action="plus"
                             data-id="${product.id}"
                         >
@@ -541,6 +826,7 @@ function updateCart() {
                         </button>
 
                         <button
+                            type="button"
                             class="remove"
                             data-action="remove"
                             data-id="${product.id}"
@@ -573,9 +859,9 @@ function updateCart() {
 }
 
 
-// ------------------------------------------
-// ADD BUTTONS
-// ------------------------------------------
+// ==========================================
+// PRODUCT BUTTONS
+// ==========================================
 
 productGrid.addEventListener(
     "click",
@@ -605,15 +891,26 @@ productGrid.addEventListener(
         );
 
 
+        const originalText =
+            button.textContent;
+
+
         button.textContent =
             "Added ✓";
+
+
+        button.disabled =
+            true;
 
 
         setTimeout(
             () => {
 
                 button.textContent =
-                    "Add to Cart";
+                    originalText;
+
+                button.disabled =
+                    false;
 
             },
             1000
@@ -623,9 +920,9 @@ productGrid.addEventListener(
 );
 
 
-// ------------------------------------------
+// ==========================================
 // CART BUTTONS
-// ------------------------------------------
+// ==========================================
 
 cartItems.addEventListener(
     "click",
@@ -686,9 +983,9 @@ cartItems.addEventListener(
 );
 
 
-// ------------------------------------------
+// ==========================================
 // OPEN CART
-// ------------------------------------------
+// ==========================================
 
 cartButton.addEventListener(
     "click",
@@ -702,9 +999,9 @@ cartButton.addEventListener(
 );
 
 
-// ------------------------------------------
+// ==========================================
 // CLOSE CART
-// ------------------------------------------
+// ==========================================
 
 closeCart.addEventListener(
     "click",
@@ -718,9 +1015,9 @@ closeCart.addEventListener(
 );
 
 
-// ------------------------------------------
+// ==========================================
 // OPEN CHECKOUT
-// ------------------------------------------
+// ==========================================
 
 checkoutButton.addEventListener(
     "click",
@@ -750,9 +1047,9 @@ checkoutButton.addEventListener(
 );
 
 
-// ------------------------------------------
+// ==========================================
 // CLOSE CHECKOUT
-// ------------------------------------------
+// ==========================================
 
 closeCheckout.addEventListener(
     "click",
@@ -766,9 +1063,9 @@ closeCheckout.addEventListener(
 );
 
 
-// ------------------------------------------
-// CHECKOUT
-// ------------------------------------------
+// ==========================================
+// CHECKOUT / CREATE ORDER
+// ==========================================
 
 checkoutForm.addEventListener(
     "submit",
@@ -862,11 +1159,14 @@ checkoutForm.addEventListener(
 
             cart = [];
 
+
             saveCart();
 
             updateCart();
 
+
             checkoutForm.reset();
+
 
             checkoutOverlay.classList.add(
                 "hidden"
@@ -892,16 +1192,16 @@ checkoutForm.addEventListener(
 );
 
 
-// ------------------------------------------
+// ==========================================
 // SEARCH
-// ------------------------------------------
+// ==========================================
 
 searchInput.addEventListener(
     "input",
     () => {
 
         const activeCategory =
-            document.querySelector(
+            categoriesContainer.querySelector(
                 ".category.active"
             );
 
@@ -921,55 +1221,19 @@ searchInput.addEventListener(
 );
 
 
-// ------------------------------------------
-// CATEGORY FILTER
-// ------------------------------------------
+// ==========================================
+// START STORE
+// ==========================================
 
-document
-    .querySelectorAll(".category")
-    .forEach(
-        button => {
+async function startStore() {
 
-            button.addEventListener(
-                "click",
-                () => {
+    await loadCategories();
 
-                    document
-                        .querySelectorAll(
-                            ".category"
-                        )
-                        .forEach(
-                            btn => {
+    await loadProducts();
 
-                                btn.classList.remove(
-                                    "active"
-                                );
+    updateCart();
 
-                            }
-                        );
+}
 
 
-                    button.classList.add(
-                        "active"
-                    );
-
-
-                    displayProducts(
-                        button.dataset.category,
-                        searchInput.value
-                    );
-
-                }
-            );
-
-        }
-    );
-
-
-// ------------------------------------------
-// START
-// ------------------------------------------
-
-loadProducts();
-
-updateCart();
+startStore();
