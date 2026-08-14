@@ -584,10 +584,125 @@ const orderDetails =
 
 
 // =========================================================
+// ORDER MANAGEMENT
+// =========================================================
+
+let allOrders = [];
+
+const ordersContainer =
+    document.getElementById("ordersContainer");
+
+const orderSearch =
+    document.getElementById("orderSearch");
+
+const orderStatusFilter =
+    document.getElementById("orderStatusFilter");
+
+const orderDetails =
+    document.getElementById("orderDetails");
+
+
+// =========================================================
+// HELPERS
+// =========================================================
+
+function orderEscapeHTML(value) {
+
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function orderMoney(value) {
+
+    const amount = Number(value || 0);
+
+    return amount.toLocaleString("en-US", {
+        style: "currency",
+        currency: "USD"
+    });
+
+}
+
+
+function orderDate(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return "—";
+    }
+
+    return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric"
+    });
+
+}
+
+
+function normalizeOrderStatus(status) {
+
+    return String(status || "pending")
+        .trim()
+        .toLowerCase();
+
+}
+
+
+function orderStatusClass(status) {
+
+    const normalized =
+        normalizeOrderStatus(status);
+
+    switch (normalized) {
+
+        case "processing":
+        case "shipped":
+            return "status-info";
+
+        case "delivered":
+        case "completed":
+            return "status-success";
+
+        case "cancelled":
+        case "canceled":
+            return "status-danger";
+
+        case "pending":
+        default:
+            return "status-pending";
+    }
+
+}
+
+
+// =========================================================
 // LOAD ORDERS
 // =========================================================
 
 async function loadOrders() {
+
+    if (!ordersContainer) {
+        console.error(
+            "ordersContainer was not found."
+        );
+        return;
+    }
+
 
     ordersContainer.innerHTML = `
         <div class="loading">
@@ -599,342 +714,34 @@ async function loadOrders() {
     const {
         data,
         error
-    } =
-        await supabaseClient
-            .from("orders")
-            .select("*")
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            );
+    } = await supabaseClient
+        .from("orders")
+        .select("*")
+        .order(
+            "created_at",
+            {
+                ascending: false
+            }
+        );
 
 
     if (error) {
 
         console.error(
-            "ORDERS ERROR:",
+            "Error loading orders:",
             error
         );
 
         ordersContainer.innerHTML = `
             <div class="empty-state">
-                Could not load orders.
-                <br>
-                ${escapeHTML(error.message)}
-            </div>
-        `;
+                <strong>
+                    Could not load orders.
+                </strong>
 
-        return;
-    }
+                <br><br>
 
-
-    allOrders =
-        data || [];
-
-
-    renderOrders();
-}
-
-
-// =========================================================
-// FILTER ORDERS
-// =========================================================
-
-function renderOrders() {
-
-    const search =
-        (
-            orderSearch?.value ||
-            ""
-        )
-        .trim()
-        .toLowerCase();
-
-
-    const status =
-        orderStatusFilter?.value ||
-        "";
-
-
-    const filtered =
-        allOrders.filter(
-            order => {
-
-                const matchesSearch =
-                    !search ||
-                    String(
-                        order.id
-                    )
-                    .toLowerCase()
-                    .includes(search) ||
-
-                    String(
-                        order.customer_name ||
-                        ""
-                    )
-                    .toLowerCase()
-                    .includes(search) ||
-
-                    String(
-                        order.customer_email ||
-                        ""
-                    )
-                    .toLowerCase()
-                    .includes(search);
-
-
-                const matchesStatus =
-                    !status ||
-                    String(
-                        order.status ||
-                        ""
-                    )
-                    .toLowerCase() ===
-                    status;
-
-
-                return (
-                    matchesSearch &&
-                    matchesStatus
-                );
-
-            }
-        );
-
-
-    displayOrders(
-        filtered
-    );
-}
-
-
-// =========================================================
-// DISPLAY ORDERS
-// =========================================================
-
-function displayOrders(
-    orders
-) {
-
-    if (
-        orders.length === 0
-    ) {
-
-        ordersContainer.innerHTML = `
-            <div class="empty-state">
-                No orders found.
-            </div>
-        `;
-
-        return;
-    }
-
-
-    let html = `
-
-        <table>
-
-            <thead>
-
-               <th>ID</th>
-<th>Customer</th>
-<th>Email</th>
-<th>Total</th>
-<th>Status</th>
-<th>Date</th>
-<th>Action</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-    `;
-
-
-    orders.forEach(
-        order => {
-
-            const status =
-                String(
-                    order.status ||
-                    "pending"
-                )
-                .toLowerCase();
-
-
-            let statusClass =
-                "status-pending";
-
-
-            if (
-                status ===
-                    "processing" ||
-                status ===
-                    "shipped"
-            ) {
-
-                statusClass =
-                    "status-info";
-
-            }
-
-
-            if (
-                status ===
-                    "delivered"
-            ) {
-
-                statusClass =
-                    "status-success";
-
-            }
-
-
-            if (
-                status ===
-                    "cancelled"
-            ) {
-
-                statusClass =
-                    "status-danger";
-
-            }
-
-
-            const date =
-                order.created_at
-                    ? new Date(
-                        order.created_at
-                    )
-                    .toLocaleString()
-                    : "";
-
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        <strong>
-                            #${escapeHTML(
-                                order.id
-                            )}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            order.customer_name
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            order.customer_email
-                        )}
-                    </td>
-
-                    <td>
-                        ${money(
-                            order.total
-                        )}
-                    </td>
-
-                    <td>
-
-                        <span
-                            class="status ${statusClass}"
-                        >
-                            ${escapeHTML(
-                                order.status ||
-                                "Pending"
-                            )}
-                        </span>
-
-                    </td>
-
-                    <td>
-                        ${escapeHTML(
-                            date
-                        )}
-                    </td>
-
-                    <td>
-
-                        <button
-                            type="button"
-                            class="edit-button"
-                            onclick="viewOrder(${order.id})"
-                        >
-                            View
-                        </button>
-
-                    </td>
-
-                </tr>
-
-            `;
-
-        }
-    );
-
-
-    html += `
-
-            </tbody>
-
-        </table>
-
-    `;
-
-
-    ordersContainer.innerHTML =
-        html;
-}
-
-
-// =========================================================
-// VIEW ORDER
-// =========================================================
-
-async function viewOrder(
-    orderId
-) {
-
-    orderDetails.classList.remove(
-        "hidden"
-    );
-
-
-    orderDetails.innerHTML = `
-        <div class="loading">
-            Loading order details...
-        </div>
-    `;
-
-
-    const {
-        data: order,
-        error: orderError
-    } =
-        await supabaseClient
-            .from("orders")
-            .select("*")
-            .eq(
-                "id",
-                orderId
-            )
-            .single();
-
-
-    if (orderError) {
-
-        orderDetails.innerHTML = `
-            <div class="empty-state">
-                ${escapeHTML(
-                    orderError.message
+                ${orderEscapeHTML(
+                    error.message
                 )}
             </div>
         `;
@@ -943,389 +750,113 @@ async function viewOrder(
     }
 
 
-    const {
-        data: items,
-        error: itemsError
-    } =
-        await supabaseClient
-            .from("order_items")
-            .select("*")
-            .eq(
-                "order_id",
-                orderId
+    allOrders = data || [];
+
+
+    renderOrders();
+
+}
+
+
+// =========================================================
+// RENDER / FILTER ORDERS
+// =========================================================
+
+function renderOrders() {
+
+    const search =
+        (
+            orderSearch?.value || ""
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const selectedStatus =
+        normalizeOrderStatus(
+            orderStatusFilter?.value || ""
+        );
+
+
+    const filteredOrders =
+        allOrders.filter(order => {
+
+            const orderId =
+                String(
+                    order.id || ""
+                )
+                .toLowerCase();
+
+
+            const customer =
+                String(
+                    order.customer_name || ""
+                )
+                .toLowerCase();
+
+
+            const email =
+                String(
+                    order.customer_email || ""
+                )
+                .toLowerCase();
+
+
+            const matchesSearch =
+                !search ||
+                orderId.includes(search) ||
+                customer.includes(search) ||
+                email.includes(search);
+
+
+            const status =
+                normalizeOrderStatus(
+                    order.status
+                );
+
+
+            const matchesStatus =
+                !selectedStatus ||
+                status === selectedStatus;
+
+
+            return (
+                matchesSearch &&
+                matchesStatus
             );
 
+        });
 
-    if (itemsError) {
 
-        console.error(
-            "ORDER ITEMS ERROR:",
-            itemsError
-        );
-
-    }
-
-
-    renderOrderDetails(
-        order,
-        items || []
-    );
-}
-
-
-// =========================================================
-// ORDER DETAILS
-// =========================================================
-
-function renderOrderDetails(
-    order,
-    items
-) {
-
-    let itemsHTML = "";
-
-
-    if (
-        items.length === 0
-    ) {
-
-        itemsHTML = `
-            <p>
-                No order items found.
-            </p>
-        `;
-
-    } else {
-
-        itemsHTML =
-            items.map(
-                item => `
-
-                    <div
-                        class="order-item"
-                    >
-
-                        <div>
-
-                            <strong>
-                                ${escapeHTML(
-                                    item.product_name
-                                )}
-                            </strong>
-
-                            <div>
-                                ${item.quantity}
-                                ×
-                                ${money(
-                                    item.price
-                                )}
-                            </div>
-
-                        </div>
-
-                        <strong>
-                            ${money(
-                                Number(
-                                    item.price
-                                ) *
-                                Number(
-                                    item.quantity
-                                )
-                            )}
-                        </strong>
-
-                    </div>
-
-                `
-            )
-            .join("");
-
-    }
-
-
-    orderDetails.innerHTML = `
-
-        <div class="order-details-card">
-
-            <div class="order-details-header">
-
-                <div>
-
-                    <p class="eyebrow">
-                        ORDER
-                    </p>
-
-                    <h3>
-                        #${escapeHTML(
-                            order.id
-                        )}
-                    </h3>
-
-                </div>
-
-
-                <button
-                    type="button"
-                    class="secondary-button"
-                    onclick="closeOrderDetails()"
-                >
-                    Close
-                </button>
-
-            </div>
-
-
-            <div class="order-customer">
-
-                <h4>
-                    Customer
-                </h4>
-
-                <p>
-                    <strong>
-                        ${escapeHTML(
-                            order.customer_name
-                        )}
-                    </strong>
-                </p>
-
-                <p>
-                    ${escapeHTML(
-                        order.customer_email
-                    )}
-                </p>
-
-                <p>
-                    ${escapeHTML(
-                        order.customer_address
-                    )}
-                </p>
-
-            </div>
-
-
-            <div class="order-items">
-
-                <h4>
-                    Items
-                </h4>
-
-                ${itemsHTML}
-
-            </div>
-
-
-            <div class="order-total">
-
-                <span>
-                    Total
-                </span>
-
-                <strong>
-                    ${money(
-                        order.total
-                    )}
-                </strong>
-
-            </div>
-
-
-            <div class="order-status-editor">
-
-                <label for="orderStatus">
-
-                    Order Status
-
-                </label>
-
-
-                <select
-                    id="orderStatus"
-                >
-
-                    <option
-                        value="pending"
-                        ${order.status === "pending"
-                            ? "selected"
-                            : ""}
-                    >
-                        Pending
-                    </option>
-
-                    <option
-                        value="processing"
-                        ${order.status === "processing"
-                            ? "selected"
-                            : ""}
-                    >
-                        Processing
-                    </option>
-
-                    <option
-                        value="shipped"
-                        ${order.status === "shipped"
-                            ? "selected"
-                            : ""}
-                    >
-                        Shipped
-                    </option>
-
-                    <option
-                        value="delivered"
-                        ${order.status === "delivered"
-                            ? "selected"
-                            : ""}
-                    >
-                        Delivered
-                    </option>
-
-                    <option
-                        value="cancelled"
-                        ${order.status === "cancelled"
-                            ? "selected"
-                            : ""}
-                    >
-                        Cancelled
-                    </option>
-
-                </select>
-
-
-                <button
-                    type="button"
-                    class="primary-button"
-                    onclick="updateOrderStatus(${order.id})"
-                >
-                    Save Status
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-}
-
-
-// =========================================================
-// UPDATE ORDER STATUS
-// =========================================================
-
-async function updateOrderStatus(
-    orderId
-) {
-
-    const status =
-        document.getElementById(
-            "orderStatus"
-        ).value;
-
-
-    const {
-        error
-    } =
-        await supabaseClient
-            .from("orders")
-            .update({
-                status: status
-            })
-            .eq(
-                "id",
-                orderId
-            );
-
-
-    if (error) {
-
-        alert(
-            "Could not update order: " +
-            error.message
-        );
-
-        console.error(
-            error
-        );
-
-        return;
-    }
-
-
-    alert(
-        "Order status updated."
-    );
-
-
-    await loadOrders();
-
-    await loadStats();
-
-
-    viewOrder(
-        orderId
-    );
-}
-
-
-// =========================================================
-// CLOSE ORDER
-// =========================================================
-
-function closeOrderDetails() {
-
-    orderDetails.classList.add(
-        "hidden"
-    );
-
-    orderDetails.innerHTML =
-        "";
-}
-
-
-// =========================================================
-// ORDER SEARCH / FILTER
-// =========================================================
-
-if (orderSearch) {
-
-    orderSearch.addEventListener(
-        "input",
-        renderOrders
+    displayOrders(
+        filteredOrders
     );
 
 }
 
 
-if (orderStatusFilter) {
-
-    orderStatusFilter.addEventListener(
-        "change",
-        renderOrders
-    );
-
-}
-
-
-
 // =========================================================
-// DISPLAY ORDERS
+// DISPLAY ORDER TABLE
 // =========================================================
 
 function displayOrders(
     orders
 ) {
 
-    if (
-        orders.length === 0
-    ) {
+    if (!ordersContainer) {
+        return;
+    }
+
+
+    if (!orders.length) {
 
         ordersContainer.innerHTML = `
             <div class="empty-state">
-                No orders yet.
+                No orders found.
             </div>
         `;
 
         return;
-
     }
 
 
@@ -1361,6 +892,10 @@ function displayOrders(
                         Date
                     </th>
 
+                    <th>
+                        Action
+                    </th>
+
                 </tr>
 
             </thead>
@@ -1370,101 +905,94 @@ function displayOrders(
     `;
 
 
-    orders.forEach(
-        order => {
+    orders.forEach(order => {
 
-            const status =
-                String(
-                    order.status ||
-                    "pending"
-                )
-                .toLowerCase();
+        const status =
+            normalizeOrderStatus(
+                order.status
+            );
 
 
-            let statusClass =
-                "status-pending";
+        const statusLabel =
+            status.charAt(0).toUpperCase() +
+            status.slice(1);
 
 
-            if (
-                status === "completed" ||
-                status === "paid" ||
-                status === "delivered"
-            ) {
+        html += `
 
-                statusClass =
-                    "status-success";
+            <tr>
 
-            }
-
-
-            if (
-                status === "cancelled" ||
-                status === "canceled"
-            ) {
-
-                statusClass =
-                    "status-danger";
-
-            }
+                <td>
+                    <strong>
+                        #${orderEscapeHTML(
+                            order.id
+                        )}
+                    </strong>
+                </td>
 
 
-            const date =
-                order.created_at
-                    ? new Date(
+                <td>
+                    ${orderEscapeHTML(
+                        order.customer_name
+                    )}
+                </td>
+
+
+                <td>
+                    ${orderEscapeHTML(
+                        order.customer_email
+                    )}
+                </td>
+
+
+                <td>
+                    ${orderMoney(
+                        order.total
+                    )}
+                </td>
+
+
+                <td>
+
+                    <span
+                        class="status ${orderStatusClass(
+                            status
+                        )}"
+                    >
+                        ${orderEscapeHTML(
+                            statusLabel
+                        )}
+                    </span>
+
+                </td>
+
+
+                <td>
+                    ${orderDate(
                         order.created_at
-                    ).toLocaleDateString()
-                    : "";
+                    )}
+                </td>
 
 
-            html += `
+                <td>
 
-                <tr>
+                    <button
+                        type="button"
+                        class="edit-button"
+                        onclick="viewOrder(${Number(
+                            order.id
+                        )})"
+                    >
+                        View
+                    </button>
 
-                    <td>
-                        #${escapeHTML(order.id)}
-                    </td>
+                </td>
 
-                    <td>
-                        ${escapeHTML(
-                            order.customer_name
-                        )}
-                    </td>
+            </tr>
 
-                    <td>
-                        ${escapeHTML(
-                            order.customer_email
-                        )}
-                    </td>
+        `;
 
-                    <td>
-                        ${money(
-                            order.total
-                        )}
-                    </td>
-
-                    <td>
-
-                        <span
-                            class="status ${statusClass}"
-                        >
-                            ${escapeHTML(
-                                order.status ||
-                                "pending"
-                            )}
-                        </span>
-
-                    </td>
-
-                    <td>
-                        ${escapeHTML(date)}
-                    </td>
-
-                </tr>
-
-            `;
-
-        }
-    );
+    });
 
 
     html += `
@@ -1481,6 +1009,644 @@ function displayOrders(
 
 }
 
+
+// =========================================================
+// VIEW ONE ORDER
+// =========================================================
+
+async function viewOrder(
+    orderId
+) {
+
+    if (!orderDetails) {
+
+        console.error(
+            "orderDetails container was not found."
+        );
+
+        return;
+    }
+
+
+    orderDetails.classList.remove(
+        "hidden"
+    );
+
+
+    orderDetails.innerHTML = `
+
+        <div class="loading">
+            Loading order details...
+        </div>
+
+    `;
+
+
+    // -----------------------------------------
+    // Get order
+    // -----------------------------------------
+
+    const {
+        data: order,
+        error: orderError
+    } = await supabaseClient
+        .from("orders")
+        .select("*")
+        .eq(
+            "id",
+            orderId
+        )
+        .single();
+
+
+    if (orderError) {
+
+        console.error(
+            "Order error:",
+            orderError
+        );
+
+
+        orderDetails.innerHTML = `
+
+            <div class="empty-state">
+
+                <strong>
+                    Could not load order.
+                </strong>
+
+                <br><br>
+
+                ${orderEscapeHTML(
+                    orderError.message
+                )}
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    // -----------------------------------------
+    // Get order items
+    // -----------------------------------------
+
+    const {
+        data: items,
+        error: itemsError
+    } = await supabaseClient
+        .from("order_items")
+        .select("*")
+        .eq(
+            "order_id",
+            orderId
+        )
+        .order(
+            "id",
+            {
+                ascending: true
+            }
+        );
+
+
+    if (itemsError) {
+
+        console.error(
+            "Order items error:",
+            itemsError
+        );
+
+    }
+
+
+    renderOrderDetails(
+        order,
+        items || []
+    );
+
+}
+
+
+// =========================================================
+// RENDER ORDER DETAILS
+// =========================================================
+
+function renderOrderDetails(
+    order,
+    items
+) {
+
+    const currentStatus =
+        normalizeOrderStatus(
+            order.status
+        );
+
+
+    let itemsHTML = "";
+
+
+    if (!items.length) {
+
+        itemsHTML = `
+
+            <div class="empty-state">
+
+                No products were recorded
+                for this order.
+
+            </div>
+
+        `;
+
+    } else {
+
+        itemsHTML =
+            items.map(item => {
+
+                const quantity =
+                    Number(
+                        item.quantity || 0
+                    );
+
+
+                const price =
+                    Number(
+                        item.price || 0
+                    );
+
+
+                const lineTotal =
+                    quantity * price;
+
+
+                return `
+
+                    <div class="order-item">
+
+                        <div>
+
+                            <strong>
+                                ${orderEscapeHTML(
+                                    item.product_name
+                                )}
+                            </strong>
+
+                            <div>
+
+                                ${quantity}
+                                ×
+                                ${orderMoney(
+                                    price
+                                )}
+
+                            </div>
+
+                        </div>
+
+
+                        <strong>
+
+                            ${orderMoney(
+                                lineTotal
+                            )}
+
+                        </strong>
+
+                    </div>
+
+                `;
+
+            })
+            .join("");
+
+    }
+
+
+    orderDetails.innerHTML = `
+
+        <div class="order-details-card">
+
+
+            <!-- HEADER -->
+
+            <div class="order-details-header">
+
+                <div>
+
+                    <p class="eyebrow">
+                        ORDER
+                    </p>
+
+                    <h3>
+                        #${orderEscapeHTML(
+                            order.id
+                        )}
+                    </h3>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    onclick="closeOrderDetails()"
+                >
+                    Close
+                </button>
+
+            </div>
+
+
+            <!-- CUSTOMER -->
+
+            <div class="order-customer">
+
+                <h4>
+                    Customer
+                </h4>
+
+
+                <p>
+
+                    <strong>
+                        ${orderEscapeHTML(
+                            order.customer_name
+                        )}
+                    </strong>
+
+                </p>
+
+
+                <p>
+
+                    ${orderEscapeHTML(
+                        order.customer_email
+                    )}
+
+                </p>
+
+
+                <p>
+
+                    ${orderEscapeHTML(
+                        order.customer_address
+                    )}
+
+                </p>
+
+            </div>
+
+
+            <!-- ORDER DATE -->
+
+            <div class="order-customer">
+
+                <h4>
+                    Order Information
+                </h4>
+
+                <p>
+
+                    Order date:
+                    <strong>
+                        ${orderDate(
+                            order.created_at
+                        )}
+                    </strong>
+
+                </p>
+
+            </div>
+
+
+            <!-- ITEMS -->
+
+            <div class="order-items">
+
+                <h4>
+                    Products
+                </h4>
+
+                ${itemsHTML}
+
+            </div>
+
+
+            <!-- TOTAL -->
+
+            <div class="order-total">
+
+                <span>
+                    Total
+                </span>
+
+                <strong>
+                    ${orderMoney(
+                        order.total
+                    )}
+                </strong>
+
+            </div>
+
+
+            <!-- STATUS -->
+
+            <div class="order-status-editor">
+
+                <label
+                    for="orderStatus"
+                >
+                    Order Status
+                </label>
+
+
+                <select
+                    id="orderStatus"
+                >
+
+                    <option
+                        value="pending"
+                        ${
+                            currentStatus === "pending"
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Pending
+                    </option>
+
+
+                    <option
+                        value="processing"
+                        ${
+                            currentStatus === "processing"
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Processing
+                    </option>
+
+
+                    <option
+                        value="shipped"
+                        ${
+                            currentStatus === "shipped"
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Shipped
+                    </option>
+
+
+                    <option
+                        value="delivered"
+                        ${
+                            currentStatus === "delivered"
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Delivered
+                    </option>
+
+
+                    <option
+                        value="cancelled"
+                        ${
+                            currentStatus === "cancelled"
+                                ? "selected"
+                                : ""
+                        }
+                    >
+                        Cancelled
+                    </option>
+
+                </select>
+
+
+                <button
+                    type="button"
+                    class="primary-button"
+                    onclick="updateOrderStatus(${Number(
+                        order.id
+                    )})"
+                >
+                    Save Status
+                </button>
+
+            </div>
+
+
+            <!-- STATUS MESSAGE -->
+
+            <div
+                id="orderStatusMessage"
+                class="order-status-message"
+            ></div>
+
+
+        </div>
+
+    `;
+
+}
+
+
+// =========================================================
+// UPDATE ORDER STATUS
+// =========================================================
+
+async function updateOrderStatus(
+    orderId
+) {
+
+    const statusSelect =
+        document.getElementById(
+            "orderStatus"
+        );
+
+
+    const message =
+        document.getElementById(
+            "orderStatusMessage"
+        );
+
+
+    if (!statusSelect) {
+        return;
+    }
+
+
+    const newStatus =
+        normalizeOrderStatus(
+            statusSelect.value
+        );
+
+
+    if (message) {
+
+        message.innerHTML =
+            "Saving...";
+
+    }
+
+
+    const {
+        error
+    } = await supabaseClient
+        .from("orders")
+        .update({
+            status: newStatus
+        })
+        .eq(
+            "id",
+            orderId
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Status update error:",
+            error
+        );
+
+
+        if (message) {
+
+            message.innerHTML = `
+
+                <span class="status-danger-text">
+
+                    Could not update order:
+                    ${orderEscapeHTML(
+                        error.message
+                    )}
+
+                </span>
+
+            `;
+
+        }
+
+        return;
+    }
+
+
+    // Update local copy immediately
+
+    const localOrder =
+        allOrders.find(
+            order =>
+                Number(order.id) ===
+                Number(orderId)
+        );
+
+
+    if (localOrder) {
+
+        localOrder.status =
+            newStatus;
+
+    }
+
+
+    renderOrders();
+
+
+    if (message) {
+
+        message.innerHTML = `
+
+            <span class="status-success-text">
+
+                Order status updated successfully.
+
+            </span>
+
+        `;
+
+    }
+
+
+    // Refresh dashboard statistics
+    // if your admin.js already has loadStats()
+
+    if (
+        typeof loadStats ===
+        "function"
+    ) {
+
+        try {
+
+            await loadStats();
+
+        } catch (statsError) {
+
+            console.warn(
+                "Could not refresh stats:",
+                statsError
+            );
+
+        }
+
+    }
+
+}
+
+
+// =========================================================
+// CLOSE ORDER DETAILS
+// =========================================================
+
+function closeOrderDetails() {
+
+    if (!orderDetails) {
+        return;
+    }
+
+
+    orderDetails.classList.add(
+        "hidden"
+    );
+
+
+    orderDetails.innerHTML =
+        "";
+
+}
+
+
+// =========================================================
+// SEARCH
+// =========================================================
+
+if (orderSearch) {
+
+    orderSearch.addEventListener(
+        "input",
+        renderOrders
+    );
+
+}
+
+
+// =========================================================
+// STATUS FILTER
+// =========================================================
+
+if (orderStatusFilter) {
+
+    orderStatusFilter.addEventListener(
+        "change",
+        renderOrders
+    );
+
+}
 
 // =========================================================
 // LOAD CATEGORIES
