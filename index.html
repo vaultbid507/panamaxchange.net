@@ -2,7 +2,9 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -10,371 +12,415 @@
 
     <title>NovaShop - Online Store</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
 </head>
+
 
 <body>
 
-    <!-- ==========================================
-         HEADER
-    =========================================== -->
 
-    <header class="header">
+<!-- ==========================================
+     HEADER
+========================================== -->
 
-        <div class="logo">
-            Nova<span>Shop</span>
+<header class="header">
+
+    <a
+        href="#home"
+        class="logo"
+    >
+        Nova<span>Shop</span>
+    </a>
+
+
+    <nav class="main-nav">
+
+        <a href="#home">
+            Home
+        </a>
+
+        <a href="#products">
+            Products
+        </a>
+
+        <a href="#about">
+            About
+        </a>
+
+        <a href="#contact">
+            Contact
+        </a>
+
+    </nav>
+
+
+    <button
+        id="cartButton"
+        class="cart-button"
+        type="button"
+    >
+
+        🛒 Cart
+
+        <span id="cartCount">
+            0
+        </span>
+
+    </button>
+
+</header>
+
+
+<!-- ==========================================
+     MAIN
+========================================== -->
+
+<main>
+
+
+    <!-- ======================================
+         HERO
+    ======================================= -->
+
+    <section
+        id="home"
+        class="hero"
+    >
+
+        <div class="hero-content">
+
+            <p class="eyebrow">
+                WELCOME TO NOVASHOP
+            </p>
+
+            <h1>
+                Everything you want.
+                <span>One place.</span>
+            </h1>
+
+            <p class="hero-text">
+                Discover great products at affordable prices.
+                Shop from anywhere, anytime.
+            </p>
+
+            <a
+                href="#products"
+                class="primary-button"
+            >
+                Shop Now
+            </a>
+
         </div>
 
-        <nav class="nav">
-            <a href="#home">Home</a>
-            <a href="#products">Products</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
-        </nav>
-
-        <button
-            id="cartButton"
-            class="cart-button"
-            type="button"
-        >
-            🛒 Cart
-            <span id="cartCount">0</span>
-        </button>
-
-    </header>
+    </section>
 
 
-    <!-- ==========================================
-         MAIN
-    =========================================== -->
+    <!-- ======================================
+         PRODUCTS
+    ======================================= -->
 
-    <main>
+    <section
+        id="products"
+        class="products-section"
+    >
 
-        <!-- ======================================
-             HERO
-        ======================================= -->
+        <div class="section-heading">
 
-        <section
-            id="home"
-            class="hero"
-        >
-
-            <div class="hero-content">
+            <div>
 
                 <p class="eyebrow">
-                    WELCOME TO NOVASHOP
+                    OUR STORE
                 </p>
 
-                <h1>
-                    Everything you want.
-                    <span>One place.</span>
-                </h1>
-
-                <p class="hero-description">
-                    Discover great products at affordable prices.
-                    Shop from anywhere, anytime.
-                </p>
-
-                <a
-                    href="#products"
-                    class="primary-button"
-                >
-                    Shop Now
-                </a>
+                <h2>
+                    Featured Products
+                </h2>
 
             </div>
 
-        </section>
 
-
-        <!-- ======================================
-             PRODUCTS
-        ======================================= -->
-
-        <section
-            id="products"
-            class="products-section"
-        >
-
-            <div class="section-heading">
-
-                <div>
-
-                    <p class="eyebrow">
-                        OUR STORE
-                    </p>
-
-                    <h2>
-                        Products
-                    </h2>
-
-                </div>
+            <div class="search-box">
 
                 <input
                     type="search"
                     id="searchInput"
-                    class="search-input"
                     placeholder="Search products..."
                     autocomplete="off"
                 >
 
             </div>
 
+        </div>
 
-            <!-- CATEGORIES FROM SUPABASE -->
 
-           <div
-    id="categories"
-    class="categories"
->
-    <button
-        class="category active"
-        data-category="all"
-    >
-        All
-    </button>
-</div>
+        <!-- CATEGORIES ARE LOADED FROM SUPABASE -->
 
-            <!-- PRODUCTS FROM SUPABASE -->
+        <div
+            id="categories"
+            class="categories"
+        >
 
-            <div
-                id="productGrid"
-                class="product-grid"
+            <button
+                type="button"
+                class="category active"
+                data-category="all"
             >
+                All
+            </button>
 
-                <p class="loading">
-                    Loading products...
-                </p>
-
-            </div>
-
-        </section>
+        </div>
 
 
-        <!-- ======================================
-             ABOUT
-        ======================================= -->
+        <!-- PRODUCTS -->
 
-        <section
-            id="about"
-            class="info-section"
+        <div
+            id="productGrid"
+            class="product-grid"
         >
 
-            <div>
-
-                <p class="eyebrow">
-                    ABOUT US
-                </p>
-
-                <h2>
-                    Shopping made simple.
-                </h2>
-
-                <p>
-                    NovaShop is a modern online store designed
-                    to make shopping simple, fast and enjoyable.
-                </p>
-
+            <div class="loading">
+                Loading products...
             </div>
 
-        </section>
+        </div>
+
+    </section>
 
 
-        <!-- ======================================
-             CONTACT
-        ======================================= -->
+    <!-- ======================================
+         ABOUT
+    ======================================= -->
 
-        <section
-            id="contact"
-            class="contact-section"
-        >
+    <section
+        id="about"
+        class="info-section"
+    >
+
+        <div class="info-content">
 
             <p class="eyebrow">
-                CONTACT
+                ABOUT US
             </p>
 
             <h2>
-                Need help?
+                Shopping made simple.
             </h2>
 
             <p>
-                Email us at:
-                <strong>
-                    hello@novashop.example
-                </strong>
+                NovaShop is a modern online store designed
+                to make shopping simple, fast and enjoyable.
             </p>
 
-        </section>
-
-    </main>
-
-
-    <!-- ==========================================
-         CART OVERLAY
-    =========================================== -->
-
-    <div
-        id="cartOverlay"
-        class="overlay hidden"
-    >
-
-        <div class="cart">
-
-            <div class="cart-header">
-
-                <h2>
-                    Your Cart
-                </h2>
-
-                <button
-                    id="closeCart"
-                    type="button"
-                    class="close-button"
-                >
-                    ✕
-                </button>
-
-            </div>
-
-
-            <div id="cartItems">
-
-                <p>
-                    Your cart is empty.
-                </p>
-
-            </div>
-
-
-            <div class="cart-footer">
-
-                <div class="cart-total">
-
-                    <span>
-                        Total
-                    </span>
-
-                    <strong id="cartTotal">
-                        $0.00
-                    </strong>
-
-                </div>
-
-                <button
-                    id="checkoutButton"
-                    type="button"
-                    class="primary-button full-width"
-                >
-                    Checkout
-                </button>
-
-            </div>
-
         </div>
 
-    </div>
+    </section>
 
 
-    <!-- ==========================================
-         CHECKOUT OVERLAY
-    =========================================== -->
+    <!-- ======================================
+         CONTACT
+    ======================================= -->
 
-    <div
-        id="checkoutOverlay"
-        class="overlay hidden"
+    <section
+        id="contact"
+        class="contact-section"
     >
 
-        <div class="checkout">
-
-            <div class="cart-header">
-
-                <h2>
-                    Checkout
-                </h2>
-
-                <button
-                    id="closeCheckout"
-                    type="button"
-                    class="close-button"
-                >
-                    ✕
-                </button>
-
-            </div>
-
-
-            <form id="checkoutForm">
-
-                <label>
-                    Full Name
-
-                    <input
-                        type="text"
-                        id="customerName"
-                        required
-                    >
-                </label>
-
-
-                <label>
-                    Email
-
-                    <input
-                        type="email"
-                        id="customerEmail"
-                        required
-                    >
-                </label>
-
-
-                <label>
-                    Address
-
-                    <textarea
-                        id="customerAddress"
-                        required
-                    ></textarea>
-                </label>
-
-
-                <button
-                    type="submit"
-                    class="primary-button full-width"
-                >
-                    Place Order
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-    <!-- ==========================================
-         FOOTER
-    =========================================== -->
-
-    <footer>
-
-        <p>
-            © 2026 NovaShop. All rights reserved.
+        <p class="eyebrow">
+            CONTACT
         </p>
 
-    </footer>
+        <h2>
+            Need help?
+        </h2>
+
+        <p>
+            Email us at:
+            <strong>
+                hello@novashop.example
+            </strong>
+        </p>
+
+    </section>
+
+</main>
 
 
-    <!-- ==========================================
-         SUPABASE
-    =========================================== -->
+<!-- ==========================================
+     CART
+========================================== -->
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<div
+    id="cartOverlay"
+    class="overlay hidden"
+>
 
-    <!-- ==========================================
-         NOVASHOP APP
-    =========================================== -->
+    <div class="cart-modal">
 
-    <script src="app.js"></script>
+        <div class="modal-header">
+
+            <h2>
+                Your Cart
+            </h2>
+
+            <button
+                id="closeCart"
+                class="close-button"
+                type="button"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <div
+            id="cartItems"
+            class="cart-items"
+        ></div>
+
+
+        <div class="cart-footer">
+
+            <div class="cart-total">
+
+                <span>
+                    Total
+                </span>
+
+                <strong id="cartTotal">
+                    $0.00
+                </strong>
+
+            </div>
+
+
+            <button
+                id="checkoutButton"
+                class="primary-button full-width"
+                type="button"
+            >
+                Checkout
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     CHECKOUT
+========================================== -->
+
+<div
+    id="checkoutOverlay"
+    class="overlay hidden"
+>
+
+    <div class="checkout-modal">
+
+        <div class="modal-header">
+
+            <h2>
+                Checkout
+            </h2>
+
+            <button
+                id="closeCheckout"
+                class="close-button"
+                type="button"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <form id="checkoutForm">
+
+            <div class="form-group">
+
+                <label for="customerName">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    id="customerName"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="customerEmail">
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="customerEmail"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="customerAddress">
+                    Address
+                </label>
+
+                <textarea
+                    id="customerAddress"
+                    required
+                ></textarea>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary-button full-width"
+            >
+                Place Order
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ==========================================
+     FOOTER
+========================================== -->
+
+<footer class="footer">
+
+    <p>
+        © 2026 NovaShop. All rights reserved.
+    </p>
+
+</footer>
+
+
+<!-- ==========================================
+     SUPABASE
+========================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="app.js"></script>
 
 </body>
 
