@@ -989,5 +989,211 @@ tbody tr:hover td {
     .category-actions button {
         flex: 1;
     }
+/* =========================================
+   ORDER MANAGEMENT
+========================================= */
 
+.order-toolbar {
+    display: grid;
+    grid-template-columns:
+        minmax(220px, 2fr)
+        minmax(180px, 1fr);
+
+    gap: 16px;
+
+    margin-bottom: 24px;
+}
+
+
+.order-toolbar .form-group {
+    margin: 0;
+}
+
+
+.order-details {
+    margin-top: 24px;
+}
+
+
+.order-details-card {
+    background: #ffffff;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 16px;
+
+    padding: 24px;
+}
+
+
+.order-details-header {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 24px;
+}
+
+
+.order-details-header h3 {
+    margin: 4px 0 0;
+
+    font-size: 24px;
+}
+
+
+.order-customer,
+.order-items,
+.order-status-editor {
+    margin-top: 24px;
+
+    padding-top: 24px;
+
+    border-top: 1px solid #e5e7eb;
+}
+
+
+.order-customer h4,
+.order-items h4 {
+    margin-top: 0;
+
+    margin-bottom: 12px;
+}
+
+
+.order-customer p {
+    margin: 6px 0;
+
+    color: #64748b;
+}
+
+
+.order-item {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+
+.order-item strong {
+    color: #111827;
+}
+
+
+.order-item div div {
+    color: #64748b;
+
+    margin-top: 4px;
+
+    font-size: 14px;
+}
+
+
+.order-total {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding-top: 20px;
+
+    margin-top: 10px;
+
+    font-size: 18px;
+}
+
+
+.order-total strong {
+    font-size: 22px;
+}
+
+
+.order-status-editor {
+    display: flex;
+
+    align-items: end;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+.order-status-editor label {
+    display: block;
+
+    width: 100%;
+
+    font-weight: 600;
+
+    margin-bottom: -4px;
+}
+
+
+.order-status-editor select {
+    min-width: 200px;
+
+    padding: 11px 12px;
+
+    border: 1px solid #d1d5db;
+
+    border-radius: 8px;
+
+    background: white;
+}
+
+
+.status-info {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+
+@media (max-width: 700px) {
+
+    .order-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+
+    .order-details-card {
+        padding: 16px;
+    }
+
+
+    .order-details-header {
+        align-items: flex-start;
+
+        gap: 12px;
+    }
+
+
+    .order-status-editor {
+        align-items: stretch;
+
+        flex-direction: column;
+    }
+
+
+    .order-status-editor select,
+    .order-status-editor button {
+        width: 100%;
+    }
+
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+}
 }
