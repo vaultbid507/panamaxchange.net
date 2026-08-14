@@ -135,19 +135,12 @@ async function loadProducts() {
     }
 
 
-    products = data.map(product => ({
-
+  products = data.map(product => ({
     ...product,
-
-    category:
-        String(product.category || "")
-            .trim()
-            .toLowerCase(),
-
     emoji: "🛍️"
-
 }));
 
+displayProducts();
     setupCategories();
     displayProducts();
 
