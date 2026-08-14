@@ -148,7 +148,7 @@ async function loadProducts() {
 
 }));
 
-
+    setupCategories();
     displayProducts();
 
 }
@@ -895,25 +895,133 @@ searchInput.addEventListener(
     () => {
 
         const activeCategory =
-            document.querySelector(
-                ".category.active"
-            );
+           function setupCategories() {
+
+    const categories =
+        [
+            ...new Set(
+                products
+                    .map(product =>
+                        String(
+                            product.category || ""
+                        )
+                        .trim()
+                        .toLowerCase()
+                    )
+                    .filter(Boolean)
+            )
+        ]
+        .sort();
 
 
-        const category =
-            activeCategory
-                ? activeCategory.dataset.category
-                : "all";
-
-
-        displayProducts(
-            category,
-            searchInput.value
+    const categoryContainer =
+        document.getElementById(
+            "categoryContainer"
         );
 
-    }
-);
 
+    if (!categoryContainer) {
+
+        return;
+
+    }
+
+
+    categoryContainer.innerHTML = "";
+
+
+    const allButton =
+        document.createElement(
+            "button"
+        );
+
+
+    allButton.className =
+        "category active";
+
+    allButton.dataset.category =
+        "all";
+
+    allButton.textContent =
+        "All";
+
+
+    categoryContainer.appendChild(
+        allButton
+    );
+
+
+    categories.forEach(
+        category => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.className =
+                "category";
+
+
+            button.dataset.category =
+                category;
+
+
+            button.textContent =
+                category
+                    .charAt(0)
+                    .toUpperCase() +
+                category.slice(1);
+
+
+            categoryContainer.appendChild(
+                button
+            );
+
+        }
+    );
+
+
+    categoryContainer
+        .querySelectorAll(
+            ".category"
+        )
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    categoryContainer
+                        .querySelectorAll(
+                            ".category"
+                        )
+                        .forEach(btn => {
+
+                            btn.classList.remove(
+                                "active"
+                            );
+
+                        });
+
+
+                    button.classList.add(
+                        "active"
+                    );
+
+
+                    displayProducts(
+                        button.dataset.category,
+                        searchInput.value
+                    );
+
+                }
+            );
+
+        });
+
+}
 
 // ------------------------------------------
 // CATEGORY FILTER
