@@ -653,6 +653,7 @@ async function showDashboard() {
 
     await loadDashboard();
     await loadProducts();
+    await loadCategories();
 
 }
 
@@ -1514,7 +1515,7 @@ async function deleteProduct(
 }
 
 checkLogin();
-
+loadCategories();
 </script>
 
 
