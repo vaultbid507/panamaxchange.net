@@ -1,6 +1,6 @@
 // =========================================================
-// NOVASHOP ADMIN
-// CLEAN SUPABASE ADMIN PANEL
+// NOVASHOP ADMIN PANEL
+// Clean Supabase Admin JavaScript
 // =========================================================
 
 
@@ -40,14 +40,10 @@ const loginMessage =
     document.getElementById("loginMessage");
 
 const forgotPasswordButton =
-    document.getElementById(
-        "forgotPasswordButton"
-    );
+    document.getElementById("forgotPasswordButton");
 
 const forgotPasswordMessage =
-    document.getElementById(
-        "forgotPasswordMessage"
-    );
+    document.getElementById("forgotPasswordMessage");
 
 const logoutButton =
     document.getElementById("logoutButton");
@@ -71,126 +67,79 @@ const revenue =
 // Orders
 
 const ordersContainer =
-    document.getElementById(
-        "ordersContainer"
-    );
+    document.getElementById("ordersContainer");
 
 const orderSearch =
-    document.getElementById(
-        "orderSearch"
-    );
+    document.getElementById("orderSearch");
 
 const orderStatusFilter =
-    document.getElementById(
-        "orderStatusFilter"
-    );
+    document.getElementById("orderStatusFilter");
 
 const orderDetails =
-    document.getElementById(
-        "orderDetails"
-    );
+    document.getElementById("orderDetails");
 
-// Products
-
-const productsContainer =
-    document.getElementById(
-        "productsContainer"
-    );
 
 // Categories
 
 const categoryForm =
-    document.getElementById(
-        "categoryForm"
-    );
+    document.getElementById("categoryForm");
 
 const categoryId =
-    document.getElementById(
-        "categoryId"
-    );
+    document.getElementById("categoryId");
 
 const categoryName =
-    document.getElementById(
-        "categoryName"
-    );
+    document.getElementById("categoryName");
 
 const categorySlug =
-    document.getElementById(
-        "categorySlug"
-    );
+    document.getElementById("categorySlug");
 
 const categorySubmitButton =
-    document.getElementById(
-        "categorySubmitButton"
-    );
+    document.getElementById("categorySubmitButton");
 
 const cancelCategoryEdit =
-    document.getElementById(
-        "cancelCategoryEdit"
-    );
+    document.getElementById("cancelCategoryEdit");
 
 const categoriesContainer =
-    document.getElementById(
-        "categoriesContainer"
-    );
+    document.getElementById("categoriesContainer");
 
 
 // Products
 
+const productsContainer =
+    document.getElementById("productsContainer");
+
 const productForm =
-    document.getElementById(
-        "productForm"
-    );
+    document.getElementById("productForm");
 
 const productId =
-    document.getElementById(
-        "productId"
-    );
+    document.getElementById("productId");
 
 const productName =
-    document.getElementById(
-        "productName"
-    );
+    document.getElementById("productName");
 
 const productDescription =
-    document.getElementById(
-        "productDescription"
-    );
+    document.getElementById("productDescription");
 
 const productPrice =
-    document.getElementById(
-        "productPrice"
-    );
+    document.getElementById("productPrice");
 
 const productCategory =
-    document.getElementById(
-        "productCategory"
-    );
+    document.getElementById("productCategory");
 
 const productStock =
-    document.getElementById(
-        "productStock"
-    );
+    document.getElementById("productStock");
 
 const productImage =
-    document.getElementById(
-        "productImage"
-    );
+    document.getElementById("productImage");
 
 const productSubmitButton =
-    document.getElementById(
-        "productSubmitButton"
-    );
+    document.getElementById("productSubmitButton");
 
 const cancelEdit =
-    document.getElementById(
-        "cancelEdit"
-    );
+    document.getElementById("cancelEdit");
 
 const imagePreview =
-    document.getElementById(
-        "imagePreview"
-    );
+    document.getElementById("imagePreview");
 
 
 // =========================================================
@@ -198,9 +147,7 @@ const imagePreview =
 // =========================================================
 
 let categories = [];
-
 let products = [];
-
 let allOrders = [];
 
 
@@ -216,21 +163,18 @@ function escapeHTML(value) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-
 }
 
 
 function money(value) {
 
-    return Number(value || 0)
-        .toLocaleString(
-            "en-US",
-            {
-                style: "currency",
-                currency: "USD"
-            }
-        );
-
+    return Number(value || 0).toLocaleString(
+        "en-US",
+        {
+            style: "currency",
+            currency: "USD"
+        }
+    );
 }
 
 
@@ -239,34 +183,22 @@ function slugify(value) {
     return String(value || "")
         .trim()
         .toLowerCase()
-        .replace(
-            /[^a-z0-9]+/g,
-            "-"
-        )
-        .replace(
-            /^-+|-+$/g,
-            ""
-        );
-
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 }
 
 
 function normalizeStatus(value) {
 
-    return String(
-        value || "pending"
-    )
+    return String(value || "pending")
         .trim()
         .toLowerCase();
-
 }
 
 
 function statusClass(status) {
 
-    switch (
-        normalizeStatus(status)
-    ) {
+    switch (normalizeStatus(status)) {
 
         case "processing":
         case "shipped":
@@ -281,118 +213,31 @@ function statusClass(status) {
         case "canceled":
             return "status-danger";
 
-        case "pending":
         default:
             return "status-pending";
     }
-
 }
 
 
 // =========================================================
-// ADMIN CHECK
-// =========================================================
-
-async function isAdmin(userId) {
-
-    console.log("ADMIN VALIDATION USER ID:", userId);
-
-    if (!userId) {
-        console.error("No user ID supplied.");
-        return false;
-    }
-
-    const { data, error } = await supabaseClient
-        .from("admin_users")
-        .select("user_id")
-        .eq("user_id", userId)
-        .limit(1);
-
-    console.log("ADMIN VALIDATION RESULT:", data);
-    console.log("ADMIN VALIDATION ERROR:", error);
-
-    if (error) {
-        return false;
-    }
-
-    return Array.isArray(data) && data.length > 0;
-}
-
-
-// =========================================================
-// CHECK LOGIN
-// =========================================================
-
-async function checkLogin() {
-
-    const {
-        data,
-        error
-    } = await supabaseClient.auth.getSession();
-
-    if (error) {
-
-        console.error(
-            "SESSION ERROR:",
-            error
-        );
-
-        return;
-    }
-
-    if (!data.session) {
-        showLogin();
-        return;
-    }
-
-    const allowed =
-        await isAdmin(
-            data.session.user.id
-        );
-
-    if (!allowed) {
-
-        await supabaseClient.auth.signOut();
-
-        showLogin();
-
-        showLoginMessage(
-            "This account is not an administrator.",
-            "error"
-        );
-
-        return;
-    }
-
-    await showDashboard(
-        data.session
-    );
-}
-
-
-// =========================================================
-// SHOW LOGIN
+// LOGIN UI
 // =========================================================
 
 function showLogin() {
 
-    dashboard.classList.add(
-        "hidden"
-    );
+    if (dashboard) {
+        dashboard.classList.add("hidden");
+    }
 
-    loginSection.classList.remove(
-        "hidden"
-    );
+    if (loginSection) {
+        loginSection.classList.remove("hidden");
+    }
 
-    logoutButton.classList.add(
-        "hidden"
-    );
+    if (logoutButton) {
+        logoutButton.classList.add("hidden");
+    }
 }
 
-
-// =========================================================
-// SHOW LOGIN MESSAGE
-// =========================================================
 
 function showLoginMessage(
     message,
@@ -403,11 +248,122 @@ function showLoginMessage(
         return;
     }
 
-    loginMessage.textContent =
-        message;
+    loginMessage.textContent = message;
 
     loginMessage.className =
-        "message " + type;
+        message
+            ? `message ${type}`
+            : "message";
+}
+
+
+function clearLoginMessages() {
+
+    showLoginMessage("");
+
+    if (forgotPasswordMessage) {
+        forgotPasswordMessage.textContent = "";
+        forgotPasswordMessage.className = "message";
+    }
+}
+
+
+// =========================================================
+// ADMIN VALIDATION
+// =========================================================
+
+async function isAdmin(userId) {
+
+    if (!userId) {
+        return false;
+    }
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("admin_users")
+        .select("user_id")
+        .eq("user_id", userId)
+        .limit(1);
+
+    if (error) {
+
+        console.error(
+            "ADMIN VALIDATION ERROR:",
+            error
+        );
+
+        return false;
+    }
+
+    return Array.isArray(data) &&
+        data.length > 0;
+}
+
+
+// =========================================================
+// CHECK CURRENT SESSION
+// =========================================================
+
+async function checkLogin() {
+
+    try {
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.getSession();
+
+        if (error) {
+            throw error;
+        }
+
+        const session =
+            data?.session;
+
+        if (!session?.user) {
+
+            showLogin();
+            return;
+        }
+
+        const allowed =
+            await isAdmin(
+                session.user.id
+            );
+
+        if (!allowed) {
+
+            await supabaseClient.auth.signOut();
+
+            showLogin();
+
+            showLoginMessage(
+                "This account is not registered as an administrator.",
+                "error"
+            );
+
+            return;
+        }
+
+        await showDashboard(session);
+
+    } catch (error) {
+
+        console.error(
+            "SESSION CHECK ERROR:",
+            error
+        );
+
+        showLogin();
+
+        showLoginMessage(
+            "Unable to verify your account.",
+            "error"
+        );
+    }
 }
 
 
@@ -423,28 +379,40 @@ if (loginForm) {
 
             event.preventDefault();
 
-            showLoginMessage("");
+            clearLoginMessages();
 
-            const email =
-                document
-                    .getElementById("email")
-                    .value
-                    .trim();
+            const emailInput =
+                document.getElementById("email");
 
-            const password =
-                document
-                    .getElementById("password")
-                    .value;
+            const passwordInput =
+                document.getElementById("password");
 
             const button =
                 loginForm.querySelector(
                     "button[type='submit']"
                 );
 
-            button.disabled = true;
+            const email =
+                emailInput?.value
+                    .trim() || "";
 
-            button.textContent =
-                "Signing in...";
+            const password =
+                passwordInput?.value || "";
+
+            if (!email || !password) {
+
+                showLoginMessage(
+                    "Enter your email and password.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (button) {
+                button.disabled = true;
+                button.textContent = "Signing in...";
+            }
 
             try {
 
@@ -462,6 +430,12 @@ if (loginForm) {
                     throw error;
                 }
 
+                if (!data?.user) {
+                    throw new Error(
+                        "Login failed. No user was returned."
+                    );
+                }
+
                 const allowed =
                     await isAdmin(
                         data.user.id
@@ -469,9 +443,7 @@ if (loginForm) {
 
                 if (!allowed) {
 
-                    await supabaseClient
-                        .auth
-                        .signOut();
+                    await supabaseClient.auth.signOut();
 
                     throw new Error(
                         "This account is not registered as an administrator."
@@ -490,21 +462,20 @@ if (loginForm) {
                 );
 
                 showLoginMessage(
-                    error.message,
+                    error.message ||
+                    "Unable to sign in.",
                     "error"
                 );
 
             } finally {
 
-                button.disabled = false;
-
-                button.textContent =
-                    "Login";
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = "Login";
+                }
             }
-
         }
     );
-
 }
 
 
@@ -512,30 +483,23 @@ if (loginForm) {
 // SHOW DASHBOARD
 // =========================================================
 
-async function showDashboard(
-    session
-) {
+async function showDashboard(session) {
 
-    loginSection.classList.add(
-        "hidden"
-    );
+    if (loginSection) {
+        loginSection.classList.add("hidden");
+    }
 
-    dashboard.classList.remove(
-        "hidden"
-    );
+    if (dashboard) {
+        dashboard.classList.remove("hidden");
+    }
 
-    logoutButton.classList.remove(
-        "hidden"
-    );
+    if (logoutButton) {
+        logoutButton.classList.remove("hidden");
+    }
 
-    if (
-        session &&
-        session.user
-    ) {
-
+    if (adminEmail) {
         adminEmail.textContent =
-            session.user.email || "";
-
+            session?.user?.email || "";
     }
 
     await refreshDashboard();
@@ -543,18 +507,17 @@ async function showDashboard(
 
 
 // =========================================================
-// REFRESH EVERYTHING
+// REFRESH DASHBOARD
 // =========================================================
 
 async function refreshDashboard() {
 
-    await Promise.all([
+    await Promise.allSettled([
         loadCategories(),
         loadProducts(),
         loadOrders(),
         loadStats()
     ]);
-
 }
 
 
@@ -568,19 +531,31 @@ if (logoutButton) {
         "click",
         async () => {
 
-            await supabaseClient
-                .auth
-                .signOut();
+            try {
+
+                await supabaseClient.auth.signOut();
+
+            } catch (error) {
+
+                console.error(
+                    "LOGOUT ERROR:",
+                    error
+                );
+            }
 
             showLogin();
 
-            loginForm.reset();
+            if (loginForm) {
+                loginForm.reset();
+            }
 
-            adminEmail.textContent = "";
+            if (adminEmail) {
+                adminEmail.textContent = "";
+            }
 
+            clearLoginMessages();
         }
     );
-
 }
 
 
@@ -595,34 +570,36 @@ if (forgotPasswordButton) {
         async () => {
 
             const emailInput =
-                document.getElementById(
-                    "email"
-                );
+                document.getElementById("email");
 
             const email =
-                emailInput.value.trim();
+                emailInput?.value
+                    .trim() || "";
 
             if (!email) {
 
-                forgotPasswordMessage.textContent =
-                    "Enter your email address first.";
+                if (forgotPasswordMessage) {
 
-                forgotPasswordMessage.className =
-                    "message error";
+                    forgotPasswordMessage.textContent =
+                        "Enter your email address first.";
 
-                emailInput.focus();
+                    forgotPasswordMessage.className =
+                        "message error";
+                }
+
+                emailInput?.focus();
 
                 return;
             }
 
-            forgotPasswordButton.disabled =
-                true;
+            forgotPasswordButton.disabled = true;
 
             forgotPasswordButton.textContent =
                 "Sending...";
 
-            forgotPasswordMessage.textContent =
-                "";
+            if (forgotPasswordMessage) {
+                forgotPasswordMessage.textContent = "";
+            }
 
             try {
 
@@ -634,8 +611,7 @@ if (forgotPasswordButton) {
                             email,
                             {
                                 redirectTo:
-                                    window.location.origin +
-                                    "/update-password.html"
+                                    `${window.location.origin}/update-password.html`
                             }
                         );
 
@@ -643,11 +619,14 @@ if (forgotPasswordButton) {
                     throw error;
                 }
 
-                forgotPasswordMessage.textContent =
-                    "Password reset instructions have been sent to your email.";
+                if (forgotPasswordMessage) {
 
-                forgotPasswordMessage.className =
-                    "message success";
+                    forgotPasswordMessage.textContent =
+                        "Password reset instructions have been sent to your email.";
+
+                    forgotPasswordMessage.className =
+                        "message success";
+                }
 
             } catch (error) {
 
@@ -656,11 +635,15 @@ if (forgotPasswordButton) {
                     error
                 );
 
-                forgotPasswordMessage.textContent =
-                    error.message;
+                if (forgotPasswordMessage) {
 
-                forgotPasswordMessage.className =
-                    "message error";
+                    forgotPasswordMessage.textContent =
+                        error.message ||
+                        "Could not send password reset email.";
+
+                    forgotPasswordMessage.className =
+                        "message error";
+                }
 
             } finally {
 
@@ -670,91 +653,113 @@ if (forgotPasswordButton) {
                 forgotPasswordButton.textContent =
                     "Forgot Password?";
             }
-
         }
     );
-
 }
 
 
 // =========================================================
-// LOAD STATS
+// STATISTICS
 // =========================================================
 
 async function loadStats() {
 
-    const {
-        count: productsTotal,
-        error: productError
-    } =
-        await supabaseClient
-            .from("products")
-            .select(
-                "id",
-                {
-                    count: "exact",
-                    head: true
-                }
-            );
+    try {
 
-    if (productError) {
+        const {
+            count,
+            error
+        } =
+            await supabaseClient
+                .from("products")
+                .select(
+                    "id",
+                    {
+                        count: "exact",
+                        head: true
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        if (productCount) {
+            productCount.textContent =
+                count || 0;
+        }
+
+    } catch (error) {
 
         console.error(
             "PRODUCT COUNT ERROR:",
-            productError
+            error
         );
+
+        if (productCount) {
+            productCount.textContent = "—";
+        }
     }
 
 
-    const {
-        data: orders,
-        error: orderError
-    } =
-        await supabaseClient
-            .from("orders")
-            .select(
-                "id,total"
-            );
+    try {
 
-    if (orderError) {
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("orders")
+                .select("id,total");
 
-        console.error(
-            "ORDER STATS ERROR:",
-            orderError
-        );
+        if (error) {
+            throw error;
+        }
 
-        return;
-    }
+        const orders =
+            data || [];
 
+        if (orderCount) {
+            orderCount.textContent =
+                orders.length;
+        }
 
-    productCount.textContent =
-        productsTotal || 0;
-
-    orderCount.textContent =
-        orders?.length || 0;
-
-
-    const total =
-        (orders || [])
-            .reduce(
+        const total =
+            orders.reduce(
                 (
                     sum,
                     order
                 ) =>
                     sum +
-                    Number(
-                        order.total || 0
-                    ),
+                    Number(order.total || 0),
                 0
             );
 
-    revenue.textContent =
-        money(total);
+        if (revenue) {
+            revenue.textContent =
+                money(total);
+        }
+
+    } catch (error) {
+
+        console.error(
+            "ORDER STATS ERROR:",
+            error
+        );
+
+        if (orderCount) {
+            orderCount.textContent = "—";
+        }
+
+        if (revenue) {
+            revenue.textContent = "—";
+        }
+    }
 }
 
 
 // =========================================================
-// LOAD ORDERS
+// ORDERS
 // =========================================================
 
 async function loadOrders() {
@@ -794,11 +799,6 @@ async function loadOrders() {
 
         renderOrders();
 
-        console.log(
-            "ORDERS LOADED:",
-            allOrders.length
-        );
-
     } catch (error) {
 
         console.error(
@@ -808,45 +808,32 @@ async function loadOrders() {
 
         ordersContainer.innerHTML = `
             <div class="empty-state">
-
-                <strong>
-                    Could not load orders.
-                </strong>
-
+                <strong>Could not load orders.</strong>
                 <br><br>
-
                 ${escapeHTML(
                     error.message
                 )}
-
             </div>
         `;
     }
 }
 
 
-// =========================================================
-// RENDER ORDERS
-// =========================================================
-
 function renderOrders() {
 
+    if (!ordersContainer) {
+        return;
+    }
+
     const search =
-        (
-            orderSearch?.value ||
-            ""
-        )
-        .trim()
-        .toLowerCase();
+        orderSearch?.value
+            ?.trim()
+            .toLowerCase() || "";
 
     const selectedStatus =
-        (
-            orderStatusFilter?.value ||
-            ""
-        )
-        .trim()
-        .toLowerCase();
-
+        orderStatusFilter?.value
+            ?.trim()
+            .toLowerCase() || "";
 
     const filtered =
         allOrders.filter(
@@ -855,56 +842,45 @@ function renderOrders() {
                 const id =
                     String(
                         order.id || ""
-                    )
-                    .toLowerCase();
+                    ).toLowerCase();
 
                 const name =
                     String(
                         order.customer_name || ""
-                    )
-                    .toLowerCase();
+                    ).toLowerCase();
 
                 const email =
                     String(
                         order.customer_email || ""
-                    )
-                    .toLowerCase();
+                    ).toLowerCase();
 
                 const status =
                     normalizeStatus(
                         order.status
                     );
 
-                const searchMatch =
+                const matchesSearch =
                     !search ||
                     id.includes(search) ||
                     name.includes(search) ||
                     email.includes(search);
 
-                const statusMatch =
+                const matchesStatus =
                     !selectedStatus ||
                     status === selectedStatus;
 
                 return (
-                    searchMatch &&
-                    statusMatch
+                    matchesSearch &&
+                    matchesStatus
                 );
             }
         );
 
-    displayOrders(
-        filtered
-    );
+    displayOrders(filtered);
 }
 
 
-// =========================================================
-// DISPLAY ORDERS
-// =========================================================
-
-function displayOrders(
-    orders
-) {
+function displayOrders(orders) {
 
     if (!ordersContainer) {
         return;
@@ -921,49 +897,8 @@ function displayOrders(
         return;
     }
 
-
-    let html = `
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        Order
-                    </th>
-
-                    <th>
-                        Customer
-                    </th>
-
-                    <th>
-                        Total
-                    </th>
-
-                    <th>
-                        Status
-                    </th>
-
-                    <th>
-                        Date
-                    </th>
-
-                    <th>
-                        Action
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-    `;
-
-
-    orders.forEach(
-        order => {
+    const rows =
+        orders.map(order => {
 
             const status =
                 normalizeStatus(
@@ -977,88 +912,53 @@ function displayOrders(
                     ).toLocaleDateString()
                     : "—";
 
-
-            html += `
-
+            return `
                 <tr>
 
                     <td>
-
                         <strong>
-                            #${escapeHTML(
-                                order.id
-                            )}
+                            #${escapeHTML(order.id)}
                         </strong>
-
                     </td>
-
 
                     <td>
 
                         <div class="order-customer-name">
-
                             ${escapeHTML(
-                                order.customer_name ||
-                                "—"
+                                order.customer_name || "—"
                             )}
-
                         </div>
 
                         <div class="order-customer-email">
-
                             ${escapeHTML(
-                                order.customer_email ||
-                                "—"
+                                order.customer_email || "—"
                             )}
-
                         </div>
 
                     </td>
 
-
                     <td>
-
-                        ${money(
-                            order.total
-                        )}
-
+                        ${money(order.total)}
                     </td>
 
-
                     <td>
 
-                        <span
-                            class="status ${statusClass(
-                                status
-                            )}"
-                        >
-
-                            ${escapeHTML(
-                                status
-                            )}
-
+                        <span class="status ${statusClass(status)}">
+                            ${escapeHTML(status)}
                         </span>
 
                     </td>
 
-
                     <td>
-
-                        ${escapeHTML(
-                            date
-                        )}
-
+                        ${escapeHTML(date)}
                     </td>
-
 
                     <td>
 
                         <button
                             type="button"
                             class="order-view-button"
-                            onclick="viewOrder(${Number(
-                                order.id
-                            )})"
+                            onclick="viewOrder(${Number(order.id)})"
                         >
                             View
                         </button>
@@ -1066,23 +966,30 @@ function displayOrders(
                     </td>
 
                 </tr>
-
             `;
-        }
-    );
+        })
+        .join("");
 
+    ordersContainer.innerHTML = `
+        <table>
 
-    html += `
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
 
+            <tbody>
+                ${rows}
             </tbody>
 
         </table>
-
     `;
-
-
-    ordersContainer.innerHTML =
-        html;
 }
 
 
@@ -1090,24 +997,19 @@ function displayOrders(
 // VIEW ORDER
 // =========================================================
 
-async function viewOrder(
-    orderId
-) {
+async function viewOrder(orderId) {
 
     if (!orderDetails) {
         return;
     }
 
-    orderDetails.classList.remove(
-        "hidden"
-    );
+    orderDetails.classList.remove("hidden");
 
     orderDetails.innerHTML = `
         <div class="loading">
             Loading order...
         </div>
     `;
-
 
     try {
 
@@ -1118,16 +1020,12 @@ async function viewOrder(
             await supabaseClient
                 .from("orders")
                 .select("*")
-                .eq(
-                    "id",
-                    orderId
-                )
+                .eq("id", orderId)
                 .single();
 
         if (orderError) {
             throw orderError;
         }
-
 
         const {
             data: items,
@@ -1136,10 +1034,7 @@ async function viewOrder(
             await supabaseClient
                 .from("order_items")
                 .select("*")
-                .eq(
-                    "order_id",
-                    orderId
-                )
+                .eq("order_id", orderId)
                 .order(
                     "id",
                     {
@@ -1150,7 +1045,6 @@ async function viewOrder(
         if (itemsError) {
             throw itemsError;
         }
-
 
         renderOrderDetails(
             order,
@@ -1175,98 +1069,69 @@ async function viewOrder(
 }
 
 
-// =========================================================
-// RENDER ORDER DETAILS
-// =========================================================
-
 function renderOrderDetails(
     order,
     items
 ) {
 
-    const currentStatus =
+    const status =
         normalizeStatus(
             order.status
         );
 
+    const itemsHTML =
+        items.length
+            ? items.map(item => {
 
-    let itemsHTML = "";
+                const quantity =
+                    Number(
+                        item.quantity || 0
+                    );
 
+                const price =
+                    Number(
+                        item.price || 0
+                    );
 
-    if (!items.length) {
+                return `
+                    <div class="order-item">
 
-        itemsHTML = `
-            <div class="empty-state">
-                No products recorded for this order.
-            </div>
-        `;
+                        <div>
 
-    } else {
+                            <strong>
+                                ${escapeHTML(
+                                    item.product_name ||
+                                    "Product"
+                                )}
+                            </strong>
 
-        itemsHTML =
-            items
-                .map(
-                    item => {
-
-                        const quantity =
-                            Number(
-                                item.quantity || 0
-                            );
-
-                        const price =
-                            Number(
-                                item.price || 0
-                            );
-
-                        const total =
-                            quantity * price;
-
-
-                        return `
-
-                            <div class="order-item">
-
-                                <div>
-
-                                    <strong>
-
-                                        ${escapeHTML(
-                                            item.product_name ||
-                                            "Product"
-                                        )}
-
-                                    </strong>
-
-                                    <div>
-
-                                        ${quantity}
-                                        ×
-                                        ${money(price)}
-
-                                    </div>
-
-                                </div>
-
-
-                                <strong>
-
-                                    ${money(total)}
-
-                                </strong>
-
+                            <div>
+                                ${quantity}
+                                ×
+                                ${money(price)}
                             </div>
 
-                        `;
-                    }
-                )
-                .join("");
-    }
+                        </div>
 
+                        <strong>
+                            ${money(
+                                quantity * price
+                            )}
+                        </strong>
+
+                    </div>
+                `;
+
+            }).join("")
+            : `
+                <div class="empty-state">
+                    No products recorded for this order.
+                </div>
+            `;
 
     orderDetails.innerHTML = `
 
         <div class="order-details-card">
-
 
             <div class="order-details-header">
 
@@ -1277,13 +1142,10 @@ function renderOrderDetails(
                     </p>
 
                     <h3>
-                        #${escapeHTML(
-                            order.id
-                        )}
+                        #${escapeHTML(order.id)}
                     </h3>
 
                 </div>
-
 
                 <button
                     type="button"
@@ -1298,29 +1160,25 @@ function renderOrderDetails(
 
             <div class="order-customer">
 
-                <h4>
-                    Customer
-                </h4>
+                <h4>Customer</h4>
 
                 <p>
-
                     <strong>
                         ${escapeHTML(
-                            order.customer_name
+                            order.customer_name || "—"
                         )}
                     </strong>
-
                 </p>
 
                 <p>
                     ${escapeHTML(
-                        order.customer_email
+                        order.customer_email || "—"
                     )}
                 </p>
 
                 <p>
                     ${escapeHTML(
-                        order.customer_address
+                        order.customer_address || "—"
                     )}
                 </p>
 
@@ -1340,9 +1198,7 @@ function renderOrderDetails(
 
             <div class="order-items">
 
-                <h4>
-                    Products
-                </h4>
+                <h4>Products</h4>
 
                 ${itemsHTML}
 
@@ -1351,14 +1207,10 @@ function renderOrderDetails(
 
             <div class="order-total">
 
-                <span>
-                    Total
-                </span>
+                <span>Total</span>
 
                 <strong>
-                    ${money(
-                        order.total
-                    )}
+                    ${money(order.total)}
                 </strong>
 
             </div>
@@ -1370,82 +1222,29 @@ function renderOrderDetails(
                     Status
                 </label>
 
-
                 <select id="orderStatus">
 
-                    <option
-                        value="pending"
-                        ${
-                            currentStatus ===
-                            "pending"
-                                ? "selected"
-                                : ""
-                        }
-                    >
-                        Pending
-                    </option>
-
-
-                    <option
-                        value="processing"
-                        ${
-                            currentStatus ===
-                            "processing"
-                                ? "selected"
-                                : ""
-                        }
-                    >
-                        Processing
-                    </option>
-
-
-                    <option
-                        value="shipped"
-                        ${
-                            currentStatus ===
-                            "shipped"
-                                ? "selected"
-                                : ""
-                        }
-                    >
-                        Shipped
-                    </option>
-
-
-                    <option
-                        value="delivered"
-                        ${
-                            currentStatus ===
-                            "delivered"
-                                ? "selected"
-                                : ""
-                        }
-                    >
-                        Delivered
-                    </option>
-
-
-                    <option
-                        value="cancelled"
-                        ${
-                            currentStatus ===
-                            "cancelled"
-                                ? "selected"
-                                : ""
-                        }
-                    >
-                        Cancelled
-                    </option>
+                    ${[
+                        "pending",
+                        "processing",
+                        "shipped",
+                        "delivered",
+                        "cancelled"
+                    ].map(value => `
+                        <option
+                            value="${value}"
+                            ${status === value ? "selected" : ""}
+                        >
+                            ${value.charAt(0).toUpperCase() + value.slice(1)}
+                        </option>
+                    `).join("")}
 
                 </select>
-
 
                 <button
                     type="button"
                     class="primary-button"
-                    onclick="updateOrderStatus(${Number(
-                        order.id
-                    )})"
+                    onclick="updateOrderStatus(${Number(order.id)})"
                 >
                     Update Status
                 </button>
@@ -1458,7 +1257,6 @@ function renderOrderDetails(
                 class="order-status-message"
             ></div>
 
-
         </div>
     `;
 }
@@ -1468,9 +1266,7 @@ function renderOrderDetails(
 // UPDATE ORDER STATUS
 // =========================================================
 
-async function updateOrderStatus(
-    orderId
-) {
+async function updateOrderStatus(orderId) {
 
     const select =
         document.getElementById(
@@ -1482,23 +1278,21 @@ async function updateOrderStatus(
             "orderStatusMessage"
         );
 
-
     if (!select) {
         return;
     }
-
 
     const newStatus =
         normalizeStatus(
             select.value
         );
 
-
     if (message) {
         message.textContent =
             "Saving...";
+        message.className =
+            "order-status-message";
     }
-
 
     try {
 
@@ -1510,32 +1304,24 @@ async function updateOrderStatus(
                 .update({
                     status: newStatus
                 })
-                .eq(
-                    "id",
-                    orderId
-                );
+                .eq("id", orderId);
 
         if (error) {
             throw error;
         }
 
-
-        const localOrder =
+        const order =
             allOrders.find(
-                order =>
-                    Number(order.id) ===
+                item =>
+                    Number(item.id) ===
                     Number(orderId)
             );
 
-
-        if (localOrder) {
-            localOrder.status =
-                newStatus;
+        if (order) {
+            order.status = newStatus;
         }
 
-
         renderOrders();
-
 
         if (message) {
 
@@ -1546,20 +1332,17 @@ async function updateOrderStatus(
                 "order-status-message status-success-text";
         }
 
-
     } catch (error) {
 
         console.error(
-            "UPDATE STATUS ERROR:",
+            "UPDATE ORDER ERROR:",
             error
         );
-
 
         if (message) {
 
             message.textContent =
-                "Could not update order: " +
-                error.message;
+                `Could not update order: ${error.message}`;
 
             message.className =
                 "order-status-message status-danger-text";
@@ -1568,31 +1351,18 @@ async function updateOrderStatus(
 }
 
 
-// =========================================================
-// CLOSE ORDER DETAILS
-// =========================================================
-
 function closeOrderDetails() {
 
     if (!orderDetails) {
         return;
     }
 
-    orderDetails.classList.add(
-        "hidden"
-    );
-
-    orderDetails.innerHTML =
-        "";
+    orderDetails.classList.add("hidden");
+    orderDetails.innerHTML = "";
 }
 
 
-// =========================================================
-// ORDER SEARCH
-// =========================================================
-
 if (orderSearch) {
-
     orderSearch.addEventListener(
         "input",
         renderOrders
@@ -1600,12 +1370,7 @@ if (orderSearch) {
 }
 
 
-// =========================================================
-// ORDER FILTER
-// =========================================================
-
 if (orderStatusFilter) {
-
     orderStatusFilter.addEventListener(
         "change",
         renderOrders
@@ -1614,7 +1379,7 @@ if (orderStatusFilter) {
 
 
 // =========================================================
-// LOAD CATEGORIES
+// CATEGORIES
 // =========================================================
 
 async function loadCategories() {
@@ -1629,7 +1394,6 @@ async function loadCategories() {
         </div>
     `;
 
-
     try {
 
         const {
@@ -1638,9 +1402,7 @@ async function loadCategories() {
         } =
             await supabaseClient
                 .from("categories")
-                .select(
-                    "id,name,slug"
-                )
+                .select("id,name,slug")
                 .order(
                     "name",
                     {
@@ -1652,15 +1414,12 @@ async function loadCategories() {
             throw error;
         }
 
-
         categories =
             data || [];
-
 
         displayCategories(
             categories
         );
-
 
         populateCategorySelect(
             categories
@@ -1684,13 +1443,11 @@ async function loadCategories() {
 }
 
 
-// =========================================================
-// DISPLAY CATEGORIES
-// =========================================================
+function displayCategories(list) {
 
-function displayCategories(
-    list
-) {
+    if (!categoriesContainer) {
+        return;
+    }
 
     if (!list.length) {
 
@@ -1703,71 +1460,54 @@ function displayCategories(
         return;
     }
 
-
     categoriesContainer.innerHTML =
-        list
-            .map(
-                category => `
+        list.map(category => `
 
-                    <div class="category-card">
+            <div class="category-card">
 
-                        <div>
+                <div>
 
-                            <div class="category-name">
-
-                                ${escapeHTML(
-                                    category.name
-                                )}
-
-                            </div>
-
-                            <div class="category-slug">
-
-                                ${escapeHTML(
-                                    category.slug
-                                )}
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="category-actions">
-
-                            <button
-                                type="button"
-                                class="edit-button"
-                                onclick="editCategory(${Number(
-                                    category.id
-                                )})"
-                            >
-                                Edit
-                            </button>
-
-
-                            <button
-                                type="button"
-                                class="danger-button"
-                                onclick="deleteCategory(${Number(
-                                    category.id
-                                )})"
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
+                    <div class="category-name">
+                        ${escapeHTML(
+                            category.name
+                        )}
                     </div>
 
-                `
-            )
-            .join("");
+                    <div class="category-slug">
+                        ${escapeHTML(
+                            category.slug
+                        )}
+                    </div>
+
+                </div>
+
+                <div class="category-actions">
+
+                    <button
+                        type="button"
+                        class="edit-button"
+                        onclick="editCategory(${Number(category.id)})"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        type="button"
+                        class="danger-button"
+                        onclick="deleteCategory(${Number(category.id)})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+
+        `).join("");
 }
 
 
-// =========================================================
-// CATEGORY FORM
-// =========================================================
+// Category form
 
 if (categoryForm) {
 
@@ -1777,15 +1517,13 @@ if (categoryForm) {
 
             event.preventDefault();
 
-
             const name =
-                categoryName.value.trim();
+                categoryName?.value.trim() || "";
 
             const slug =
                 slugify(
-                    categorySlug.value
+                    categorySlug?.value
                 );
-
 
             if (!name || !slug) {
 
@@ -1796,15 +1534,12 @@ if (categoryForm) {
                 return;
             }
 
-
             categorySubmitButton.disabled =
                 true;
-
 
             try {
 
                 let result;
-
 
                 if (categoryId.value) {
 
@@ -1831,11 +1566,9 @@ if (categoryForm) {
                             });
                 }
 
-
                 if (result.error) {
                     throw result.error;
                 }
-
 
                 resetCategoryForm();
 
@@ -1849,8 +1582,7 @@ if (categoryForm) {
                 );
 
                 alert(
-                    "Could not save category:\n" +
-                    error.message
+                    `Could not save category:\n${error.message}`
                 );
 
             } finally {
@@ -1862,10 +1594,6 @@ if (categoryForm) {
     );
 }
 
-
-// =========================================================
-// EDIT CATEGORY
-// =========================================================
 
 function editCategory(id) {
 
@@ -1892,7 +1620,7 @@ function editCategory(id) {
     categorySubmitButton.textContent =
         "Update Category";
 
-    cancelCategoryEdit.classList.remove(
+    cancelCategoryEdit?.classList.remove(
         "hidden"
     );
 
@@ -1900,21 +1628,20 @@ function editCategory(id) {
 }
 
 
-// =========================================================
-// CANCEL CATEGORY
-// =========================================================
-
 function resetCategoryForm() {
+
+    if (!categoryForm) {
+        return;
+    }
 
     categoryForm.reset();
 
-    categoryId.value =
-        "";
+    categoryId.value = "";
 
     categorySubmitButton.textContent =
         "Add Category";
 
-    cancelCategoryEdit.classList.add(
+    cancelCategoryEdit?.classList.add(
         "hidden"
     );
 }
@@ -1929,10 +1656,6 @@ if (cancelCategoryEdit) {
 }
 
 
-// =========================================================
-// DELETE CATEGORY
-// =========================================================
-
 async function deleteCategory(id) {
 
     const category =
@@ -1946,29 +1669,29 @@ async function deleteCategory(id) {
         return;
     }
 
-
-    if (
-        !confirm(
-            `Delete category "${category.name}"?`
-        )
-    ) {
+    if (!confirm(
+        `Delete category "${category.name}"?`
+    )) {
         return;
     }
 
+    try {
 
-    const {
-        error
-    } =
-        await supabaseClient
-            .from("categories")
-            .delete()
-            .eq(
-                "id",
-                id
-            );
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("categories")
+                .delete()
+                .eq("id", id);
 
+        if (error) {
+            throw error;
+        }
 
-    if (error) {
+        await loadCategories();
+
+    } catch (error) {
 
         console.error(
             "DELETE CATEGORY ERROR:",
@@ -1976,21 +1699,11 @@ async function deleteCategory(id) {
         );
 
         alert(
-            "Could not delete category:\n" +
-            error.message
+            `Could not delete category:\n${error.message}`
         );
-
-        return;
     }
-
-
-    await loadCategories();
 }
 
-
-// =========================================================
-// AUTO CATEGORY SLUG
-// =========================================================
 
 if (categoryName) {
 
@@ -2011,22 +1724,14 @@ if (categoryName) {
 }
 
 
-// =========================================================
-// CATEGORY SELECT
-// =========================================================
-
-function populateCategorySelect(
-    list
-) {
+function populateCategorySelect(list) {
 
     if (!productCategory) {
         return;
     }
 
-
     const current =
         productCategory.value;
-
 
     productCategory.innerHTML = `
         <option value="">
@@ -2034,27 +1739,21 @@ function populateCategorySelect(
         </option>
     `;
 
+    list.forEach(category => {
 
-    list.forEach(
-        category => {
+        const option =
+            document.createElement("option");
 
-            const option =
-                document.createElement(
-                    "option"
-                );
+        option.value =
+            category.slug;
 
-            option.value =
-                category.slug;
+        option.textContent =
+            category.name;
 
-            option.textContent =
-                category.name;
-
-            productCategory.appendChild(
-                option
-            );
-        }
-    );
-
+        productCategory.appendChild(
+            option
+        );
+    });
 
     if (current) {
         productCategory.value =
@@ -2064,7 +1763,7 @@ function populateCategorySelect(
 
 
 // =========================================================
-// LOAD PRODUCTS
+// PRODUCTS
 // =========================================================
 
 async function loadProducts() {
@@ -2078,7 +1777,6 @@ async function loadProducts() {
             Loading products...
         </div>
     `;
-
 
     try {
 
@@ -2100,10 +1798,8 @@ async function loadProducts() {
             throw error;
         }
 
-
         products =
             data || [];
-
 
         displayProducts(
             products
@@ -2127,13 +1823,11 @@ async function loadProducts() {
 }
 
 
-// =========================================================
-// DISPLAY PRODUCTS
-// =========================================================
+function displayProducts(list) {
 
-function displayProducts(
-    list
-) {
+    if (!productsContainer) {
+        return;
+    }
 
     if (!list.length) {
 
@@ -2146,49 +1840,8 @@ function displayProducts(
         return;
     }
 
-
-    let html = `
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>
-                        Image
-                    </th>
-
-                    <th>
-                        Product
-                    </th>
-
-                    <th>
-                        Price
-                    </th>
-
-                    <th>
-                        Category
-                    </th>
-
-                    <th>
-                        Stock
-                    </th>
-
-                    <th>
-                        Actions
-                    </th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-    `;
-
-
-    list.forEach(
-        product => {
+    const rows =
+        list.map(product => {
 
             const image =
                 product.image_url
@@ -2209,48 +1862,36 @@ function displayProducts(
                         </div>
                     `;
 
-
-            html += `
-
+            return `
                 <tr>
 
                     <td>
                         ${image}
                     </td>
 
-
                     <td>
-
                         <strong>
                             ${escapeHTML(
                                 product.name
                             )}
                         </strong>
-
                     </td>
-
 
                     <td>
-                        ${money(
-                            product.price
-                        )}
+                        ${money(product.price)}
                     </td>
-
 
                     <td>
                         ${escapeHTML(
-                            product.category ||
-                            "—"
+                            product.category || "—"
                         )}
                     </td>
-
 
                     <td>
                         ${Number(
                             product.stock || 0
                         )}
                     </td>
-
 
                     <td>
 
@@ -2259,20 +1900,15 @@ function displayProducts(
                             <button
                                 type="button"
                                 class="edit-button"
-                                onclick="editProduct(${Number(
-                                    product.id
-                                )})"
+                                onclick="editProduct(${Number(product.id)})"
                             >
                                 Edit
                             </button>
 
-
                             <button
                                 type="button"
                                 class="danger-button"
-                                onclick="deleteProduct(${Number(
-                                    product.id
-                                )})"
+                                onclick="deleteProduct(${Number(product.id)})"
                             >
                                 Delete
                             </button>
@@ -2282,28 +1918,35 @@ function displayProducts(
                     </td>
 
                 </tr>
-
             `;
-        }
-    );
+        }).join("");
 
+    productsContainer.innerHTML = `
+        <table>
 
-    html += `
+            <thead>
 
+                <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+                ${rows}
             </tbody>
 
         </table>
     `;
-
-
-    productsContainer.innerHTML =
-        html;
 }
 
 
-// =========================================================
-// PRODUCT FORM
-// =========================================================
+// Product form
 
 if (productForm) {
 
@@ -2313,10 +1956,8 @@ if (productForm) {
 
             event.preventDefault();
 
-
             const id =
                 productId.value;
-
 
             const product = {
 
@@ -2327,23 +1968,17 @@ if (productForm) {
                     productDescription.value.trim(),
 
                 price:
-                    Number(
-                        productPrice.value
-                    ),
+                    Number(productPrice.value),
 
                 category:
                     productCategory.value,
 
                 stock:
-                    Number(
-                        productStock.value
-                    ),
+                    Number(productStock.value),
 
                 image_url:
                     productImage.value.trim()
-
             };
-
 
             if (!product.name) {
 
@@ -2354,7 +1989,6 @@ if (productForm) {
                 return;
             }
 
-
             if (!product.category) {
 
                 alert(
@@ -2363,7 +1997,6 @@ if (productForm) {
 
                 return;
             }
-
 
             if (
                 Number.isNaN(
@@ -2378,7 +2011,6 @@ if (productForm) {
                 return;
             }
 
-
             if (
                 Number.isNaN(
                     product.stock
@@ -2392,57 +2024,42 @@ if (productForm) {
                 return;
             }
 
-
             productSubmitButton.disabled =
                 true;
-
 
             productSubmitButton.textContent =
                 id
                     ? "Updating..."
                     : "Adding...";
 
-
             try {
 
                 let result;
-
 
                 if (id) {
 
                     result =
                         await supabaseClient
                             .from("products")
-                            .update(
-                                product
-                            )
-                            .eq(
-                                "id",
-                                id
-                            );
+                            .update(product)
+                            .eq("id", id);
 
                 } else {
 
                     result =
                         await supabaseClient
                             .from("products")
-                            .insert(
-                                product
-                            );
+                            .insert(product);
                 }
-
 
                 if (result.error) {
                     throw result.error;
                 }
 
-
                 resetProductForm();
 
                 await loadProducts();
-
                 await loadStats();
-
 
             } catch (error) {
 
@@ -2452,8 +2069,7 @@ if (productForm) {
                 );
 
                 alert(
-                    "Could not save product:\n" +
-                    error.message
+                    `Could not save product:\n${error.message}`
                 );
 
             } finally {
@@ -2471,10 +2087,6 @@ if (productForm) {
 }
 
 
-// =========================================================
-// EDIT PRODUCT
-// =========================================================
-
 function editProduct(id) {
 
     const product =
@@ -2487,7 +2099,6 @@ function editProduct(id) {
     if (!product) {
         return;
     }
-
 
     productId.value =
         product.id;
@@ -2510,19 +2121,16 @@ function editProduct(id) {
     productImage.value =
         product.image_url || "";
 
-
     showImagePreview(
         product.image_url
     );
 
-
     productSubmitButton.textContent =
         "Update Product";
 
-    cancelEdit.classList.remove(
+    cancelEdit?.classList.remove(
         "hidden"
     );
-
 
     productForm.scrollIntoView({
         behavior: "smooth",
@@ -2531,33 +2139,33 @@ function editProduct(id) {
 }
 
 
-// =========================================================
-// RESET PRODUCT
-// =========================================================
-
 function resetProductForm() {
+
+    if (!productForm) {
+        return;
+    }
 
     productForm.reset();
 
-    productId.value =
-        "";
+    productId.value = "";
 
-    productStock.value =
-        "0";
+    productStock.value = "0";
 
     productSubmitButton.textContent =
         "Add Product";
 
-    cancelEdit.classList.add(
+    cancelEdit?.classList.add(
         "hidden"
     );
 
-    imagePreview.innerHTML =
-        "";
+    if (imagePreview) {
 
-    imagePreview.classList.add(
-        "hidden"
-    );
+        imagePreview.innerHTML = "";
+
+        imagePreview.classList.add(
+            "hidden"
+        );
+    }
 }
 
 
@@ -2569,10 +2177,6 @@ if (cancelEdit) {
     );
 }
 
-
-// =========================================================
-// DELETE PRODUCT
-// =========================================================
 
 async function deleteProduct(id) {
 
@@ -2587,29 +2191,30 @@ async function deleteProduct(id) {
         return;
     }
 
-
-    if (
-        !confirm(
-            `Delete "${product.name}"?`
-        )
-    ) {
+    if (!confirm(
+        `Delete "${product.name}"?`
+    )) {
         return;
     }
 
+    try {
 
-    const {
-        error
-    } =
-        await supabaseClient
-            .from("products")
-            .delete()
-            .eq(
-                "id",
-                id
-            );
+        const {
+            error
+        } =
+            await supabaseClient
+                .from("products")
+                .delete()
+                .eq("id", id);
 
+        if (error) {
+            throw error;
+        }
 
-    if (error) {
+        await loadProducts();
+        await loadStats();
+
+    } catch (error) {
 
         console.error(
             "DELETE PRODUCT ERROR:",
@@ -2617,17 +2222,9 @@ async function deleteProduct(id) {
         );
 
         alert(
-            "Could not delete product:\n" +
-            error.message
+            `Could not delete product:\n${error.message}`
         );
-
-        return;
     }
-
-
-    await loadProducts();
-
-    await loadStats();
 }
 
 
@@ -2651,10 +2248,13 @@ if (productImage) {
 
 function showImagePreview(url) {
 
+    if (!imagePreview) {
+        return;
+    }
+
     if (!url) {
 
-        imagePreview.innerHTML =
-            "";
+        imagePreview.innerHTML = "";
 
         imagePreview.classList.add(
             "hidden"
@@ -2663,15 +2263,12 @@ function showImagePreview(url) {
         return;
     }
 
-
     imagePreview.innerHTML = `
-
         <img
             src="${escapeHTML(url)}"
             alt="Product preview"
             onerror="this.parentElement.classList.add('hidden')"
         >
-
     `;
 
     imagePreview.classList.remove(
@@ -2690,15 +2287,15 @@ supabaseClient.auth.onAuthStateChange(
         session
     ) => {
 
-        if (
-            event ===
-            "SIGNED_OUT"
-        ) {
+        if (event === "SIGNED_OUT") {
 
             showLogin();
 
-        }
+            if (adminEmail) {
+                adminEmail.textContent = "";
+            }
 
+        }
     }
 );
 
