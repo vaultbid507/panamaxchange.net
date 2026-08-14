@@ -295,37 +295,29 @@ function statusClass(status) {
 
 async function isAdmin(userId) {
 
+    console.log("ADMIN VALIDATION USER ID:", userId);
+
     if (!userId) {
-        console.error("ADMIN CHECK: Missing user ID");
+        console.error("No user ID supplied.");
         return false;
     }
 
-    console.log("Checking admin user:", userId);
-
-    const {
-        data,
-        error
-    } = await supabaseClient
+    const { data, error } = await supabaseClient
         .from("admin_users")
         .select("user_id")
         .eq("user_id", userId)
-        .maybeSingle();
+        .limit(1);
+
+    console.log("ADMIN VALIDATION RESULT:", data);
+    console.log("ADMIN VALIDATION ERROR:", error);
 
     if (error) {
-        console.error(
-            "ADMIN CHECK ERROR:",
-            error
-        );
         return false;
     }
 
-    console.log(
-        "ADMIN RECORD:",
-        data
-    );
-
-    return !!data;
+    return Array.isArray(data) && data.length > 0;
 }
+
 
 // =========================================================
 // CHECK LOGIN
