@@ -46,14 +46,6 @@ const adminEmail =
     document.getElementById("adminEmail");
 
 
-// Forgot password
-
-const forgotPasswordButton =
-    document.getElementById("forgotPasswordButton") ||
-    document.getElementById("forgotPasswordBtn");
-
-const forgotPasswordMessage =
-    document.getElementById("forgotPasswordMessage");
 
 
 // Dashboard
