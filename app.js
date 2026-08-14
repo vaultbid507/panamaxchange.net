@@ -586,30 +586,201 @@ closeCheckout.addEventListener(
 
 checkoutForm.addEventListener(
     "submit",
-    event => {
+    async event => {
 
         event.preventDefault();
 
 
-        const customer = {
+        if (cart.length === 0) {
 
-            name:
-                document.getElementById(
-                    "customerName"
-                ).value,
+            alert("Your cart is empty.");
 
-            email:
-                document.getElementById(
-                    "customerEmail"
-                ).value,
+            return;
 
-            address:
-                document.getElementById(
-                    "customerAddress"
-                ).value
+        }
 
-        };
 
+        const customerName =
+            document.getElementById(
+                "customerName"
+            ).value.trim();
+
+
+        const customerEmail =
+            document.getElementById(
+                "customerEmail"
+            ).value.trim();
+
+
+        const customerAddress =
+            document.getElementById(
+                "customerAddress"
+            ).value.trim();
+
+
+        // Calculate total
+        let total = 0;
+
+
+        cart.forEach(item => {
+
+            const product =
+                products.find(
+                    product =>
+                        product.id === item.id
+                );
+
+
+            if (product) {
+
+                total +=
+                    product.price *
+                    item.quantity;
+
+            }
+
+        });
+
+
+        try {
+
+            // -------------------------
+            // CREATE ORDER
+            // -------------------------
+
+            const {
+                data: order,
+                error: orderError
+            } = await supabaseClient
+                .from("orders")
+                .insert({
+
+                    customer_name:
+                        customerName,
+
+                    customer_email:
+                        customerEmail,
+
+                    customer_address:
+                        customerAddress,
+
+                    total:
+                        total,
+
+                    status:
+                        "pending"
+
+                })
+                .select()
+                .single();
+
+
+            if (orderError) {
+
+                console.error(
+                    orderError
+                );
+
+                throw orderError;
+
+            }
+
+
+            // -------------------------
+            // CREATE ORDER ITEMS
+            // -------------------------
+
+            const orderItems =
+                cart.map(item => {
+
+                    const product =
+                        products.find(
+                            product =>
+                                product.id === item.id
+                        );
+
+
+                    return {
+
+                        order_id:
+                            order.id,
+
+                        product_id:
+                            product.id,
+
+                        product_name:
+                            product.name,
+
+                        quantity:
+                            item.quantity,
+
+                        price:
+                            product.price
+
+                    };
+
+                });
+
+
+            const {
+                error: itemsError
+            } = await supabaseClient
+                .from("order_items")
+                .insert(orderItems);
+
+
+            if (itemsError) {
+
+                console.error(
+                    itemsError
+                );
+
+                throw itemsError;
+
+            }
+
+
+            // -------------------------
+            // SUCCESS
+            // -------------------------
+
+            alert(
+                "Order placed successfully! " +
+                "Order #" +
+                order.id
+            );
+
+
+            cart = [];
+
+            saveCart();
+
+            updateCart();
+
+            checkoutForm.reset();
+
+            checkoutOverlay.classList.add(
+                "hidden"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "ORDER ERROR:",
+                error
+            );
+
+
+            alert(
+                "There was a problem placing your order: " +
+                error.message
+            );
+
+        }
+
+    }
+);
 
         const order = {
 
