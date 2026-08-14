@@ -1,10 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
@@ -16,51 +13,46 @@
         rel="stylesheet"
         href="admin.css"
     >
-
-    <!-- Supabase -->
-    <script
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-        defer
-    ></script>
-
-    <script
-        src="admin.js"
-        defer
-    ></script>
-
 </head>
-
 
 <body>
 
-<div class="admin-app">
-
-
     <!-- =====================================================
          LOGIN
-         ===================================================== -->
+    ====================================================== -->
 
     <section
         id="loginSection"
-        class="login-section"
+        class="login-page"
     >
 
         <div class="login-card">
 
-            <div class="login-logo">
-                NovaShop
+            <div class="brand">
+                <div class="brand-logo">N</div>
+
+                <div>
+                    <h1>NovaShop</h1>
+                    <p>Admin Panel</p>
+                </div>
             </div>
 
-            <h1>
-                Admin Login
-            </h1>
 
-            <p class="login-subtitle">
-                Sign in to manage your store.
-            </p>
+            <div class="login-header">
+
+                <h2>Welcome back</h2>
+
+                <p>
+                    Sign in to manage your store.
+                </p>
+
+            </div>
 
 
-            <form id="loginForm">
+            <form
+                id="loginForm"
+                class="login-form"
+            >
 
                 <div class="form-group">
 
@@ -69,11 +61,11 @@
                     </label>
 
                     <input
-                        type="email"
                         id="email"
                         name="email"
-                        placeholder="admin@example.com"
+                        type="email"
                         autocomplete="email"
+                        placeholder="admin@example.com"
                         required
                     >
 
@@ -87,11 +79,11 @@
                     </label>
 
                     <input
-                        type="password"
                         id="password"
                         name="password"
-                        placeholder="Your password"
+                        type="password"
                         autocomplete="current-password"
+                        placeholder="Enter your password"
                         required
                     >
 
@@ -105,70 +97,83 @@
                     Login
                 </button>
 
-
-                <button
-                    type="button"
-                    id="forgotPasswordButton"
-                    class="forgot-button"
-                >
-                    Forgot Password?
-                </button>
-
-
-                <div
-                    id="loginMessage"
-                    class="message"
-                ></div>
-
-
-                <div
-                    id="forgotPasswordMessage"
-                    class="message"
-                ></div>
-
             </form>
+
+
+            <button
+                type="button"
+                id="forgotPasswordButton"
+                class="forgot-button"
+            >
+                Forgot Password?
+            </button>
+
+
+            <div
+                id="loginMessage"
+                class="message"
+            ></div>
+
+
+            <div
+                id="forgotPasswordMessage"
+                class="message"
+            ></div>
 
         </div>
 
     </section>
 
 
-
     <!-- =====================================================
          DASHBOARD
-         ===================================================== -->
+    ====================================================== -->
 
     <section
         id="dashboard"
         class="dashboard hidden"
     >
 
-
         <!-- HEADER -->
 
         <header class="admin-header">
 
-            <div>
+            <div class="header-left">
 
-                <div class="brand">
-                    NovaShop
-                </div>
+                <div class="brand compact">
 
-                <div class="admin-title">
-                    Administration
+                    <div class="brand-logo">
+                        N
+                    </div>
+
+                    <div>
+                        <h1>NovaShop</h1>
+                        <p>Admin Panel</p>
+                    </div>
+
                 </div>
 
             </div>
 
 
-            <div class="admin-header-right">
+            <div class="header-right">
 
-                <span id="adminEmail"></span>
+                <div class="admin-user">
+
+                    <span class="admin-label">
+                        Signed in as
+                    </span>
+
+                    <strong id="adminEmail">
+                    </strong>
+
+                </div>
+
 
                 <button
-                    id="logoutButton"
-                    class="logout-button hidden"
                     type="button"
+                    id="logoutButton"
+                    class="secondary-button"
                 >
                     Logout
                 </button>
@@ -178,43 +183,58 @@
         </header>
 
 
+        <!-- MAIN -->
 
         <main class="admin-main">
 
 
             <!-- =================================================
+                 PAGE TITLE
+            ================================================== -->
+
+            <div class="page-heading">
+
+                <div>
+
+                    <span class="eyebrow">
+                        ADMINISTRATION
+                    </span>
+
+                    <h2>
+                        Store Dashboard
+                    </h2>
+
+                    <p>
+                        Manage products, orders and categories.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
                  STATISTICS
-                 ================================================= -->
+            ================================================== -->
 
             <section class="stats-grid">
 
                 <div class="stat-card">
 
-                    <div class="stat-label">
-                        Products
+                    <div class="stat-icon">
+                        📦
                     </div>
 
-                    <div
-                        id="productCount"
-                        class="stat-value"
-                    >
-                        0
-                    </div>
+                    <div>
 
-                </div>
+                        <span>
+                            Products
+                        </span>
 
+                        <strong id="productCount">
+                            0
+                        </strong>
 
-                <div class="stat-card">
-
-                    <div class="stat-label">
-                        Orders
-                    </div>
-
-                    <div
-                        id="orderCount"
-                        class="stat-value"
-                    >
-                        0
                     </div>
 
                 </div>
@@ -222,15 +242,41 @@
 
                 <div class="stat-card">
 
-                    <div class="stat-label">
-                        Revenue
+                    <div class="stat-icon">
+                        🛒
                     </div>
 
-                    <div
-                        id="revenue"
-                        class="stat-value"
-                    >
-                        $0.00
+                    <div>
+
+                        <span>
+                            Orders
+                        </span>
+
+                        <strong id="orderCount">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        $
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Revenue
+                        </span>
+
+                        <strong id="revenue">
+                            $0.00
+                        </strong>
+
                     </div>
 
                 </div>
@@ -238,10 +284,9 @@
             </section>
 
 
-
             <!-- =================================================
                  ORDERS
-                 ================================================= -->
+            ================================================== -->
 
             <section class="admin-section">
 
@@ -249,12 +294,16 @@
 
                     <div>
 
+                        <span class="eyebrow">
+                            SALES
+                        </span>
+
                         <h2>
-                            Orders
+                            Order Management
                         </h2>
 
                         <p>
-                            Manage customer orders and update their status.
+                            View and manage customer orders.
                         </p>
 
                     </div>
@@ -262,16 +311,25 @@
                 </div>
 
 
-                <div class="orders-toolbar">
+                <div class="order-toolbar">
 
-                    <input
-                        type="search"
-                        id="orderSearch"
-                        placeholder="Search by order, customer or email..."
+                    <div class="search-box">
+
+                        <span>⌕</span>
+
+                        <input
+                            id="orderSearch"
+                            type="search"
+                            placeholder="Search orders..."
+                        >
+
+                    </div>
+
+
+                    <select
+                        id="orderStatusFilter"
+                        class="filter-select"
                     >
-
-
-                    <select id="orderStatusFilter">
 
                         <option value="">
                             All statuses
@@ -304,26 +362,27 @@
 
                 <div
                     id="ordersContainer"
-                    class="table-card"
+                    class="table-container"
                 >
+
                     <div class="loading">
                         Loading orders...
                     </div>
+
                 </div>
 
 
                 <div
                     id="orderDetails"
-                    class="hidden"
+                    class="order-details hidden"
                 ></div>
 
             </section>
 
 
-
             <!-- =================================================
                  CATEGORIES
-                 ================================================= -->
+            ================================================== -->
 
             <section class="admin-section">
 
@@ -331,12 +390,16 @@
 
                     <div>
 
+                        <span class="eyebrow">
+                            CATALOG
+                        </span>
+
                         <h2>
                             Categories
                         </h2>
 
                         <p>
-                            Create and manage product categories.
+                            Organize your products.
                         </p>
 
                     </div>
@@ -355,11 +418,19 @@
                             Add Category
                         </h3>
 
-                        <form id="categoryForm">
+                        <p class="form-description">
+                            Create or edit a product category.
+                        </p>
+
+
+                        <form
+                            id="categoryForm"
+                            class="admin-form"
+                        >
 
                             <input
-                                type="hidden"
                                 id="categoryId"
+                                type="hidden"
                             >
 
 
@@ -370,8 +441,8 @@
                                 </label>
 
                                 <input
-                                    type="text"
                                     id="categoryName"
+                                    type="text"
                                     placeholder="Electronics"
                                     required
                                 >
@@ -386,8 +457,8 @@
                                 </label>
 
                                 <input
-                                    type="text"
                                     id="categorySlug"
+                                    type="text"
                                     placeholder="electronics"
                                     required
                                 >
@@ -398,16 +469,17 @@
                             <div class="form-actions">
 
                                 <button
-                                    type="submit"
                                     id="categorySubmitButton"
+                                    type="submit"
                                     class="primary-button"
                                 >
                                     Add Category
                                 </button>
 
+
                                 <button
-                                    type="button"
                                     id="cancelCategoryEdit"
+                                    type="button"
                                     class="secondary-button hidden"
                                 >
                                     Cancel
@@ -422,13 +494,28 @@
 
                     <!-- CATEGORY LIST -->
 
-                    <div
-                        id="categoriesContainer"
-                        class="list-card"
-                    >
-                        <div class="loading">
-                            Loading categories...
+                    <div class="list-card">
+
+                        <div class="list-header">
+
+                            <h3>
+                                Categories
+                            </h3>
+
                         </div>
+
+
+                        <div
+                            id="categoriesContainer"
+                            class="categories-list"
+                        >
+
+                            <div class="loading">
+                                Loading categories...
+                            </div>
+
+                        </div>
+
                     </div>
 
                 </div>
@@ -436,10 +523,9 @@
             </section>
 
 
-
             <!-- =================================================
                  PRODUCTS
-                 ================================================= -->
+            ================================================== -->
 
             <section class="admin-section">
 
@@ -447,12 +533,16 @@
 
                     <div>
 
+                        <span class="eyebrow">
+                            CATALOG
+                        </span>
+
                         <h2>
                             Products
                         </h2>
 
                         <p>
-                            Add, edit and remove products.
+                            Add and manage your store products.
                         </p>
 
                     </div>
@@ -460,7 +550,7 @@
                 </div>
 
 
-                <div class="product-layout">
+                <div class="management-grid">
 
 
                     <!-- PRODUCT FORM -->
@@ -468,27 +558,35 @@
                     <div class="form-card">
 
                         <h3>
-                            Product
+                            Add Product
                         </h3>
 
+                        <p class="form-description">
+                            Create or update a product.
+                        </p>
 
-                        <form id="productForm">
+
+                        <form
+                            id="productForm"
+                            class="admin-form"
+                        >
 
                             <input
-                                type="hidden"
                                 id="productId"
+                                type="hidden"
                             >
 
 
                             <div class="form-group">
 
                                 <label for="productName">
-                                    Name
+                                    Product Name
                                 </label>
 
                                 <input
-                                    type="text"
                                     id="productName"
+                                    type="text"
+                                    placeholder="Product name"
                                     required
                                 >
 
@@ -504,12 +602,13 @@
                                 <textarea
                                     id="productDescription"
                                     rows="4"
+                                    placeholder="Product description"
                                 ></textarea>
 
                             </div>
 
 
-                            <div class="two-columns">
+                            <div class="form-row">
 
                                 <div class="form-group">
 
@@ -518,10 +617,11 @@
                                     </label>
 
                                     <input
-                                        type="number"
                                         id="productPrice"
+                                        type="number"
                                         min="0"
                                         step="0.01"
+                                        placeholder="0.00"
                                         required
                                     >
 
@@ -535,8 +635,8 @@
                                     </label>
 
                                     <input
-                                        type="number"
                                         id="productStock"
+                                        type="number"
                                         min="0"
                                         step="1"
                                         value="0"
@@ -575,9 +675,9 @@
                                 </label>
 
                                 <input
-                                    type="url"
                                     id="productImage"
-                                    placeholder="https://..."
+                                    type="url"
+                                    placeholder="https://example.com/image.jpg"
                                 >
 
                             </div>
@@ -592,16 +692,17 @@
                             <div class="form-actions">
 
                                 <button
-                                    type="submit"
                                     id="productSubmitButton"
+                                    type="submit"
                                     class="primary-button"
                                 >
                                     Add Product
                                 </button>
 
+
                                 <button
-                                    type="button"
                                     id="cancelEdit"
+                                    type="button"
                                     class="secondary-button hidden"
                                 >
                                     Cancel
@@ -616,13 +717,36 @@
 
                     <!-- PRODUCT LIST -->
 
-                    <div
-                        id="productsContainer"
-                        class="table-card"
-                    >
-                        <div class="loading">
-                            Loading products...
+                    <div class="list-card product-list-card">
+
+                        <div class="list-header">
+
+                            <div>
+
+                                <h3>
+                                    Products
+                                </h3>
+
+                                <p>
+                                    Current products in your store.
+                                </p>
+
+                            </div>
+
                         </div>
+
+
+                        <div
+                            id="productsContainer"
+                            class="table-container"
+                        >
+
+                            <div class="loading">
+                                Loading products...
+                            </div>
+
+                        </div>
+
                     </div>
 
                 </div>
@@ -632,9 +756,32 @@
 
         </main>
 
+
+        <!-- FOOTER -->
+
+        <footer class="admin-footer">
+
+            <p>
+                NovaShop Admin
+            </p>
+
+        </footer>
+
     </section>
 
-</div>
+
+    <!-- =====================================================
+         SUPABASE
+    ====================================================== -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+    <!-- =====================================================
+         ADMIN JAVASCRIPT
+    ====================================================== -->
+
+    <script src="admin.js"></script>
 
 </body>
 </html>
