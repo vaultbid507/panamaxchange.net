@@ -1066,44 +1066,153 @@ productForm.addEventListener(
             ).value;
 
 
-        const product = {
+        const imageFile =
+    document.getElementById(
+        "productImageFile"
+    ).files[0];
 
-            name:
-                document.getElementById(
-                    "productName"
-                ).value.trim(),
 
-            description:
-                document.getElementById(
-                    "productDescription"
-                ).value.trim(),
+const existingImage =
+    document.getElementById(
+        "productImage"
+    ).value.trim();
 
-            price:
-                Number(
-                    document.getElementById(
-                        "productPrice"
-                    ).value
-                ),
 
-            category:
-                document.getElementById(
-                    "productCategory"
-                ).value.trim(),
+const product = {
 
-            stock:
-                Number(
-                    document.getElementById(
-                        "productStock"
-                    ).value
-                ),
+    name:
+        document.getElementById(
+            "productName"
+        ).value.trim(),
 
-            image_url:
-                document.getElementById(
-                    "productImage"
-                ).value.trim()
+    description:
+        document.getElementById(
+            "productDescription"
+        ).value.trim(),
 
-        };
+    price:
+        Number(
+            document.getElementById(
+                "productPrice"
+            ).value
+        ),
 
+    category:
+        document.getElementById(
+            "productCategory"
+        ).value.trim(),
+
+    stock:
+        Number(
+            document.getElementById(
+                "productStock"
+            ).value
+        ),
+
+    image_url:
+        existingImage
+
+};
+        // Upload image if one was selected
+
+if (imageFile) {
+
+    if (
+        !imageFile.type.startsWith(
+            "image/"
+        )
+    ) {
+
+        alert(
+            "Please select an image file."
+        );
+
+        return;
+
+    }
+
+
+    if (
+        imageFile.size >
+        5 * 1024 * 1024
+    ) {
+
+        alert(
+            "Image must be smaller than 5 MB."
+        );
+
+        return;
+
+    }
+
+
+    const fileExtension =
+        imageFile.name
+            .split(".")
+            .pop()
+            .toLowerCase();
+
+
+    const fileName =
+        crypto.randomUUID() +
+        "." +
+        fileExtension;
+
+
+    const filePath =
+        "products/" +
+        fileName;
+
+
+    const {
+        error: uploadError
+    } = await supabaseClient
+        .storage
+        .from("product-images")
+        .upload(
+            filePath,
+            imageFile,
+            {
+                cacheControl: "3600",
+                upsert: false
+            }
+        );
+
+
+    if (uploadError) {
+
+        console.error(
+            uploadError
+        );
+
+        alert(
+            "Image upload failed: " +
+            uploadError.message
+        );
+
+        return;
+
+    }
+
+
+    const {
+        data: publicUrlData
+    } =
+        supabaseClient
+            .storage
+            .from(
+                "product-images"
+            )
+            .getPublicUrl(
+                filePath
+            );
+
+
+    product.image_url =
+        publicUrlData
+            .publicUrl;
+
+}
 
         let result;
 
@@ -1211,6 +1320,9 @@ function editProduct(
     ).value =
         product.image_url || "";
 
+    document.getElementById(
+    "productImageFile"
+).value = "";
 
     productForm.querySelector(
         "button[type='submit']"
