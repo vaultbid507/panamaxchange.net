@@ -7,9 +7,11 @@
 // SUPABASE CONNECTION
 // ------------------------------------------
 
-const SUPABASE_URL = "https://tagbxmpizwlvgddgcpcl.supabase.co";
+const SUPABASE_URL =
+    "https://tagbxmpizwlvgddgcpcl.supabase.co";
 
-const SUPABASE_KEY = "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0";
+const SUPABASE_KEY =
+    "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0";
 
 
 const supabaseClient =
@@ -84,7 +86,7 @@ function money(value) {
 
 
 // ------------------------------------------
-// LOAD PRODUCTS FROM SUPABASE
+// LOAD PRODUCTS
 // ------------------------------------------
 
 async function loadProducts() {
@@ -111,12 +113,6 @@ async function loadProducts() {
     );
 
 
-    console.log(
-        "Supabase error:",
-        error
-    );
-
-
     if (error) {
 
         console.error(
@@ -124,24 +120,29 @@ async function loadProducts() {
             error
         );
 
+
         productGrid.innerHTML = `
             <p>
                 Could not load products.
-                Check the browser console.
             </p>
         `;
 
         return;
+
     }
 
 
-  products = data.map(product => ({
-    ...product,
-    emoji: "🛍️"
-}));
+    products = data.map(
+        product => ({
 
-displayProducts();
-    setupCategories();
+            ...product,
+
+            emoji: "🛍️"
+
+        })
+    );
+
+
     displayProducts();
 
 }
@@ -157,54 +158,65 @@ function displayProducts(
 ) {
 
     const selectedCategory =
-        String(category)
+        String(category || "all")
             .trim()
             .toLowerCase();
 
+
     const searchText =
-        String(search)
+        String(search || "")
             .trim()
             .toLowerCase();
 
 
     const filteredProducts =
-        products.filter(product => {
+        products.filter(
+            product => {
 
-            const productCategory =
-                String(
-                    product.category || ""
-                )
-                .trim()
-                .toLowerCase();
-
-
-            const matchesCategory =
-                selectedCategory === "all" ||
-                productCategory ===
-                    selectedCategory;
+                const productCategory =
+                    String(
+                        product.category || ""
+                    )
+                    .trim()
+                    .toLowerCase();
 
 
-            const matchesSearch =
-                String(product.name || "")
+                const matchesCategory =
+                    selectedCategory === "all" ||
+                    productCategory ===
+                        selectedCategory;
+
+
+                const matchesSearch =
+                    String(
+                        product.name || ""
+                    )
                     .toLowerCase()
-                    .includes(searchText);
+                    .includes(
+                        searchText
+                    );
 
 
-            return (
-                matchesCategory &&
-                matchesSearch
-            );
+                return (
+                    matchesCategory &&
+                    matchesSearch
+                );
 
-        });
+            }
+        );
 
 
     productGrid.innerHTML = "";
 
 
-    if (filteredProducts.length === 0) {
+    if (
+        filteredProducts.length === 0
+    ) {
 
         productGrid.innerHTML = `
-            <p>No products found.</p>
+            <p>
+                No products found.
+            </p>
         `;
 
         return;
@@ -212,80 +224,93 @@ function displayProducts(
     }
 
 
-    filteredProducts.forEach(product => {
+    filteredProducts.forEach(
+        product => {
 
-        const card =
-            document.createElement("article");
+            const card =
+                document.createElement(
+                    "article"
+                );
 
 
-        card.className =
-            "product-card";
+            card.className =
+                "product-card";
 
 
-        let imageHTML = "";
+            let imageHTML;
 
-        if (product.image_url) {
 
-            imageHTML = `
-                <img
-                    src="${product.image_url}"
-                    alt="${product.name}"
-                    class="product-photo"
-                    loading="lazy"
-                >
-            `;
+            if (
+                product.image_url &&
+                product.image_url.trim() !== ""
+            ) {
 
-        } else {
+                imageHTML = `
 
-            imageHTML = `
-                <div class="product-image">
-                    🛍️
+                    <img
+                        src="${product.image_url}"
+                        alt="${product.name}"
+                        class="product-photo"
+                        loading="lazy"
+                    >
+
+                `;
+
+            } else {
+
+                imageHTML = `
+
+                    <div class="product-image">
+                        🛍️
+                    </div>
+
+                `;
+
+            }
+
+
+            card.innerHTML = `
+
+                ${imageHTML}
+
+                <div class="product-info">
+
+                    <p class="product-category">
+                        ${product.category || ""}
+                    </p>
+
+                    <h3 class="product-name">
+                        ${product.name}
+                    </h3>
+
+                    <p>
+                        ${product.description || ""}
+                    </p>
+
+                    <p class="product-price">
+                        ${money(product.price)}
+                    </p>
+
+                    <button
+                        class="add-button"
+                        data-id="${product.id}"
+                    >
+                        Add to Cart
+                    </button>
+
                 </div>
+
             `;
+
+
+            productGrid.appendChild(
+                card
+            );
 
         }
-
-
-        card.innerHTML = `
-
-            ${imageHTML}
-
-            <div class="product-info">
-
-                <p class="product-category">
-                    ${product.category || ""}
-                </p>
-
-                <h3 class="product-name">
-                    ${product.name}
-                </h3>
-
-                <p>
-                    ${product.description || ""}
-                </p>
-
-                <p class="product-price">
-                    ${money(product.price)}
-                </p>
-
-                <button
-                    class="add-button"
-                    data-id="${product.id}"
-                >
-                    Add to Cart
-                </button>
-
-            </div>
-
-        `;
-
-
-        productGrid.appendChild(card);
-
-    });
+    );
 
 }
-
 
 
 // ------------------------------------------
@@ -430,108 +455,112 @@ function updateCart() {
     }
 
 
-    cart.forEach(item => {
+    cart.forEach(
+        item => {
 
-        const product =
-            products.find(
-                product =>
-                    product.id === item.id
-            );
-
-
-        if (!product) {
-
-            return;
-
-        }
+            const product =
+                products.find(
+                    product =>
+                        product.id ===
+                        item.id
+                );
 
 
-        const itemTotal =
-            Number(product.price) *
-            item.quantity;
+            if (!product) {
+
+                return;
+
+            }
 
 
-        total += itemTotal;
-
-        count += item.quantity;
-
-
-        const div =
-            document.createElement(
-                "div"
-            );
+            const itemTotal =
+                Number(product.price) *
+                item.quantity;
 
 
-        div.className =
-            "cart-item";
+            total += itemTotal;
+
+            count += item.quantity;
 
 
-        div.innerHTML = `
+            const div =
+                document.createElement(
+                    "div"
+                );
 
-           <div class="cart-item-image">
 
-    ${
-        product.image_url
-            ? `
-                <img
-                    src="${product.image_url}"
-                    alt="${product.name}"
-                >
-              `
-            : "🛍️"
-    }
+            div.className =
+                "cart-item";
 
-</div>
-            <div class="cart-item-info">
 
-                <h4>
-                    ${product.name}
-                </h4>
+            const cartImage =
+                product.image_url
+                    ? `
+                        <img
+                            src="${product.image_url}"
+                            alt="${product.name}"
+                        >
+                      `
+                    : "🛍️";
 
-                <p>
-                    ${money(product.price)}
-                </p>
 
-                <div class="quantity">
+            div.innerHTML = `
 
-                    <button
-                        data-action="minus"
-                        data-id="${product.id}"
-                    >
-                        −
-                    </button>
+                <div class="cart-item-image">
+                    ${cartImage}
+                </div>
 
-                    <span>
-                        ${item.quantity}
-                    </span>
+                <div class="cart-item-info">
 
-                    <button
-                        data-action="plus"
-                        data-id="${product.id}"
-                    >
-                        +
-                    </button>
+                    <h4>
+                        ${product.name}
+                    </h4>
 
-                    <button
-                        class="remove"
-                        data-action="remove"
-                        data-id="${product.id}"
-                    >
-                        Remove
-                    </button>
+                    <p>
+                        ${money(product.price)}
+                    </p>
+
+                    <div class="quantity">
+
+                        <button
+                            data-action="minus"
+                            data-id="${product.id}"
+                        >
+                            −
+                        </button>
+
+                        <span>
+                            ${item.quantity}
+                        </span>
+
+                        <button
+                            data-action="plus"
+                            data-id="${product.id}"
+                        >
+                            +
+                        </button>
+
+                        <button
+                            class="remove"
+                            data-action="remove"
+                            data-id="${product.id}"
+                        >
+                            Remove
+                        </button>
+
+                    </div>
 
                 </div>
 
-            </div>
-
-        `;
+            `;
 
 
-        cartItems.appendChild(
-            div
-        );
+            cartItems.appendChild(
+                div
+            );
 
-    });
+        }
+    );
 
 
     cartCount.textContent =
@@ -738,7 +767,7 @@ closeCheckout.addEventListener(
 
 
 // ------------------------------------------
-// CHECKOUT / CREATE ORDER
+// CHECKOUT
 // ------------------------------------------
 
 checkoutForm.addEventListener(
@@ -750,7 +779,9 @@ checkoutForm.addEventListener(
 
         if (cart.length === 0) {
 
-            alert("Your cart is empty.");
+            alert(
+                "Your cart is empty."
+            );
 
             return;
 
@@ -759,21 +790,27 @@ checkoutForm.addEventListener(
 
         const customerName =
             document
-                .getElementById("customerName")
+                .getElementById(
+                    "customerName"
+                )
                 .value
                 .trim();
 
 
         const customerEmail =
             document
-                .getElementById("customerEmail")
+                .getElementById(
+                    "customerEmail"
+                )
                 .value
                 .trim();
 
 
         const customerAddress =
             document
-                .getElementById("customerAddress")
+                .getElementById(
+                    "customerAddress"
+                )
                 .value
                 .trim();
 
@@ -783,22 +820,25 @@ checkoutForm.addEventListener(
             const {
                 data: orderId,
                 error
-            } = await supabaseClient.rpc(
-                "create_order",
-                {
-                    p_customer_name:
-                        customerName,
+            } =
+                await supabaseClient.rpc(
+                    "create_order",
+                    {
 
-                    p_customer_email:
-                        customerEmail,
+                        p_customer_name:
+                            customerName,
 
-                    p_customer_address:
-                        customerAddress,
+                        p_customer_email:
+                            customerEmail,
 
-                    p_items:
-                        cart
-                }
-            );
+                        p_customer_address:
+                            customerAddress,
+
+                        p_items:
+                            cart
+
+                    }
+                );
 
 
             if (error) {
@@ -851,6 +891,7 @@ checkoutForm.addEventListener(
     }
 );
 
+
 // ------------------------------------------
 // SEARCH
 // ------------------------------------------
@@ -860,115 +901,52 @@ searchInput.addEventListener(
     () => {
 
         const activeCategory =
-           function setupCategories() {
-
-    const categories =
-        [
-            ...new Set(
-                products
-                    .map(product =>
-                        String(
-                            product.category || ""
-                        )
-                        .trim()
-                        .toLowerCase()
-                    )
-                    .filter(Boolean)
-            )
-        ]
-        .sort();
-
-
-    const categoryContainer =
-        document.getElementById(
-            "categoryContainer"
-        );
-
-
-    if (!categoryContainer) {
-
-        return;
-
-    }
-
-
-    categoryContainer.innerHTML = "";
-
-
-    const allButton =
-        document.createElement(
-            "button"
-        );
-
-
-    allButton.className =
-        "category active";
-
-    allButton.dataset.category =
-        "all";
-
-    allButton.textContent =
-        "All";
-
-
-    categoryContainer.appendChild(
-        allButton
-    );
-
-
-    categories.forEach(
-        category => {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-
-            button.className =
-                "category";
-
-
-            button.dataset.category =
-                category;
-
-
-            button.textContent =
-                category
-                    .charAt(0)
-                    .toUpperCase() +
-                category.slice(1);
-
-
-            categoryContainer.appendChild(
-                button
+            document.querySelector(
+                ".category.active"
             );
 
-        }
-    );
+
+        const category =
+            activeCategory
+                ? activeCategory.dataset.category
+                : "all";
 
 
-    categoryContainer
-        .querySelectorAll(
-            ".category"
-        )
-        .forEach(button => {
+        displayProducts(
+            category,
+            searchInput.value
+        );
+
+    }
+);
+
+
+// ------------------------------------------
+// CATEGORY FILTER
+// ------------------------------------------
+
+document
+    .querySelectorAll(".category")
+    .forEach(
+        button => {
 
             button.addEventListener(
                 "click",
                 () => {
 
-                    categoryContainer
+                    document
                         .querySelectorAll(
                             ".category"
                         )
-                        .forEach(btn => {
+                        .forEach(
+                            btn => {
 
-                            btn.classList.remove(
-                                "active"
-                            );
+                                btn.classList.remove(
+                                    "active"
+                                );
 
-                        });
+                            }
+                        );
 
 
                     button.classList.add(
@@ -984,53 +962,12 @@ searchInput.addEventListener(
                 }
             );
 
-        });
-
-}
-
-// ------------------------------------------
-// CATEGORY FILTER
-// ------------------------------------------
-
-document
-    .querySelectorAll(".category")
-    .forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                document
-                    .querySelectorAll(
-                        ".category"
-                    )
-                    .forEach(btn => {
-
-                        btn.classList.remove(
-                            "active"
-                        );
-
-                    });
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                displayProducts(
-                    button.dataset.category,
-                    searchInput.value
-                );
-
-            }
-        );
-
-    });
+        }
+    );
 
 
 // ------------------------------------------
-// START STORE
+// START
 // ------------------------------------------
 
 loadProducts();
