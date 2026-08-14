@@ -1323,3 +1323,29 @@ tbody tr:hover td {
 
 
 }
+
+.forgot-password {
+    margin-top: 10px;
+    text-align: right;
+}
+
+.forgot-password button {
+    border: 0;
+    background: transparent;
+    color: #2563eb;
+    cursor: pointer;
+    padding: 4px 0;
+    font-size: 14px;
+}
+
+.forgot-password button:hover {
+    text-decoration: underline;
+}
+
+.message.success {
+    color: #166534;
+}
+
+.message.error {
+    color: #b91c1c;
+}
