@@ -57,6 +57,8 @@ const searchInput =
         "searchInput"
     );
 
+const categoryFilters =
+    document.getElementById("categoryFilters");
 
 const cartButton =
     document.getElementById(
@@ -228,58 +230,159 @@ async function loadCategories() {
 
 }
 
+// ------------------------------------------
+// CATEGORY FILTER
+// ------------------------------------------
 
-// =========================================================
-// CATEGORY FILTERS
-// =========================================================
+categoryFilters.addEventListener(
+    "click",
+    event => {
 
-function setupCategoryFilters() {
-
-    document
-        .querySelectorAll(
-            ".category"
-        )
-        .forEach(
-            button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        document
-                            .querySelectorAll(
-                                ".category"
-                            )
-                            .forEach(
-                                item => {
-
-                                    item.classList.remove(
-                                        "active"
-                                    );
-
-                                }
-                            );
+        const button =
+            event.target.closest(
+                ".category"
+            );
 
 
-                        button.classList.add(
-                            "active"
-                        );
+        if (!button) {
+
+            return;
+
+        }
 
 
-                        displayProducts(
-                            button.dataset.category,
-                            searchInput.value
-                        );
+        categoryFilters
+            .querySelectorAll(".category")
+            .forEach(
+                btn => {
 
-                    }
-                );
+                    btn.classList.remove(
+                        "active"
+                    );
 
-            }
+                }
+            );
+
+
+        button.classList.add(
+            "active"
         );
 
+
+        displayProducts(
+            button.dataset.category,
+            searchInput.value
+        );
+
+    }
+);
+
+
+// ------------------------------------------
+// LOAD CATEGORIES
+// ------------------------------------------
+
+async function loadCategories() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("categories")
+        .select("id, name, slug")
+        .order("name", {
+            ascending: true
+        });
+
+
+    if (error) {
+
+        console.error(
+            "CATEGORY ERROR:",
+            error
+        );
+
+        categoryFilters.innerHTML = `
+            <button
+                class="category active"
+                data-category="all"
+                type="button"
+            >
+                All
+            </button>
+        `;
+
+        return;
+
+    }
+
+
+    renderCategoryFilters(data);
+
 }
+// ------------------------------------------
+// RENDER CATEGORY FILTERS
+// ------------------------------------------
+
+function renderCategoryFilters(
+    categories
+) {
+
+    categoryFilters.innerHTML = "";
 
 
+    // Always show All
+    const allButton =
+        document.createElement("button");
+
+
+    allButton.type = "button";
+
+    allButton.className =
+        "category active";
+
+    allButton.dataset.category =
+        "all";
+
+    allButton.textContent =
+        "All";
+
+
+    categoryFilters.appendChild(
+        allButton
+    );
+
+
+    // Add database categories
+    categories.forEach(
+        category => {
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+
+            button.type = "button";
+
+            button.className =
+                "category";
+
+            button.dataset.category =
+                category.slug;
+
+            button.textContent =
+                category.name;
+
+
+            categoryFilters.appendChild(
+                button
+            );
+
+        }
+    );
+
+}
 // =========================================================
 // LOAD PRODUCTS
 // =========================================================
