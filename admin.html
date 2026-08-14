@@ -389,6 +389,56 @@
         </div>
 <h2>Products</h2>
 
+        <!-- ==========================================
+     CATEGORY MANAGEMENT
+========================================== -->
+
+<h2>Categories</h2>
+
+<div class="category-management">
+
+    <form id="categoryForm">
+
+        <input
+            type="hidden"
+            id="categoryId"
+        >
+
+        <input
+            type="text"
+            id="categoryName"
+            placeholder="Category name"
+            required
+        >
+
+        <input
+            type="text"
+            id="categorySlug"
+            placeholder="category-slug"
+            required
+        >
+
+        <button type="submit">
+            Add Category
+        </button>
+
+        <button
+            type="button"
+            id="cancelCategoryEdit"
+            class="hidden"
+        >
+            Cancel
+        </button>
+
+    </form>
+
+
+    <div id="categoriesContainer">
+        Loading categories...
+    </div>
+
+</div>
+        
 <div class="product-form">
 
     <form id="productForm">
