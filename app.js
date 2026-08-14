@@ -14,8 +14,50 @@ const supabaseClient =
 
 // PRODUCTS
 // ------------------------------------------
+let products = [];
+async function loadProducts() {
 
-const products = [
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("products")
+        .select("*")
+        .order("id", {
+            ascending: true
+        });
+
+
+    if (error) {
+
+        console.error(
+            "Error loading products:",
+            error
+        );
+
+        alert(
+            "Could not load products."
+        );
+
+        return;
+    }
+
+
+    products = data.map(product => ({
+
+        ...product,
+
+        // Temporary placeholder
+        // until we add real product images
+        emoji: "🛍️"
+
+    }));
+
+
+    displayProducts();
+
+}
+/*const products = [
 
     {
         id: 1,
@@ -82,7 +124,7 @@ const products = [
     }
 
 ];
-
+*/
 
 // CART
 // ------------------------------------------
@@ -747,6 +789,6 @@ document
 // INITIALIZE
 // ------------------------------------------
 
-displayProducts();
+loadProducts();
 
 updateCart();
