@@ -157,13 +157,12 @@ function displayProducts(
 ) {
 
     const selectedCategory =
-        String(category || "all")
+        String(category)
             .trim()
             .toLowerCase();
 
-
     const searchText =
-        String(search || "")
+        String(search)
             .trim()
             .toLowerCase();
 
@@ -185,27 +184,10 @@ function displayProducts(
                     selectedCategory;
 
 
-            const productName =
-                String(
-                    product.name || ""
-                )
-                .toLowerCase();
-
-
-            const productDescription =
-                String(
-                    product.description || ""
-                )
-                .toLowerCase();
-
-
             const matchesSearch =
-                productName.includes(
-                    searchText
-                ) ||
-                productDescription.includes(
-                    searchText
-                );
+                String(product.name || "")
+                    .toLowerCase()
+                    .includes(searchText);
 
 
             return (
@@ -219,14 +201,10 @@ function displayProducts(
     productGrid.innerHTML = "";
 
 
-    if (
-        filteredProducts.length === 0
-    ) {
+    if (filteredProducts.length === 0) {
 
         productGrid.innerHTML = `
-            <p>
-                No products found.
-            </p>
+            <p>No products found.</p>
         `;
 
         return;
@@ -234,87 +212,81 @@ function displayProducts(
     }
 
 
-    filteredProducts.forEach(
-        product => {
+    filteredProducts.forEach(product => {
 
-            const card =
-                document.createElement(
-                    "article"
-                );
+        const card =
+            document.createElement("article");
 
 
-            card.className =
-                "product-card";
+        card.className =
+            "product-card";
 
 
-            const imageHTML =
-                product.image_url
-                    ? `
-                        <img
-                            src="${product.image_url}"
-                            alt="${product.name}"
-                            class="product-image"
-                            loading="lazy"
-                        >
-                      `
-                    : `
-                        <div class="product-image">
-                            🛍️
-                        </div>
-                      `;
+        let imageHTML = "";
 
+        if (product.image_url) {
 
-            card.innerHTML = `
-
-                <div class="product-image-container">
-
-                    ${imageHTML}
-
-                </div>
-
-
-                <div class="product-info">
-
-                    <p class="product-category">
-                        ${product.category}
-                    </p>
-
-
-                    <h3 class="product-name">
-                        ${product.name}
-                    </h3>
-
-
-                    <p>
-                        ${product.description || ""}
-                    </p>
-
-
-                    <p class="product-price">
-                        ${money(product.price)}
-                    </p>
-
-
-                    <button
-                        class="add-button"
-                        data-id="${product.id}"
-                    >
-                        Add to Cart
-                    </button>
-
-                </div>
-
+            imageHTML = `
+                <img
+                    src="${product.image_url}"
+                    alt="${product.name}"
+                    class="product-photo"
+                    loading="lazy"
+                >
             `;
 
+        } else {
 
-            productGrid.appendChild(
-                card
-            );
+            imageHTML = `
+                <div class="product-image">
+                    🛍️
+                </div>
+            `;
 
         }
-    );
+
+
+        card.innerHTML = `
+
+            ${imageHTML}
+
+            <div class="product-info">
+
+                <p class="product-category">
+                    ${product.category || ""}
+                </p>
+
+                <h3 class="product-name">
+                    ${product.name}
+                </h3>
+
+                <p>
+                    ${product.description || ""}
+                </p>
+
+                <p class="product-price">
+                    ${money(product.price)}
+                </p>
+
+                <button
+                    class="add-button"
+                    data-id="${product.id}"
+                >
+                    Add to Cart
+                </button>
+
+            </div>
+
+        `;
+
+
+        productGrid.appendChild(card);
+
+    });
 
 }
+
+
 
 // ------------------------------------------
 // ADD TO CART
