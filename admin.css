@@ -1,38 +1,37 @@
 /* =========================================================
    NOVASHOP ADMIN
+   CLEAN ADMIN PANEL
+   ========================================================= */
+
+:root {
+    --primary: #111827;
+    --primary-hover: #1f2937;
+
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+
+    --success: #16a34a;
+    --danger: #dc2626;
+    --warning: #d97706;
+
+    --bg: #f5f7fb;
+    --card: #ffffff;
+
+    --text: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+
+    --radius: 14px;
+    --shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+
+/* =========================================================
+   RESET
    ========================================================= */
 
 * {
     box-sizing: border-box;
-}
-
-:root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-
-    --text: #0f172a;
-    --text-light: #64748b;
-
-    --border: #e5e7eb;
-    --background: #f8fafc;
-    --white: #ffffff;
-
-    --green: #15803d;
-    --green-bg: #dcfce7;
-
-    --yellow: #92400e;
-    --yellow-bg: #fef3c7;
-
-    --blue: #1d4ed8;
-    --blue-bg: #dbeafe;
-
-    --red: #b91c1c;
-    --red-bg: #fee2e2;
-
-    --radius: 12px;
-
-    --shadow:
-        0 4px 20px rgba(15, 23, 42, 0.05);
 }
 
 html {
@@ -41,21 +40,27 @@ html {
 
 body {
     margin: 0;
-    background: var(--background);
+    min-height: 100vh;
+
+    background: var(--bg);
     color: var(--text);
+
     font-family:
         Inter,
-        system-ui,
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
+        Roboto,
+        Arial,
         sans-serif;
+
+    line-height: 1.5;
 }
 
 button,
 input,
-select,
-textarea {
+textarea,
+select {
     font: inherit;
 }
 
@@ -63,8 +68,39 @@ button {
     cursor: pointer;
 }
 
+img {
+    max-width: 100%;
+}
+
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+
 .hidden {
     display: none !important;
+}
+
+.loading {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.empty-state {
+    padding: 45px 20px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.eyebrow {
+    margin: 0 0 5px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
 }
 
 
@@ -72,7 +108,7 @@ button {
    LOGIN
    ========================================================= */
 
-.login-section {
+#loginSection {
     min-height: 100vh;
 
     display: flex;
@@ -82,101 +118,98 @@ button {
     padding: 24px;
 
     background:
-        linear-gradient(
-            135deg,
-            #eff6ff,
-            #f8fafc 55%,
-            #eef2ff
-        );
+        radial-gradient(
+            circle at top left,
+            #dbeafe 0,
+            transparent 35%
+        ),
+        var(--bg);
 }
 
-.login-card {
+#loginSection form {
     width: 100%;
     max-width: 420px;
 
     padding: 36px;
 
-    background: var(--white);
+    background: var(--card);
 
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: 20px;
 
     box-shadow:
-        0 20px 60px rgba(15, 23, 42, 0.08);
+        0 20px 60px rgba(15, 23, 42, 0.10);
 }
 
-.login-logo {
-    color: var(--primary);
-
-    font-size: 24px;
-    font-weight: 800;
-
-    margin-bottom: 24px;
+#loginSection h1,
+#loginSection h2 {
+    margin-top: 0;
 }
 
-.login-card h1 {
-    margin: 0 0 8px;
+#loginSection h1 {
+    margin-bottom: 8px;
 
     font-size: 28px;
+    letter-spacing: -0.03em;
 }
 
-.login-subtitle {
-    margin: 0 0 28px;
-
-    color: var(--text-light);
+#loginSection p {
+    color: var(--muted);
 }
 
 
 /* =========================================================
-   FORMS
+   FORM ELEMENTS
    ========================================================= */
 
-.form-group {
-    margin-bottom: 18px;
-}
-
-.form-group label {
+label {
     display: block;
 
     margin-bottom: 7px;
 
-    color: #334155;
+    color: #374151;
 
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
 }
 
 input,
-select,
-textarea {
+textarea,
+select {
     width: 100%;
 
-    border: 1px solid #dbe1ea;
-    border-radius: 9px;
-
-    background: #fff;
-
-    padding: 11px 13px;
+    padding: 12px 14px;
 
     color: var(--text);
+    background: #fff;
+
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
 
     outline: none;
 
     transition:
-        border-color .15s ease,
-        box-shadow .15s ease;
+        border-color 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #9ca3af;
 }
 
 input:focus,
-select:focus,
-textarea:focus {
-    border-color: var(--primary);
+textarea:focus,
+select:focus {
+    border-color: var(--accent);
 
     box-shadow:
-        0 0 0 3px rgba(37, 99, 235, .08);
+        0 0 0 3px rgba(37, 99, 235, 0.10);
 }
 
 textarea {
+    min-height: 110px;
     resize: vertical;
 }
 
@@ -185,136 +218,98 @@ textarea {
    BUTTONS
    ========================================================= */
 
-.primary-button {
-    border: none;
-
-    background: var(--primary);
-    color: #fff;
-
-    padding: 10px 16px;
-
-    border-radius: 8px;
-
-    font-size: 14px;
-    font-weight: 600;
-
-    transition: background .15s ease;
+button {
+    border: 0;
 }
 
-.primary-button:hover {
-    background: var(--primary-dark);
+.primary-button,
+#loginForm button[type="submit"] {
+    width: 100%;
+
+    padding: 12px 18px;
+
+    color: white;
+    background: var(--accent);
+
+    border-radius: 10px;
+
+    font-weight: 700;
+
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
 }
 
-.primary-button:disabled {
-    opacity: .6;
+.primary-button:hover,
+#loginForm button[type="submit"]:hover {
+    background: var(--accent-hover);
+}
+
+.primary-button:active,
+#loginForm button[type="submit"]:active {
+    transform: translateY(1px);
+}
+
+button:disabled {
+    opacity: 0.6;
     cursor: not-allowed;
 }
 
+
+/* Secondary */
+
 .secondary-button {
-    border: 1px solid #dbe1ea;
+    padding: 9px 14px;
 
-    background: #fff;
-    color: #475569;
+    color: #374151;
+    background: #f3f4f6;
 
-    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: 9px;
 
-    border-radius: 8px;
-
-    font-size: 14px;
     font-weight: 600;
 }
 
 .secondary-button:hover {
-    background: #f8fafc;
+    background: #e5e7eb;
 }
 
-.danger-button {
-    border: none;
 
-    background: var(--red-bg);
-    color: var(--red);
-
-    padding: 7px 11px;
-
-    border-radius: 7px;
-
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.danger-button:hover {
-    background: #fecaca;
-}
+/* Edit */
 
 .edit-button {
-    border: none;
+    padding: 8px 12px;
 
-    background: var(--blue-bg);
-    color: var(--blue);
-
-    padding: 7px 11px;
-
-    border-radius: 7px;
-
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.edit-button:hover {
-    background: #bfdbfe;
-}
-
-.forgot-button {
-    display: block;
-
-    width: 100%;
-
-    margin-top: 13px;
-
-    border: none;
-
-    background: transparent;
-
-    color: var(--primary);
-
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.forgot-button:hover {
-    text-decoration: underline;
-}
-
-.logout-button {
-    border: 1px solid #fecaca;
-
-    background: #fff;
-
-    color: var(--red);
-
-    padding: 8px 13px;
+    color: #1d4ed8;
+    background: #eff6ff;
 
     border-radius: 8px;
 
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-.logout-button:hover {
-    background: var(--red-bg);
+.edit-button:hover {
+    background: #dbeafe;
 }
 
-.login-button {
-    width: 100%;
-    height: 44px;
+
+/* Danger */
+
+.danger-button {
+    padding: 8px 12px;
+
+    color: #b91c1c;
+    background: #fef2f2;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+    font-weight: 700;
 }
 
-.form-actions {
-    display: flex;
-
-    gap: 10px;
-
-    margin-top: 20px;
+.danger-button:hover {
+    background: #fee2e2;
 }
 
 
@@ -325,22 +320,41 @@ textarea {
 .message {
     margin-top: 12px;
 
-    font-size: 13px;
+    padding: 10px 12px;
 
-    line-height: 1.5;
+    border-radius: 9px;
+
+    font-size: 14px;
 }
 
-.message.success {
-    color: var(--green);
+.message:empty {
+    display: none;
 }
 
 .message.error {
-    color: var(--red);
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.message.success {
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
 }
 
 
 /* =========================================================
-   HEADER
+   DASHBOARD
+   ========================================================= */
+
+#dashboard {
+    min-height: 100vh;
+}
+
+
+/* =========================================================
+   ADMIN HEADER
    ========================================================= */
 
 .admin-header {
@@ -354,41 +368,45 @@ textarea {
 
     gap: 20px;
 
-    padding: 15px 30px;
+    min-height: 72px;
 
-    background: rgba(255, 255, 255, .96);
+    padding: 14px 28px;
+
+    background: rgba(255, 255, 255, 0.94);
 
     border-bottom: 1px solid var(--border);
 
     backdrop-filter: blur(12px);
 }
 
-.brand {
+.admin-header h1 {
+    margin: 0;
+
     font-size: 21px;
-    font-weight: 800;
-
-    color: var(--primary);
+    letter-spacing: -0.02em;
 }
 
-.admin-title {
-    margin-top: 2px;
+.admin-header p {
+    margin: 2px 0 0;
 
-    color: var(--text-light);
-
-    font-size: 12px;
-}
-
-.admin-header-right {
-    display: flex;
-    align-items: center;
-
-    gap: 14px;
-}
-
-#adminEmail {
-    color: var(--text-light);
+    color: var(--muted);
 
     font-size: 13px;
+}
+
+#logoutButton {
+    padding: 9px 14px;
+
+    color: #374151;
+    background: #f3f4f6;
+
+    border-radius: 9px;
+
+    font-weight: 600;
+}
+
+#logoutButton:hover {
+    background: #e5e7eb;
 }
 
 
@@ -396,12 +414,13 @@ textarea {
    MAIN
    ========================================================= */
 
-.admin-main {
-    width: min(1400px, 100%);
+.admin-main,
+#dashboard > main {
+    width: min(1400px, calc(100% - 40px));
 
     margin: 0 auto;
 
-    padding: 30px;
+    padding: 32px 0 60px;
 }
 
 
@@ -417,34 +436,34 @@ textarea {
 
     gap: 18px;
 
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
 .stat-card {
-    background: #fff;
+    padding: 22px;
+
+    background: var(--card);
 
     border: 1px solid var(--border);
     border-radius: var(--radius);
 
-    padding: 22px;
-
     box-shadow: var(--shadow);
 }
 
-.stat-label {
-    color: var(--text-light);
+.stat-card .stat-label {
+    margin-bottom: 8px;
+
+    color: var(--muted);
 
     font-size: 13px;
     font-weight: 600;
 }
 
-.stat-value {
-    margin-top: 8px;
+.stat-card .stat-value {
+    font-size: 30px;
+    font-weight: 800;
 
-    color: var(--text);
-
-    font-size: 28px;
-    font-weight: 750;
+    letter-spacing: -0.04em;
 }
 
 
@@ -453,25 +472,37 @@ textarea {
    ========================================================= */
 
 .admin-section {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
+
+    padding: 24px;
+
+    background: var(--card);
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    box-shadow: var(--shadow);
 }
 
-.section-header {
-    margin-bottom: 16px;
+.admin-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
 }
 
-.section-header h2 {
+.admin-section h2 {
     margin: 0;
 
-    font-size: 20px;
+    font-size: 19px;
+    letter-spacing: -0.02em;
 }
 
-.section-header p {
-    margin: 5px 0 0;
-
-    color: var(--text-light);
-
-    font-size: 13px;
+.admin-section h3 {
+    margin-top: 0;
 }
 
 
@@ -480,112 +511,97 @@ textarea {
    ========================================================= */
 
 .orders-toolbar {
-    display: flex;
+    display: grid;
 
-    gap: 10px;
+    grid-template-columns:
+        minmax(0, 1fr)
+        180px;
 
-    margin-bottom: 14px;
-}
+    gap: 12px;
 
-.orders-toolbar input {
-    flex: 1;
-}
-
-.orders-toolbar select {
-    width: 180px;
+    margin-bottom: 18px;
 }
 
 
 /* =========================================================
-   TABLE CARD
+   TABLE
    ========================================================= */
 
-.table-card {
-    overflow-x: auto;
-
-    background: #fff;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    box-shadow: var(--shadow);
-}
-
-.table-card table {
+table {
     width: 100%;
 
     border-collapse: collapse;
 
-    min-width: 700px;
+    font-size: 14px;
 }
 
-.table-card th {
-    padding: 13px 16px;
+thead {
+    background: #f9fafb;
+}
 
-    background: #f8fafc;
+th {
+    padding: 12px 14px;
+
+    color: #6b7280;
 
     border-bottom: 1px solid var(--border);
 
-    color: #64748b;
-
     text-align: left;
 
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: 0.04em;
 }
 
-.table-card td {
-    padding: 14px 16px;
+td {
+    padding: 15px 14px;
 
-    border-bottom: 1px solid #f1f5f9;
-
-    font-size: 14px;
+    border-bottom: 1px solid #f0f1f3;
 
     vertical-align: middle;
 }
 
-.table-card tbody tr:hover {
-    background: #f8fafc;
+tbody tr:hover {
+    background: #fafafa;
 }
 
-.table-card tbody tr:last-child td {
-    border-bottom: none;
+tbody tr:last-child td {
+    border-bottom: 0;
 }
 
 
 /* =========================================================
-   ORDERS
+   ORDER CUSTOMER
    ========================================================= */
 
 .order-customer-name {
-    color: var(--text);
-
-    font-weight: 650;
+    font-weight: 700;
 }
 
 .order-customer-email {
-    margin-top: 3px;
+    margin-top: 2px;
 
-    color: #94a3b8;
+    color: var(--muted);
 
     font-size: 12px;
 }
 
+
+/* =========================================================
+   ORDER VIEW BUTTON
+   ========================================================= */
+
 .order-view-button {
-    border: 1px solid #bfdbfe;
+    padding: 8px 13px;
 
+    color: #1d4ed8;
     background: #eff6ff;
-    color: var(--primary);
 
-    padding: 7px 12px;
-
-    border-radius: 7px;
+    border-radius: 8px;
 
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .order-view-button:hover {
@@ -599,39 +615,36 @@ textarea {
 
 .status {
     display: inline-flex;
-
     align-items: center;
 
-    padding: 5px 10px;
+    padding: 5px 9px;
 
     border-radius: 999px;
 
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
 
     text-transform: capitalize;
-
-    white-space: nowrap;
 }
 
 .status-pending {
-    background: var(--yellow-bg);
-    color: var(--yellow);
+    color: #92400e;
+    background: #fef3c7;
 }
 
 .status-info {
-    background: var(--blue-bg);
-    color: var(--blue);
+    color: #1d4ed8;
+    background: #dbeafe;
 }
 
 .status-success {
-    background: var(--green-bg);
-    color: var(--green);
+    color: #166534;
+    background: #dcfce7;
 }
 
 .status-danger {
-    background: var(--red-bg);
-    color: var(--red);
+    color: #991b1b;
+    background: #fee2e2;
 }
 
 
@@ -639,406 +652,362 @@ textarea {
    ORDER DETAILS
    ========================================================= */
 
-#orderDetails {
-    margin-top: 16px;
-}
-
 .order-details-card {
-    overflow: hidden;
+    margin-top: 20px;
 
-    background: #fff;
+    padding: 24px;
+
+    background: #f9fafb;
 
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    box-shadow: var(--shadow);
+    border-radius: 12px;
 }
 
 .order-details-header {
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 
     gap: 20px;
 
-    padding: 20px;
-
-    background: #f8fafc;
+    padding-bottom: 18px;
 
     border-bottom: 1px solid var(--border);
 }
 
-.eyebrow {
+.order-details-header h3 {
     margin: 0;
 
-    color: #64748b;
-
-    font-size: 10px;
-    font-weight: 800;
-
-    letter-spacing: .08em;
-}
-
-.order-details-header h3 {
-    margin: 4px 0 0;
-
-    font-size: 20px;
+    font-size: 22px;
 }
 
 .order-customer,
 .order-items {
-    padding: 20px;
+    padding: 20px 0;
 
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
 }
 
 .order-customer h4,
 .order-items h4 {
     margin: 0 0 12px;
 
-    font-size: 14px;
+    font-size: 15px;
 }
 
 .order-customer p {
     margin: 5px 0;
 
-    color: var(--text-light);
-
-    font-size: 13px;
-}
-
-.order-customer strong {
-    color: var(--text);
+    color: #4b5563;
 }
 
 .order-item {
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 
     gap: 20px;
 
-    padding: 12px 0;
+    padding: 13px 0;
 
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .order-item:last-child {
-    border-bottom: none;
-}
-
-.order-item strong {
-    color: var(--text);
+    border-bottom: 0;
 }
 
 .order-item div div {
-    margin-top: 4px;
+    margin-top: 3px;
 
-    color: #94a3b8;
+    color: var(--muted);
 
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .order-total {
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 
-    padding: 18px 20px;
+    padding: 20px 0;
 
-    background: #f8fafc;
-}
-
-.order-total span {
-    color: var(--text-light);
-
-    font-size: 13px;
+    font-size: 17px;
 }
 
 .order-total strong {
-    font-size: 20px;
+    font-size: 21px;
 }
 
 .order-status-editor {
-    display: flex;
+    display: grid;
 
-    align-items: center;
+    grid-template-columns:
+        minmax(0, 1fr)
+        180px
+        auto;
 
-    gap: 10px;
+    align-items: end;
 
-    padding: 18px 20px;
+    gap: 12px;
+
+    padding-top: 18px;
 }
 
 .order-status-editor label {
-    color: #334155;
-
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.order-status-editor select {
-    width: 170px;
+    grid-column: 1 / -1;
+    margin-bottom: -5px;
 }
 
 .order-status-message {
-    padding: 0 20px 18px;
+    margin-top: 12px;
 
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .status-success-text {
-    color: var(--green);
+    color: var(--success);
 }
 
 .status-danger-text {
-    color: var(--red);
+    color: var(--danger);
 }
 
 
 /* =========================================================
-   MANAGEMENT
-   ========================================================= */
-
-.management-grid {
-    display: grid;
-
-    grid-template-columns:
-        minmax(280px, 360px)
-        1fr;
-
-    gap: 18px;
-}
-
-.product-layout {
-    display: grid;
-
-    grid-template-columns:
-        minmax(280px, 360px)
-        1fr;
-
-    gap: 18px;
-}
-
-.form-card,
-.list-card {
-    background: #fff;
-
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-
-    padding: 20px;
-
-    box-shadow: var(--shadow);
-}
-
-.form-card h3 {
-    margin: 0 0 18px;
-
-    font-size: 16px;
-}
-
-
-/* =========================================================
-   CATEGORY LIST
+   CATEGORIES
    ========================================================= */
 
 .category-card {
     display: flex;
-
     align-items: center;
     justify-content: space-between;
 
-    gap: 15px;
+    gap: 20px;
 
-    padding: 13px 0;
+    padding: 15px 0;
 
-    border-bottom: 1px solid #f1f5f9;
-}
-
-.category-card:first-child {
-    padding-top: 0;
+    border-bottom: 1px solid var(--border);
 }
 
 .category-card:last-child {
-    border-bottom: none;
-
-    padding-bottom: 0;
+    border-bottom: 0;
 }
 
 .category-name {
-    font-weight: 650;
+    font-weight: 700;
 }
 
 .category-slug {
     margin-top: 3px;
 
-    color: #94a3b8;
+    color: var(--muted);
 
-    font-size: 12px;
+    font-size: 13px;
 }
 
 .category-actions {
     display: flex;
-
-    gap: 7px;
+    gap: 8px;
 }
 
 
 /* =========================================================
-   PRODUCTS
+   PRODUCT TABLE
    ========================================================= */
 
 .product-table-image {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
+
+    display: block;
 
     object-fit: cover;
 
-    border-radius: 8px;
+    border-radius: 9px;
 
     border: 1px solid var(--border);
 }
 
 .product-placeholder {
-    display: flex;
+    width: 52px;
+    height: 52px;
 
+    display: flex;
     align-items: center;
     justify-content: center;
 
-    width: 48px;
-    height: 48px;
+    background: #f3f4f6;
 
-    border-radius: 8px;
-
-    background: #f1f5f9;
+    border-radius: 9px;
 
     font-size: 20px;
 }
 
 .table-actions {
     display: flex;
-
     gap: 7px;
 }
 
-.image-preview {
-    margin-top: 12px;
-}
 
-.image-preview img {
-    width: 100%;
-    max-height: 180px;
+/* =========================================================
+   PRODUCT FORM
+   ========================================================= */
 
-    object-fit: contain;
-
-    border: 1px solid var(--border);
-    border-radius: 9px;
-
-    background: #f8fafc;
-}
-
-.two-columns {
+.product-form-grid,
+.category-form-grid {
     display: grid;
 
     grid-template-columns:
-        1fr 1fr;
+        repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-group.full {
+    grid-column: 1 / -1;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
 
     gap: 10px;
+
+    margin-top: 18px;
+}
+
+.form-actions .primary-button {
+    width: auto;
+}
+
+.form-actions .secondary-button {
+    width: auto;
 }
 
 
 /* =========================================================
-   LOADING / EMPTY
+   IMAGE PREVIEW
    ========================================================= */
 
-.loading,
-.empty-state {
-    padding: 45px 20px;
+#imagePreview {
+    margin-top: 12px;
+}
 
+#imagePreview img {
+    width: 120px;
+    height: 120px;
+
+    object-fit: cover;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: #f9fafb;
+}
+
+
+/* =========================================================
+   LOGIN FORM SPACING
+   ========================================================= */
+
+#loginForm .form-group {
+    margin-bottom: 16px;
+}
+
+#forgotPasswordButton {
+    width: 100%;
+
+    margin-top: 12px;
+
+    padding: 9px;
+
+    color: var(--muted);
+    background: transparent;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#forgotPasswordButton:hover {
+    color: var(--accent);
+}
+
+#forgotPasswordMessage {
     text-align: center;
-
-    color: var(--text-light);
-
-    font-size: 14px;
 }
 
 
 /* =========================================================
-   MOBILE
+   RESPONSIVE
    ========================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
 
-    .admin-main {
-        padding: 20px;
+    .stats-grid {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
     }
 
-    .management-grid,
-    .product-layout {
+    .order-status-editor {
         grid-template-columns: 1fr;
     }
 
+    .order-status-editor label {
+        grid-column: auto;
+    }
+
 }
 
-@media (max-width: 700px) {
+
+@media (max-width: 760px) {
 
     .admin-header {
-        padding: 13px 16px;
+        padding: 12px 18px;
     }
 
-    .admin-header-right {
-        gap: 7px;
-    }
+    .admin-main,
+    #dashboard > main {
+        width: min(
+            100% - 24px,
+            1400px
+        );
 
-    #adminEmail {
-        display: none;
-    }
-
-    .admin-main {
-        padding: 16px;
+        padding-top: 20px;
     }
 
     .stats-grid {
         grid-template-columns: 1fr;
     }
 
+    .admin-section {
+        padding: 18px;
+    }
+
     .orders-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .product-form-grid,
+    .category-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-group.full {
+        grid-column: auto;
+    }
+
+    .admin-section-header {
+        align-items: flex-start;
         flex-direction: column;
-    }
-
-    .orders-toolbar select {
-        width: 100%;
-    }
-
-    .order-status-editor {
-        align-items: stretch;
-
-        flex-direction: column;
-    }
-
-    .order-status-editor select {
-        width: 100%;
-    }
-
-    .order-details-header {
-        padding: 16px;
-    }
-
-    .order-customer,
-    .order-items {
-        padding: 16px;
-    }
-
-    .order-total {
-        padding: 16px;
     }
 
     .category-card {
         align-items: flex-start;
-
         flex-direction: column;
     }
 
@@ -1046,16 +1015,46 @@ textarea {
         width: 100%;
     }
 
-    .category-actions button {
-        flex: 1;
+    table {
+        min-width: 700px;
     }
 
-    .two-columns {
-        grid-template-columns: 1fr;
+    .admin-section:has(table) {
+        overflow-x: auto;
     }
 
-    .login-card {
-        padding: 26px 20px;
+}
+
+
+@media (max-width: 480px) {
+
+    #loginSection {
+        padding: 16px;
+    }
+
+    #loginSection form {
+        padding: 24px;
+    }
+
+    .admin-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #logoutButton {
+        width: 100%;
+    }
+
+    .order-details-card {
+        padding: 17px;
+    }
+
+    .order-details-header {
+        align-items: flex-start;
+    }
+
+    .order-item {
+        align-items: flex-start;
     }
 
 }
