@@ -457,14 +457,23 @@
 
 
         <label>
-            Image URL
+    Product Image
 
-            <input
-                type="url"
-                id="productImage"
-                placeholder="https://..."
-            >
+    <input
+        type="file"
+        id="productImageFile"
+        accept="image/*"
+    >
+
+    <small>
+        JPG, PNG or WebP
+    </small>
         </label>
+
+<input
+    type="hidden"
+    id="productImage"
+>
 
 
         <button type="submit">
