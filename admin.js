@@ -4082,3 +4082,131 @@ supabaseClient.auth.onAuthStateChange(
 // =========================================================
 
 checkLogin();
+
+
+
+// =========================================================
+// FORGOT PASSWORD
+// =========================================================
+
+const forgotPasswordButton =
+    document.getElementById(
+        "forgotPasswordButton"
+    );
+
+const forgotPasswordMessage =
+    document.getElementById(
+        "forgotPasswordMessage"
+    );
+
+
+if (forgotPasswordButton) {
+
+    forgotPasswordButton.addEventListener(
+        "click",
+        async function () {
+
+            const emailInput =
+                document.getElementById(
+                    "email"
+                );
+
+            const email =
+                emailInput.value.trim();
+
+
+            // ---------------------------------------------
+            // CHECK EMAIL
+            // ---------------------------------------------
+
+            if (!email) {
+
+                forgotPasswordMessage.textContent =
+                    "Enter your admin email address first.";
+
+                forgotPasswordMessage.className =
+                    "message error";
+
+                emailInput.focus();
+
+                return;
+
+            }
+
+
+            // ---------------------------------------------
+            // BUTTON
+            // ---------------------------------------------
+
+            forgotPasswordButton.disabled =
+                true;
+
+            forgotPasswordButton.textContent =
+                "Sending...";
+
+
+            forgotPasswordMessage.textContent =
+                "";
+
+
+            try {
+
+                // -----------------------------------------
+                // SEND RESET EMAIL
+                // -----------------------------------------
+
+                const {
+                    error
+                } =
+                    await supabaseClient.auth
+                        .resetPasswordForEmail(
+                            email,
+                            {
+                                redirectTo:
+                                    window.location.origin +
+                                    "/update-password.html"
+                            }
+                        );
+
+
+                if (error) {
+
+                    throw error;
+
+                }
+
+
+                forgotPasswordMessage.textContent =
+                    "Reset instructions have been sent to your email.";
+
+                forgotPasswordMessage.className =
+                    "message success";
+
+
+            } catch (error) {
+
+                console.error(
+                    "PASSWORD RESET ERROR:",
+                    error
+                );
+
+
+                forgotPasswordMessage.textContent =
+                    error.message;
+
+                forgotPasswordMessage.className =
+                    "message error";
+
+            }
+
+
+            forgotPasswordButton.disabled =
+                false;
+
+            forgotPasswordButton.textContent =
+                "Forgot Password?";
+
+        }
+    );
+
+}
