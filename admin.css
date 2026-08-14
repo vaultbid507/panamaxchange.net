@@ -4,11 +4,15 @@
 ========================================================= */
 
 
-/* RESET */
+/* =========================================================
+   RESET
+========================================================= */
 
 * {
     box-sizing: border-box;
+
     margin: 0;
+
     padding: 0;
 }
 
@@ -19,6 +23,8 @@ html {
 
 
 body {
+    min-height: 100vh;
+
     font-family:
         Inter,
         -apple-system,
@@ -52,19 +58,18 @@ button {
 }
 
 
-
 /* =========================================================
    HEADER
 ========================================================= */
 
 .admin-header {
+    position: sticky;
+
+    top: 0;
+
+    z-index: 100;
+
     height: 68px;
-
-    background: #111827;
-
-    color: white;
-
-    padding: 0 32px;
 
     display: flex;
 
@@ -72,11 +77,11 @@ button {
 
     justify-content: space-between;
 
-    position: sticky;
+    padding: 0 32px;
 
-    top: 0;
+    background: #ffffff;
 
-    z-index: 100;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 
@@ -89,34 +94,41 @@ button {
 }
 
 
-.admin-logo span {
+.admin-logo span,
+.login-brand span {
     color: #635bff;
 }
 
 
-.logout-button {
-    background: #2b303b;
+.admin-logo small {
+    margin-left: 8px;
 
-    color: white;
+    color: #8a8a8a;
 
-    border: 1px solid #3c424f;
-
-    padding: 9px 15px;
-
-    border-radius: 8px;
+    font-size: 12px;
 
     font-weight: 600;
 }
 
 
-.logout-button:hover {
-    background: #3a404c;
+.admin-header-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
 }
 
 
+.admin-email {
+    color: #737373;
+
+    font-size: 13px;
+}
+
 
 /* =========================================================
-   CONTAINER
+   ADMIN CONTAINER
 ========================================================= */
 
 .admin-container {
@@ -124,9 +136,8 @@ button {
 
     margin: 0 auto;
 
-    padding: 35px 0 60px;
+    padding: 40px 0 70px;
 }
-
 
 
 /* =========================================================
@@ -134,180 +145,86 @@ button {
 ========================================================= */
 
 .login-card {
-    width: 100%;
-
-    max-width: 420px;
+    width: min(420px, 100%);
 
     margin: 80px auto;
 
-    background: white;
+    padding: 35px;
 
     border: 1px solid #e5e7eb;
 
     border-radius: 18px;
 
-    padding: 35px;
+    background: #ffffff;
 
     box-shadow:
-        0 10px 35px rgba(0, 0, 0, 0.06);
+        0 15px 45px rgba(0, 0, 0, 0.07);
 }
 
 
-.login-icon {
-    width: 48px;
+.login-brand {
+    margin-bottom: 25px;
 
-    height: 48px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    background: #111827;
-
-    color: white;
-
-    border-radius: 12px;
+    font-size: 20px;
 
     font-weight: 800;
-
-    margin-bottom: 20px;
 }
 
 
 .login-card h1 {
-    font-size: 27px;
-
     margin-bottom: 7px;
-}
 
-
-.login-description {
-    color: #737373;
-
-    margin-bottom: 28px;
-
-    font-size: 14px;
-}
-
-
-
-/* =========================================================
-   PAGE HEADING
-========================================================= */
-
-.page-heading {
-    margin-bottom: 28px;
-}
-
-
-.page-heading h1 {
-    font-size: 29px;
+    font-size: 28px;
 
     letter-spacing: -0.7px;
 }
 
 
-.page-heading p {
+.login-description {
+    margin-bottom: 28px;
+
     color: #737373;
 
     font-size: 14px;
-
-    margin-top: 4px;
 }
-
 
 
 /* =========================================================
-   STATS
+   PAGE HEADER
 ========================================================= */
 
-.stats-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 18px;
-
-    margin-bottom: 25px;
+.page-header {
+    margin-bottom: 28px;
 }
 
 
-.stat-card {
-    background: white;
+.eyebrow {
+    margin-bottom: 8px;
 
-    border: 1px solid #e5e7eb;
+    color: #635bff;
 
-    border-radius: 14px;
+    font-size: 11px;
 
-    padding: 22px;
+    font-weight: 800;
 
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.025);
+    letter-spacing: 1.4px;
 }
 
 
-.stat-label {
+.page-header h1 {
+    margin-bottom: 5px;
+
+    font-size: 32px;
+
+    letter-spacing: -1px;
+}
+
+
+.page-header p:not(.eyebrow) {
     color: #737373;
 
-    font-size: 13px;
-
-    margin-bottom: 7px;
+    font-size: 14px;
 }
-
-
-.stat-value {
-    font-size: 28px;
-
-    font-weight: 750;
-
-    letter-spacing: -0.5px;
-}
-
-
-
-/* =========================================================
-   SECTIONS
-========================================================= */
-
-.admin-section {
-    background: white;
-
-    border: 1px solid #e5e7eb;
-
-    border-radius: 15px;
-
-    padding: 25px;
-
-    margin-bottom: 25px;
-
-    box-shadow:
-        0 2px 8px rgba(0, 0, 0, 0.025);
-}
-
-
-.section-heading {
-    margin-bottom: 22px;
-}
-
-
-.section-heading h2 {
-    font-size: 19px;
-
-    letter-spacing: -0.2px;
-}
-
-
-.section-heading p {
-    color: #737373;
-
-    font-size: 13px;
-
-    margin-top: 3px;
-}
-
 
 
 /* =========================================================
@@ -315,20 +232,20 @@ button {
 ========================================================= */
 
 .form-group {
-    margin-bottom: 17px;
+    margin-bottom: 18px;
 }
 
 
 .form-group label {
     display: block;
 
+    margin-bottom: 7px;
+
     color: #404040;
 
     font-size: 13px;
 
     font-weight: 650;
-
-    margin-bottom: 7px;
 }
 
 
@@ -337,17 +254,17 @@ select,
 textarea {
     width: 100%;
 
-    padding: 12px 13px;
+    padding: 11px 13px;
 
     border: 1px solid #d9dce1;
 
     border-radius: 9px;
 
-    background: white;
+    outline: none;
+
+    background: #ffffff;
 
     color: #171717;
-
-    outline: none;
 
     transition:
         border-color 0.2s,
@@ -361,18 +278,18 @@ textarea:focus {
     border-color: #635bff;
 
     box-shadow:
-        0 0 0 3px rgba(99, 91, 255, 0.1);
+        0 0 0 3px rgba(99, 91, 255, 0.10);
 }
 
 
 textarea {
-    min-height: 105px;
+    min-height: 100px;
 
     resize: vertical;
 }
 
 
-.help-text {
+.form-help {
     display: block;
 
     margin-top: 6px;
@@ -383,38 +300,227 @@ textarea {
 }
 
 
-.full-width {
-    grid-column: 1 / -1;
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+button {
+    border: 0;
+
+    border-radius: 9px;
+
+    padding: 10px 16px;
+
+    font-weight: 650;
+
+    transition:
+        background 0.2s,
+        color 0.2s,
+        transform 0.15s;
 }
 
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+
+button:active {
+    transform: translateY(0);
+}
+
+
+button:disabled {
+    cursor: not-allowed;
+
+    opacity: 0.55;
+
+    transform: none;
+}
+
+
+.primary-button {
+    background: #635bff;
+
+    color: #ffffff;
+}
+
+
+.primary-button:hover {
+    background: #5149e6;
+}
+
+
+.secondary-button {
+    background: #eef0f3;
+
+    color: #333333;
+}
+
+
+.secondary-button:hover {
+    background: #e1e4e8;
+}
+
+
+.logout-button {
+    background: #111827;
+
+    color: #ffffff;
+}
+
+
+.logout-button:hover {
+    background: #000000;
+}
+
+
+.danger-button {
+    background: #fff0f0;
+
+    color: #dc2626;
+}
+
+
+.danger-button:hover {
+    background: #ffe1e1;
+}
+
+
+.edit-button {
+    background: #eef0f3;
+
+    color: #333333;
+}
+
+
+.edit-button:hover {
+    background: #e1e4e8;
+}
+
+
+.full-width {
+    width: 100%;
+}
 
 
 /* =========================================================
-   PRODUCT FORM
+   MESSAGE
 ========================================================= */
 
-#productForm {
+.message {
+    min-height: 20px;
+
+    margin-top: 15px;
+
+    color: #dc2626;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats-grid {
     display: grid;
 
     grid-template-columns:
-        repeat(2, minmax(0, 1fr));
+        repeat(3, minmax(0, 1fr));
 
-    gap: 0 18px;
+    gap: 18px;
+
+    margin-bottom: 25px;
 }
 
 
-#productForm .form-group {
-    margin-bottom: 18px;
+.stat-card {
+    padding: 22px;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 14px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 
-#categoryForm {
+.stat-card span {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #737373;
+
+    font-size: 13px;
+}
+
+
+.stat-card strong {
+    display: block;
+
+    font-size: 29px;
+
+    letter-spacing: -0.8px;
+}
+
+
+/* =========================================================
+   ADMIN SECTIONS
+========================================================= */
+
+.admin-section {
+    margin-bottom: 25px;
+
+    padding: 25px;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 15px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+
+.section-header {
+    margin-bottom: 22px;
+}
+
+
+.section-header h2 {
+    margin-bottom: 4px;
+
+    font-size: 19px;
+
+    letter-spacing: -0.3px;
+}
+
+
+.section-header p {
+    color: #777;
+
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   CATEGORY FORM
+========================================================= */
+
+.category-form {
     display: grid;
 
     grid-template-columns:
         1fr 1fr auto;
 
-    gap: 15px;
+    gap: 14px;
 
     align-items: end;
 
@@ -422,73 +528,18 @@ textarea {
 }
 
 
-#categoryForm .form-group {
+.category-form .form-group {
     margin-bottom: 0;
 }
 
 
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-.primary-button,
-.secondary-button {
-    border: none;
-
-    border-radius: 9px;
-
-    padding: 11px 17px;
-
-    font-weight: 650;
-
-    transition:
-        background 0.2s,
-        transform 0.15s;
-}
-
-
-.primary-button {
-    background: #111827;
-
-    color: white;
-}
-
-
-.primary-button:hover {
-    background: #000;
-
-    transform: translateY(-1px);
-}
-
-
-.secondary-button {
-    background: #eef0f3;
-
-    color: #333;
-}
-
-
-.secondary-button:hover {
-    background: #e1e3e7;
-}
-
-
-.full-button {
-    width: 100%;
-}
-
-
-.form-actions {
+.category-form-actions {
     display: flex;
 
-    gap: 9px;
+    gap: 8px;
 
-    align-items: center;
-
-    margin-top: 3px;
+    padding-bottom: 0;
 }
-
 
 
 /* =========================================================
@@ -508,7 +559,7 @@ textarea {
 }
 
 
-.category-row {
+.category-card {
     display: flex;
 
     align-items: center;
@@ -519,11 +570,11 @@ textarea {
 
     padding: 15px;
 
-    background: #fafafa;
-
-    border: 1px solid #e8e8e8;
+    border: 1px solid #e7e7e9;
 
     border-radius: 11px;
+
+    background: #fafafa;
 
     transition:
         border-color 0.2s,
@@ -531,8 +582,8 @@ textarea {
 }
 
 
-.category-row:hover {
-    border-color: #d4d4d4;
+.category-card:hover {
+    border-color: #d3d3d3;
 
     box-shadow:
         0 5px 15px rgba(0, 0, 0, 0.05);
@@ -540,20 +591,18 @@ textarea {
 
 
 .category-name {
-    font-weight: 650;
-
     font-size: 14px;
+
+    font-weight: 700;
 }
 
 
 .category-slug {
-    display: block;
+    margin-top: 2px;
 
     color: #888;
 
     font-size: 12px;
-
-    margin-top: 3px;
 }
 
 
@@ -565,41 +614,77 @@ textarea {
 
 
 .category-actions button {
-    border: none;
-
-    border-radius: 7px;
-
     padding: 7px 10px;
 
     font-size: 12px;
-
-    font-weight: 650;
 }
 
 
-.edit-button {
-    background: #eeeeee;
+/* =========================================================
+   PRODUCT FORM
+========================================================= */
 
-    color: #333;
+.product-form {
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 2px 18px;
 }
 
 
-.edit-button:hover {
-    background: #e1e1e1;
+.product-form .form-group {
+    margin-bottom: 18px;
 }
 
 
-.danger {
-    background: #fff0f0 !important;
-
-    color: #d52a2a !important;
+.product-form .full-width {
+    grid-column: 1 / -1;
 }
 
 
-.danger:hover {
-    background: #ffe0e0 !important;
+.product-form-actions {
+    grid-column: 1 / -1;
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 9px;
+
+    padding-top: 5px;
 }
 
+
+/* =========================================================
+   IMAGE PREVIEW
+========================================================= */
+
+.image-preview {
+    width: 150px;
+
+    height: 150px;
+
+    margin-top: 12px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    border: 1px solid #ddd;
+
+    background: #f3f4f6;
+}
+
+
+.image-preview img {
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+}
 
 
 /* =========================================================
@@ -616,18 +701,18 @@ textarea {
 table {
     width: 100%;
 
-    border-collapse: collapse;
-
     min-width: 700px;
+
+    border-collapse: collapse;
 }
 
 
 th {
     padding: 12px 14px;
 
-    background: #f8f9fa;
-
     border-bottom: 1px solid #e5e7eb;
+
+    background: #f8f9fa;
 
     color: #666;
 
@@ -635,11 +720,11 @@ th {
 
     font-size: 11px;
 
-    font-weight: 700;
+    font-weight: 750;
+
+    letter-spacing: 0.4px;
 
     text-transform: uppercase;
-
-    letter-spacing: .4px;
 }
 
 
@@ -648,78 +733,130 @@ td {
 
     border-bottom: 1px solid #eeeeee;
 
-    font-size: 13px;
+    color: #333;
+
+    font-size: 14px;
 
     vertical-align: middle;
 }
 
 
-tr:last-child td {
-    border-bottom: none;
+tbody tr:last-child td {
+    border-bottom: 0;
 }
 
 
-tr:hover td {
+tbody tr:hover td {
     background: #fafafa;
 }
 
 
-
 /* =========================================================
-   PRODUCT IMAGE
+   PRODUCT IMAGE IN TABLE
 ========================================================= */
 
-.product-table img {
+.product-table-image {
     width: 55px;
 
     height: 55px;
 
-    object-fit: cover;
-
     display: block;
 
-    border-radius: 9px;
+    overflow: hidden;
 
-    background: #f3f4f6;
+    border-radius: 8px;
+
+    background: #f1f2f4;
+
+    object-fit: cover;
 }
 
 
-.product-table .edit-button,
-.product-table .danger {
-    border: none;
+.product-placeholder {
+    width: 55px;
 
-    border-radius: 7px;
+    height: 55px;
 
-    padding: 7px 10px;
+    display: flex;
 
-    font-size: 12px;
+    align-items: center;
 
-    font-weight: 650;
+    justify-content: center;
 
-    margin-right: 5px;
+    border-radius: 8px;
+
+    background: #f1f2f4;
+
+    font-size: 25px;
 }
-
 
 
 /* =========================================================
-   MESSAGES
+   TABLE ACTIONS
 ========================================================= */
 
-.message {
-    margin-top: 15px;
+.table-actions {
+    display: flex;
 
-    color: #d32f2f;
-
-    font-size: 13px;
+    gap: 6px;
 }
 
 
+.table-actions button {
+    padding: 7px 10px;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.status {
+    display: inline-flex;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    font-size: 11px;
+
+    font-weight: 700;
+}
+
+
+.status-pending {
+    background: #fff7df;
+
+    color: #946900;
+}
+
+
+.status-success {
+    background: #eaf8ef;
+
+    color: #16803c;
+}
+
+
+.status-danger {
+    background: #fff0f0;
+
+    color: #c52222;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
 .loading {
-    padding: 30px;
+    padding: 35px 15px;
+
+    color: #777;
 
     text-align: center;
-
-    color: #888;
 
     font-size: 14px;
 }
@@ -728,48 +865,65 @@ tr:hover td {
 .empty-state {
     padding: 35px 15px;
 
-    text-align: center;
-
     color: #777;
+
+    text-align: center;
 }
 
 
-
 /* =========================================================
-   MOBILE
+   RESPONSIVE
 ========================================================= */
 
 @media (max-width: 800px) {
 
-    .admin-container {
-        width: 94%;
+    .admin-header {
+        padding: 0 20px;
+    }
 
+
+    .admin-container {
         padding-top: 25px;
     }
 
 
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns:
+            1fr;
     }
 
 
-    #productForm {
-        grid-template-columns: 1fr;
+    .category-form {
+        grid-template-columns:
+            1fr;
     }
 
 
-    #productForm .full-width {
+    .category-form-actions {
+        justify-content: flex-start;
+    }
+
+
+    .product-form {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .product-form .full-width {
         grid-column: auto;
     }
 
 
-    #categoryForm {
-        grid-template-columns: 1fr;
+    .product-form-actions {
+        grid-column: auto;
+
+        justify-content: stretch;
     }
 
 
-    #categoryForm .form-group {
-        margin-bottom: 0;
+    .product-form-actions button {
+        flex: 1;
     }
 
 }
@@ -778,9 +932,16 @@ tr:hover td {
 @media (max-width: 600px) {
 
     .admin-header {
-        height: 60px;
+        height: auto;
 
-        padding: 0 15px;
+        min-height: 65px;
+
+        padding: 12px 15px;
+    }
+
+
+    .admin-email {
+        display: none;
     }
 
 
@@ -792,14 +953,14 @@ tr:hover td {
     .admin-container {
         width: 94%;
 
-        padding-top: 20px;
+        padding-bottom: 40px;
     }
 
 
     .login-card {
         margin: 40px auto;
 
-        padding: 25px 20px;
+        padding: 25px;
     }
 
 
@@ -808,17 +969,12 @@ tr:hover td {
     }
 
 
-    .page-heading h1 {
-        font-size: 25px;
+    .page-header h1 {
+        font-size: 27px;
     }
 
 
-    .category-list {
-        grid-template-columns: 1fr;
-    }
-
-
-    .category-row {
+    .category-card {
         align-items: flex-start;
 
         flex-direction: column;
@@ -832,11 +988,6 @@ tr:hover td {
 
     .category-actions button {
         flex: 1;
-    }
-
-
-    .form-actions {
-        flex-wrap: wrap;
     }
 
 }
