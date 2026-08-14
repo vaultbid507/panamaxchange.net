@@ -137,11 +137,16 @@ async function loadProducts() {
 
     products = data.map(product => ({
 
-        ...product,
+    ...product,
 
-        emoji: "🛍️"
+    category:
+        String(product.category || "")
+            .trim()
+            .toLowerCase(),
 
-    }));
+    emoji: "🛍️"
+
+}));
 
 
     displayProducts();
@@ -158,20 +163,56 @@ function displayProducts(
     search = ""
 ) {
 
+    const selectedCategory =
+        String(category || "all")
+            .trim()
+            .toLowerCase();
+
+
+    const searchText =
+        String(search || "")
+            .trim()
+            .toLowerCase();
+
+
     const filteredProducts =
         products.filter(product => {
 
+            const productCategory =
+                String(
+                    product.category || ""
+                )
+                .trim()
+                .toLowerCase();
+
+
             const matchesCategory =
-                category === "all" ||
-                product.category === category;
+                selectedCategory === "all" ||
+                productCategory ===
+                    selectedCategory;
+
+
+            const productName =
+                String(
+                    product.name || ""
+                )
+                .toLowerCase();
+
+
+            const productDescription =
+                String(
+                    product.description || ""
+                )
+                .toLowerCase();
 
 
             const matchesSearch =
-                String(product.name)
-                    .toLowerCase()
-                    .includes(
-                        search.toLowerCase()
-                    );
+                productName.includes(
+                    searchText
+                ) ||
+                productDescription.includes(
+                    searchText
+                );
 
 
             return (
@@ -213,11 +254,31 @@ function displayProducts(
                 "product-card";
 
 
+            const imageHTML =
+                product.image_url
+                    ? `
+                        <img
+                            src="${product.image_url}"
+                            alt="${product.name}"
+                            class="product-image"
+                            loading="lazy"
+                        >
+                      `
+                    : `
+                        <div class="product-image">
+                            🛍️
+                        </div>
+                      `;
+
+
             card.innerHTML = `
 
-                <div class="product-image">
-                    ${product.emoji}
+                <div class="product-image-container">
+
+                    ${imageHTML}
+
                 </div>
+
 
                 <div class="product-info">
 
@@ -225,17 +286,21 @@ function displayProducts(
                         ${product.category}
                     </p>
 
+
                     <h3 class="product-name">
                         ${product.name}
                     </h3>
+
 
                     <p>
                         ${product.description || ""}
                     </p>
 
+
                     <p class="product-price">
                         ${money(product.price)}
                     </p>
+
 
                     <button
                         class="add-button"
@@ -257,7 +322,6 @@ function displayProducts(
     );
 
 }
-
 
 // ------------------------------------------
 // ADD TO CART
@@ -439,10 +503,20 @@ function updateCart() {
 
         div.innerHTML = `
 
-            <div class="cart-item-image">
-                ${product.emoji}
-            </div>
+           <div class="cart-item-image">
 
+    ${
+        product.image_url
+            ? `
+                <img
+                    src="${product.image_url}"
+                    alt="${product.name}"
+                >
+              `
+            : "🛍️"
+    }
+
+</div>
             <div class="cart-item-info">
 
                 <h4>
