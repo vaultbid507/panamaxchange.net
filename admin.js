@@ -307,7 +307,7 @@ async function isAdmin(userId) {
         .select("user_id")
         .eq(
             "user_id",
-            userId
+            id
         )
         .maybeSingle();
 
