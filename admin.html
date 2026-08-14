@@ -534,46 +534,107 @@
         </section>
 
 
-        <!-- ==================================
-             ORDERS
-        =================================== -->
+<!-- ==================================
+     ORDER MANAGEMENT
+=================================== -->
 
-        <section class="admin-section">
+<section class="admin-section">
 
-            <div class="section-header">
+    <div class="section-header">
 
-                <div>
+        <div>
+            <h2>
+                Order Management
+            </h2>
 
-                    <h2>
-                        Recent Orders
-                    </h2>
+            <p>
+                View and manage customer orders.
+            </p>
+        </div>
 
-                    <p>
-                        View your latest customer orders.
-                    </p>
-
-                </div>
-
-            </div>
+    </div>
 
 
-            <div
-                id="ordersContainer"
-                class="table-wrapper"
+    <!-- ORDER FILTERS -->
+
+    <div class="order-toolbar">
+
+        <div class="form-group">
+
+            <label for="orderSearch">
+                Search
+            </label>
+
+            <input
+                type="search"
+                id="orderSearch"
+                placeholder="Order ID, name or email..."
             >
 
-                <div class="loading">
-                    Loading orders...
-                </div>
+        </div>
 
-            </div>
 
-        </section>
+        <div class="form-group">
 
-    </section>
+            <label for="orderStatusFilter">
+                Status
+            </label>
 
-</main>
+            <select id="orderStatusFilter">
 
+                <option value="">
+                    All statuses
+                </option>
+
+                <option value="pending">
+                    Pending
+                </option>
+
+                <option value="processing">
+                    Processing
+                </option>
+
+                <option value="shipped">
+                    Shipped
+                </option>
+
+                <option value="delivered">
+                    Delivered
+                </option>
+
+                <option value="cancelled">
+                    Cancelled
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+
+    <!-- ORDERS -->
+
+    <div
+        id="ordersContainer"
+        class="table-wrapper"
+    >
+
+        <div class="loading">
+            Loading orders...
+        </div>
+
+    </div>
+
+
+    <!-- ORDER DETAILS -->
+
+    <div
+        id="orderDetails"
+        class="order-details hidden"
+    ></div>
+
+</section>
 
 <!-- ==========================================
      SUPABASE
