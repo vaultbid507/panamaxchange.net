@@ -1,123 +1,37 @@
 (() => {
-  const SUPABASE_URL = 'https://tagbxmpizwlvgddgcpcl.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0';
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const $ = id => document.getElementById(id);
-  const esc = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[ch]));
-  const money = value => Number(value || 0).toLocaleString('en-US', {style:'currency', currency:'USD'});
-  const state = { orders: [], editing: null };
+  const SUPABASE_URL='https://tagbxmpizwlvgddgcpcl.supabase.co';
+  const SUPABASE_KEY='sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0';
+  const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));
+  const money=v=>Number(v||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
+  const validStatus=['pending','processing','shipped','delivered','cancelled'];
+  const state={orders:[],editing:null};
 
-  async function isAdmin(userId) {
-    if (!userId) return false;
-    const { data, error } = await client.from('admin_users').select('user_id').eq('user_id', userId).maybeSingle();
-    return !error && !!data?.user_id;
+  async function isAdmin(id){if(!id)return false;const r=await client.from('admin_users').select('user_id').eq('user_id',id).maybeSingle();return !r.error&&!!r.data?.user_id}
+  async function loadOrders(){
+    const c=$('ordersContainer'); if(!c)return;
+    c.innerHTML='<div class="loading">Loading orders...</div>';
+    const s=await client.auth.getSession();
+    if(!s.data?.session||!(await isAdmin(s.data.session.user.id))){c.innerHTML='<div class="error-message">Administrator session required to manage orders.</div>';return}
+    const r=await client.rpc('admin_list_orders');
+    if(r.error){c.innerHTML=`<div class="error-message">Unable to load orders: ${esc(r.error.message)}</div>`;return}
+    state.orders=r.data||[];state.editing=null;render();summary();
   }
-
-  async function loadOrders() {
-    const container = $('ordersContainer');
-    if (!container) return;
-    container.innerHTML = '<div class="loading">Loading orders...</div>';
-    const { data: sessionData } = await client.auth.getSession();
-    if (!sessionData?.session || !(await isAdmin(sessionData.session.user.id))) {
-      container.innerHTML = '<div class="error-message">Administrator session required to view orders.</div>';
-      return;
-    }
-    const { data, error } = await client.from('orders').select('id,customer_name,customer_email,total,status,created_at').order('created_at', { ascending: false });
-    if (error) {
-      container.innerHTML = `<div class="error-message">Unable to load orders: ${esc(error.message)}</div>`;
-      return;
-    }
-    state.orders = data || [];
-    render();
-    updateSummary();
-  }
-
-  function filteredOrders() {
-    const query = ($('orderSearch')?.value || '').trim().toLowerCase();
-    const filter = $('orderStatusFilter')?.value || '';
-    return state.orders.filter(order => {
-      const text = `${order.id} ${order.customer_name || ''} ${order.customer_email || ''}`.toLowerCase();
-      return (!query || text.includes(query)) && (!filter || String(order.status || 'pending').toLowerCase() === filter);
-    });
-  }
-
-  function render() {
-    const container = $('ordersContainer');
-    if (!container) return;
-    const orders = filteredOrders();
-    const rows = orders.map(order => {
-      if (state.editing === String(order.id)) return editRow(order);
-      const status = String(order.status || 'pending').toLowerCase();
-      return `<tr data-order-row="${esc(order.id)}">
-        <td><strong>#${esc(order.id)}</strong><div class="muted">${order.created_at ? esc(new Date(order.created_at).toLocaleDateString()) : '—'}</div></td>
-        <td><strong>${esc(order.customer_name || 'Customer')}</strong><div class="muted">${esc(order.customer_email || '')}</div></td>
-        <td><strong>${money(order.total)}</strong></td>
-        <td><span class="status-pill status-${esc(status)}">${esc(status.charAt(0).toUpperCase()+status.slice(1))}</span></td>
-        <td><div class="row-actions"><button type="button" class="admin-button" data-order-edit="${esc(order.id)}">Edit</button><button type="button" class="admin-button primary" data-order-save-status="${esc(order.id)}">Update status</button></div></td>
-      </tr>`;
-    }).join('');
-    container.innerHTML = `<div class="admin-table-wrap"><table class="admin-table orders-professional"><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows || '<tr><td colspan="5" class="empty-state">No orders found.</td></tr>'}</tbody></table></div>`;
+  function filtered(){const q=($('orderSearch')?.value||'').trim().toLowerCase(),f=$('orderStatusFilter')?.value||'';return state.orders.filter(o=>{const text=`${o.id} ${o.customer_name||''} ${o.customer_email||''}`.toLowerCase();return(!q||text.includes(q))&&(!f||String(o.status||'pending').toLowerCase()===f)})}
+  function statusOptions(current){return validStatus.map(s=>`<option value="${s}" ${String(current||'pending').toLowerCase()===s?'selected':''}>${s[0].toUpperCase()+s.slice(1)}</option>`).join('')}
+  function render(){
+    const c=$('ordersContainer');if(!c)return;
+    const rows=filtered().map(o=>state.editing===String(o.id)?editRow(o):normalRow(o)).join('');
+    c.innerHTML=`<div class="admin-table-wrap"><table class="admin-table orders-professional"><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows||'<tr><td colspan="5" class="empty-state">No orders found.</td></tr>'}</tbody></table></div>`;
     bind();
   }
-
-  function editRow(order) {
-    const status = String(order.status || 'pending').toLowerCase();
-    return `<tr class="is-editing" data-order-row="${esc(order.id)}">
-      <td><strong>#${esc(order.id)}</strong><div class="muted">${order.created_at ? esc(new Date(order.created_at).toLocaleString()) : '—'}</div></td>
-      <td><input class="inline-edit" data-field="customer_name" value="${esc(order.customer_name || '')}" aria-label="Customer name"><input class="inline-edit" data-field="customer_email" type="email" value="${esc(order.customer_email || '')}" aria-label="Customer email"></td>
-      <td><input class="inline-edit" data-field="total" type="number" min="0" step="0.01" value="${esc(order.total ?? 0)}" aria-label="Order total"></td>
-      <td><select class="inline-edit" data-field="status"><option value="pending">Pending</option><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select></td>
-      <td><div class="row-actions"><button type="button" class="admin-button primary" data-order-save="${esc(order.id)}">Save changes</button><button type="button" class="admin-button" data-order-cancel="${esc(order.id)}">Cancel</button></div></td>
-    </tr><tr class="edit-helper"><td colspan="5">Editing order #${esc(order.id)} — changes are saved securely to Supabase.</td></tr>`;
-  }
-
-  async function saveOrder(id) {
-    const row = document.querySelector(`[data-order-row="${CSS.escape(String(id))}"]`);
-    if (!row) return;
-    const customerName = row.querySelector('[data-field="customer_name"]')?.value.trim();
-    const customerEmail = row.querySelector('[data-field="customer_email"]')?.value.trim();
-    const total = Number(row.querySelector('[data-field="total"]')?.value);
-    const status = row.querySelector('[data-field="status"]')?.value;
-    if (!customerName || !customerEmail || !Number.isFinite(total) || total < 0) {
-      alert('Please enter a valid customer, email and total.');
-      return;
-    }
-    const button = row.querySelector('[data-order-save]');
-    if (button) { button.disabled = true; button.textContent = 'Saving...'; }
-    const { error } = await client.from('orders').update({customer_name: customerName, customer_email: customerEmail, total, status}).eq('id', id);
-    if (error) { alert(`Unable to save order: ${error.message}`); if (button) { button.disabled=false; button.textContent='Save changes'; } return; }
-    state.editing = null;
-    await loadOrders();
-  }
-
-  async function updateStatus(id) {
-    const order = state.orders.find(item => String(item.id) === String(id));
-    if (!order) return;
-    const next = prompt('Enter status: pending, processing, shipped, delivered, or cancelled', order.status || 'pending');
-    if (next === null) return;
-    const status = next.trim().toLowerCase();
-    if (!['pending','processing','shipped','delivered','cancelled'].includes(status)) { alert('Invalid order status.'); return; }
-    const { error } = await client.from('orders').update({status}).eq('id', id);
-    if (error) { alert(`Unable to update status: ${error.message}`); return; }
-    await loadOrders();
-  }
-
-  function updateSummary() {
-    const count = {pending:0, processing:0, shipped:0, delivered:0, cancelled:0};
-    state.orders.forEach(order => { const s = String(order.status || 'pending').toLowerCase(); if (s in count) count[s]++; });
-    [['orderTotal',state.orders.length],['orderPending',count.pending],['orderProcessing',count.processing],['orderCompleted',count.delivered+count.shipped],['orderCount',state.orders.length],['orders',state.orders.length],['pending',count.pending]].forEach(([id,value]) => { if ($(id)) $(id).textContent = value; });
-    if ($('revenue')) $('revenue').textContent = money(state.orders.reduce((sum, order) => sum + Number(order.total || 0), 0));
-  }
-
-  function bind() {
-    document.querySelectorAll('[data-order-edit]').forEach(button => button.onclick = () => { state.editing = String(button.dataset.orderEdit); render(); const select = document.querySelector(`[data-order-row="${CSS.escape(state.editing)}"] [data-field="status"]`); if (select) select.value = String(state.orders.find(o=>String(o.id)===state.editing)?.status || 'pending').toLowerCase(); });
-    document.querySelectorAll('[data-order-cancel]').forEach(button => button.onclick = () => { state.editing = null; render(); });
-    document.querySelectorAll('[data-order-save]').forEach(button => button.onclick = () => saveOrder(button.dataset.orderSave));
-    document.querySelectorAll('[data-order-save-status]').forEach(button => button.onclick = () => updateStatus(button.dataset.orderSaveStatus));
-  }
-
-  $('orderSearch')?.addEventListener('input', render);
-  $('orderStatusFilter')?.addEventListener('change', render);
-  $('refreshOrders')?.addEventListener('click', loadOrders);
-  window.addEventListener('load', () => setTimeout(loadOrders, 700));
+  function normalRow(o){const s=String(o.status||'pending').toLowerCase();return `<tr data-order-row="${esc(o.id)}"><td><strong>#${esc(o.id)}</strong><div class="muted">${o.created_at?esc(new Date(o.created_at).toLocaleString()):'—'}</div></td><td><strong>${esc(o.customer_name||'Customer')}</strong><div class="muted">${esc(o.customer_email||'')}</div></td><td><strong>${money(o.total)}</strong></td><td><select class="inline-status" data-status-id="${esc(o.id)}">${statusOptions(s)}</select></td><td><div class="row-actions"><button type="button" class="admin-button" data-edit="${esc(o.id)}">Edit</button><button type="button" class="admin-button danger" data-remove="${esc(o.id)}">Remove</button></div></td></tr>`}
+  function editRow(o){return `<tr class="is-editing" data-order-row="${esc(o.id)}"><td><strong>#${esc(o.id)}</strong><div class="muted">${o.created_at?esc(new Date(o.created_at).toLocaleString()):'—'}</div></td><td><input class="inline-edit" data-field="name" value="${esc(o.customer_name||'')}" aria-label="Customer name"><input class="inline-edit" data-field="email" type="email" value="${esc(o.customer_email||'')}" aria-label="Customer email"><input class="inline-edit" data-field="address" value="${esc(o.customer_address||'')}" aria-label="Customer address" placeholder="Address"></td><td><input class="inline-edit" data-field="total" type="number" min="0" step="0.01" value="${esc(o.total??0)}" aria-label="Order total"></td><td><select class="inline-edit" data-field="status">${statusOptions(o.status)}</select></td><td><div class="row-actions"><button type="button" class="admin-button primary" data-save="${esc(o.id)}">Save changes</button><button type="button" class="admin-button" data-cancel="${esc(o.id)}">Cancel</button></div></td></tr><tr class="edit-helper"><td colspan="5">Editing order #${esc(o.id)} · Save changes when finished.</td></tr>`}
+  async function save(id){const row=document.querySelector(`[data-order-row="${CSS.escape(String(id))}"]`);if(!row)return;const name=row.querySelector('[data-field="name"]')?.value.trim(),email=row.querySelector('[data-field="email"]')?.value.trim(),address=row.querySelector('[data-field="address"]')?.value.trim()||null,total=Number(row.querySelector('[data-field="total"]')?.value),status=row.querySelector('[data-field="status"]')?.value;if(!name||!email||!Number.isFinite(total)||total<0||!validStatus.includes(status)){alert('Please enter valid order information.');return}const b=row.querySelector('[data-save]');if(b){b.disabled=true;b.textContent='Saving...'}const r=await client.rpc('admin_update_order',{p_id:Number(id),p_customer_name:name,p_customer_email:email,p_customer_address:address,p_total:total,p_status:status});if(r.error){alert(`Unable to save order: ${r.error.message}`);if(b){b.disabled=false;b.textContent='Save changes'}return}state.editing=null;await loadOrders()}
+  async function changeStatus(id,status){if(!validStatus.includes(status))return;const r=await client.rpc('admin_update_order',{p_id:Number(id),p_customer_name:state.orders.find(o=>String(o.id)===String(id))?.customer_name||'Customer',p_customer_email:state.orders.find(o=>String(o.id)===String(id))?.customer_email||'',p_customer_address:state.orders.find(o=>String(o.id)===String(id))?.customer_address||null,p_total:Number(state.orders.find(o=>String(o.id)===String(id))?.total||0),p_status:status});if(r.error){alert(`Unable to update status: ${r.error.message}`);await loadOrders() }else{const o=state.orders.find(x=>String(x.id)===String(id));if(o)o.status=status;summary()}}
+  async function remove(id){if(!confirm('Delete this order? This action cannot be undone.'))return;const b=document.querySelector(`[data-remove="${CSS.escape(String(id))}"]`);if(b){b.disabled=true;b.textContent='Removing...'}const r=await client.rpc('admin_delete_order',{p_id:Number(id)});if(r.error){alert(`Unable to remove order: ${r.error.message}`);if(b){b.disabled=false;b.textContent='Remove'}return}await loadOrders()}
+  function summary(){const c={pending:0,processing:0,shipped:0,delivered:0,cancelled:0};state.orders.forEach(o=>{const s=String(o.status||'pending').toLowerCase();if(s in c)c[s]++});[['orderTotal',state.orders.length],['orderPending',c.pending],['orderProcessing',c.processing],['orderCompleted',c.delivered+c.shipped],['orderCount',state.orders.length],['orders',state.orders.length],['pending',c.pending]].forEach(([id,v])=>{if($(id))$(id).textContent=v});if($('revenue'))$('revenue').textContent=money(state.orders.reduce((a,o)=>a+Number(o.total||0),0))}
+  function bind(){document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{state.editing=String(b.dataset.edit);render()});document.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>{state.editing=null;render()});document.querySelectorAll('[data-save]').forEach(b=>b.onclick=()=>save(b.dataset.save));document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>remove(b.dataset.remove));document.querySelectorAll('[data-status-id]').forEach(s=>s.onchange=()=>changeStatus(s.dataset.statusId,s.value))}
+  $('orderSearch')?.addEventListener('input',render);$('orderStatusFilter')?.addEventListener('change',render);$('refreshOrders')?.addEventListener('click',loadOrders);window.addEventListener('load',()=>setTimeout(loadOrders,500));
 })();
