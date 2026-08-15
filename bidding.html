@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="PanamaXChange live auctions and bidding."><meta name="theme-color" content="#07111f">
+<title>PanamaXChange — Live Bidding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="polish.css"><link rel="stylesheet" href="bidding.css">
+</head><body>
+<header class="header"><a href="index.html" class="logo">Panama<span>X</span>Change</a><nav class="main-nav"><a href="index.html">Shop</a><a class="active" href="bidding.html">Bidding</a><a href="index.html#about">About</a><a href="index.html#contact">Contact</a></nav><a class="cart-button" href="index.html">Store →</a></header>
+<main>
+<section class="bid-hero"><div><p class="eyebrow">PANAMAXCHANGE AUCTIONS</p><h1>Bid on something<br><span>worth winning.</span></h1><p>Live auctions with server-validated bids, real-time prices and a simple experience.</p><div class="bid-trust"><span>🔒 Secure bids</span><span>⚡ Live prices</span><span>🏆 Fair bidding</span></div></div></section>
+<section class="auction-section"><div class="section-heading"><div><p class="eyebrow">LIVE NOW</p><h2>Live auctions</h2><p class="section-subtitle">Sign in to place a bid. Prices are validated securely by the database.</p></div><button id="refreshAuctions" class="secondary-button" type="button">Refresh</button></div><div id="auctionGrid" class="auction-grid"><div class="loading">Loading auctions...</div></div></section>
+<section class="auction-section upcoming"><div class="section-heading"><div><p class="eyebrow">HOW IT WORKS</p><h2>Simple, secure bidding</h2></div></div><div class="bid-steps"><div><b>01</b><h3>Choose an auction</h3><p>Review the item and current bid.</p></div><div><b>02</b><h3>Place your bid</h3><p>The server checks the auction and minimum bid.</p></div><div><b>03</b><h3>Win</h3><p>The highest valid bid at the close wins.</p></div></div></section>
+</main><footer class="footer"><div class="footer-brand">Panama<span>X</span>Change</div><p>© 2026 PanamaXChange. Secure marketplace bidding.</p></footer>
+<div id="bidModal" class="bid-modal hidden" role="dialog" aria-modal="true" aria-labelledby="bidTitle"><div class="bid-modal-card"><button id="closeBid" class="close-button" type="button">✕</button><p class="eyebrow">PLACE YOUR BID</p><h2 id="bidTitle">Auction</h2><p id="bidMinimum"></p><label for="bidAmount">Your bid</label><input id="bidAmount" type="number" min="0" step="0.01"><button id="submitBid" class="primary-button full-width" type="button">Place bid →</button><p id="bidMessage" class="bid-message"></p><div class="bid-history"><h3>Recent bids</h3><div id="bidHistory"></div></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="bidding.js"></script>
+</body></html>
