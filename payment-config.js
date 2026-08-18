@@ -1,0 +1,1 @@
+window.PANAMAX_PAYMENT_CONFIG={paypalClientId:'',stripePublishableKey:'',stripeCheckoutUrl:'',cryptoCheckoutUrl:'',bitcoinAddress:'',usdcAddress:''};
