@@ -1,0 +1,1 @@
+(()=>{const b=document.getElementById('checkoutButton');if(!b)return;const replacement=b.cloneNode(true);b.replaceWith(replacement);replacement.addEventListener('click',()=>{try{const cart=JSON.parse(localStorage.getItem('novashop-cart')||'[]');if(!Array.isArray(cart)||!cart.length){alert('Your cart is empty.');return}}catch{return}location.href='checkout.html'})})();
