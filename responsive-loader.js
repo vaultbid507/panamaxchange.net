@@ -1,0 +1,1 @@
+(()=>{if(!document.querySelector('link[data-responsive]')){const l=document.createElement('link');l.rel='stylesheet';l.href='responsive.css?v=20260818-21';l.dataset.responsive='1';document.head.appendChild(l)}})();
