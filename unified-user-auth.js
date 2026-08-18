@@ -1,30 +1,51 @@
-// PanamaXChange unified storefront authentication.
-// Shared by Shop, Bidding, Checkout, and My Account.
+/**
+ * PanamaXChange unified customer authentication.
+ *
+ * Uses the verified Supabase anon JWT key already used by the working
+ * account/admin authentication code. One persistent browser session is
+ * shared by the storefront login, registration, bidding, checkout and
+ * My Account pages.
+ *
+ * @sideEffects Creates the Supabase Auth client, manages the login modal,
+ * updates account controls, and persists the session in localStorage.
+ */
 (() => {
   const SUPABASE_URL = 'https://tagbxmpizwlvgddgcpcl.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ2J4bXBpendsdmdkZGdjcGNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NjczNDEsImV4cCI6MjEwMjI0MzM0MX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
   const STORAGE_KEY = 'panamax-user-session';
+
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: STORAGE_KEY }
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: STORAGE_KEY
+    }
   });
+
   window.PanamaXChangeAuth = { client, storageKey: STORAGE_KEY };
 
-  /** Return the best available customer display name. */
+  /** Get the best display name available for a customer. */
   function nameOf(user) {
-    return user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Account';
+    return user?.user_metadata?.full_name ||
+      user?.user_metadata?.name ||
+      user?.email?.split('@')[0] || 'Account';
   }
 
-  /** Return the configured avatar or a deterministic fallback avatar. */
+  /** Get the customer's avatar URL, with a deterministic fallback. */
   function avatarOf(user) {
-    return user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(nameOf(user))}&background=2563eb&color=fff&size=80`;
+    return user?.user_metadata?.avatar_url ||
+      user?.user_metadata?.picture ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(nameOf(user))}&background=2563eb&color=fff&size=80`;
   }
 
+  /** Escape user-controlled values before HTML rendering. */
+  const esc = value => String(value ?? '').replace(/[&<>\"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#039;'
+  }[ch]));
   const qs = selector => document.querySelector(selector);
 
-  /** Escape user-controlled values before rendering HTML. */
-  const esc = value => String(value ?? '').replace(/[&<>\"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#039;' }[character]));
-
-  /** Inject the minimal styles required by the shared authentication controls. */
+  /** Inject shared authentication control styles once. */
   function ensureStyles() {
     if (qs('#panamax-unified-auth-style')) return;
     const style = document.createElement('style');
@@ -35,7 +56,7 @@
 
   let mode = 'login';
 
-  /** Create the authentication modal once and attach its event handlers. */
+  /** Create the shared login/register modal and attach handlers. */
   function modal() {
     if (qs('#pxAuthModal')) return qs('#pxAuthModal');
     ensureStyles();
@@ -51,13 +72,15 @@
     return element;
   }
 
-  /** Switch between login and registration mode. */
+  /** Switch the authentication modal between login and registration. */
   function setMode(nextMode) {
     mode = nextMode;
     const registering = mode === 'register';
     modal().classList.remove('hidden');
     qs('#pxAuthTitle').textContent = registering ? 'Create account' : 'Login';
-    qs('#pxAuthSubtitle').textContent = registering ? 'Register once and use the same account on Shop, Bidding, Checkout and My Account.' : 'Use one account across the entire storefront.';
+    qs('#pxAuthSubtitle').textContent = registering
+      ? 'Register once and use the same account on Shop, Bidding, Checkout and My Account.'
+      : 'Use one account across the entire storefront.';
     qs('#pxName').parentElement.style.display = registering ? 'grid' : 'none';
     qs('#pxAuthSubmit').textContent = registering ? 'Register' : 'Login';
     qs('#pxAuthToggle').textContent = registering ? 'Back to login' : 'Create account';
@@ -67,7 +90,13 @@
   /** Open the login modal for an anonymous visitor. */
   function open() { setMode('login'); }
 
-  /** Submit a login or registration request through the shared Supabase client. */
+  /**
+   * Submit registration or login through Supabase Auth.
+   *
+   * Registration creates the auth.users row immediately. If email
+   * confirmation is enabled, the user is returned to Login with the
+   * email prefilled; otherwise the new session is used immediately.
+   */
   async function submit(event) {
     event.preventDefault();
     const message = qs('#pxAuthMessage');
@@ -78,20 +107,26 @@
       const email = qs('#pxEmail').value.trim().toLowerCase();
       const password = qs('#pxPassword').value;
       const name = qs('#pxName').value.trim();
+
       if (mode === 'register') {
-        const { data, error } = await client.auth.signUp({ email, password, options: { data: { full_name: name } } });
+        const { data, error } = await client.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: name } }
+        });
         if (error) throw error;
         if (!data.session) {
-          message.textContent = 'Account created. Check your email to confirm, then log in.';
           setMode('login');
           qs('#pxEmail').value = email;
           qs('#pxPassword').value = '';
+          qs('#pxAuthMessage').textContent = 'Account created. Check your email to confirm, then log in.';
           return;
         }
       } else {
         const { error } = await client.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
+
       qs('#pxAuthModal')?.classList.add('hidden');
       refreshAll();
     } catch (error) {
@@ -101,7 +136,7 @@
     }
   }
 
-  /** Refresh all login/account controls using the current authenticated user. */
+  /** Refresh all storefront authentication controls from the current user. */
   function refreshAll() {
     client.auth.getUser().then(({ data, error }) => {
       if (error) console.warn('[PanamaXChange auth] getUser:', error.message);
@@ -115,16 +150,22 @@
         }
         element.className = 'px-auth';
         element.innerHTML = `<div class="px-user"><img class="px-avatar" src="${esc(avatarOf(user))}" alt="${esc(nameOf(user))}"><span class="px-name">${esc(nameOf(user))}</span></div><a href="account.html">My Account</a><button type="button" data-px-logout>Sign out</button>`;
-        element.querySelector('[data-px-logout]').onclick = async () => { await client.auth.signOut({ scope: 'local' }); refreshAll(); };
+        element.querySelector('[data-px-logout]').onclick = async () => {
+          await client.auth.signOut({ scope: 'local' });
+          refreshAll();
+        };
       });
-      document.querySelectorAll('[data-require-auth]').forEach(element => { element.disabled = !user; element.dataset.authenticated = String(!!user); });
+      document.querySelectorAll('[data-require-auth]').forEach(element => {
+        element.disabled = !user;
+        element.dataset.authenticated = String(!!user);
+      });
       window.dispatchEvent(new CustomEvent('panamax-auth-ready', { detail: { user } }));
     });
   }
 
   client.auth.onAuthStateChange(() => refreshAll());
 
-  /** Return the signed-in customer or open the login modal when anonymous. */
+  /** Return the signed-in customer or open login when anonymous. */
   window.panamaxRequireAuth = async () => {
     const { data, error } = await client.auth.getUser();
     if (!error && data?.user) return data.user;
@@ -132,6 +173,9 @@
     return null;
   };
 
-  /** Initialize the shared storefront authentication UI. */
-  document.addEventListener('DOMContentLoaded', () => { modal(); refreshAll(); });
+  /** Initialize the shared storefront auth UI after the DOM is ready. */
+  document.addEventListener('DOMContentLoaded', () => {
+    modal();
+    refreshAll();
+  });
 })();
