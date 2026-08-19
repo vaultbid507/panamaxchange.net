@@ -1,14 +1,16 @@
-// NovaShop storefront
-// Supabase + products + categories + cart + checkout
+// PanamaXChange storefront
+// Supabase + products + categories + seller attribution + cart + checkout
 
 const SUPABASE_URL = "https://tagbxmpizwlvgddgcpcl.supabase.co";
-const SUPABASE_KEY = "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0";
+const SUPABASE_KEY = "sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHKbF0";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let products = [];
 let categories = [];
+let productSellers = new Map();
 
+/** Read the persisted shopping cart and safely fall back to an empty cart. */
 function readCart() {
     try {
         const value = JSON.parse(localStorage.getItem("novashop-cart") || "[]");
@@ -35,11 +37,13 @@ const checkoutOverlay = document.getElementById("checkoutOverlay");
 const closeCheckout = document.getElementById("closeCheckout");
 const checkoutForm = document.getElementById("checkoutForm");
 
+/** Format a numeric value as a USD storefront price. */
 function money(value) {
     const amount = Number(value);
     return `$${Number.isFinite(amount) ? amount.toFixed(2) : "0.00"}`;
 }
 
+/** Escape untrusted values before placing them into generated HTML. */
 function escapeHTML(value) {
     return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -49,10 +53,12 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
+/** Persist the current cart in browser storage. */
 function saveCart() {
     localStorage.setItem("novashop-cart", JSON.stringify(cart));
 }
 
+/** Resolve the category label from the supported product category shapes. */
 function getProductCategory(product) {
     if (typeof product.category === "string") return product.category;
     if (product.category && typeof product.category === "object") {
@@ -61,6 +67,15 @@ function getProductCategory(product) {
     return product.category_slug || product.category_name || "";
 }
 
+/** Return the seller label for a product, defaulting legacy products to the store. */
+function getProductSeller(product) {
+    if (product.owner_id) {
+        return productSellers.get(String(product.owner_id)) || "Seller";
+    }
+    return "PanamaXChange";
+}
+
+/** Render the category filter buttons from the live category list. */
 function renderCategoryFilters() {
     categoryFilters.innerHTML = "";
 
@@ -81,6 +96,7 @@ function renderCategoryFilters() {
     });
 }
 
+/** Load categories from Supabase and refresh their filter controls. */
 async function loadCategories() {
     const { data, error } = await supabaseClient
         .from("categories")
@@ -97,6 +113,11 @@ async function loadCategories() {
     renderCategoryFilters();
 }
 
+/**
+ * Load storefront products and then load public seller display names for products
+ * owned by registered users. Legacy products without owner_id remain attributed
+ * to PanamaXChange rather than showing an unknown seller.
+ */
 async function loadProducts() {
     productGrid.innerHTML = '<div class="loading">Loading products...</div>';
 
@@ -108,16 +129,38 @@ async function loadProducts() {
     if (error) {
         console.error("PRODUCT ERROR:", error);
         products = [];
+        productSellers = new Map();
         productGrid.innerHTML = '<div class="loading">Could not load products. Please try again later.</div>';
         updateCart();
         return;
     }
 
     products = Array.isArray(data) ? data : [];
+    productSellers = new Map();
+
+    const ownerIds = [...new Set(products.map(product => product.owner_id).filter(Boolean).map(String))];
+    if (ownerIds.length) {
+        const sellerResult = await supabaseClient.rpc("get_product_sellers", {
+            p_product_ids: products.map(product => Number(product.id))
+        });
+
+        if (sellerResult.error) {
+            console.warn("SELLER ATTRIBUTION ERROR:", sellerResult.error);
+        } else {
+            (sellerResult.data || []).forEach(row => {
+                if (row.product_id && row.seller_name) {
+                    const product = products.find(item => Number(item.id) === Number(row.product_id));
+                    if (product?.owner_id) productSellers.set(String(product.owner_id), row.seller_name);
+                }
+            });
+        }
+    }
+
     displayProducts();
     updateCart();
 }
 
+/** Filter and render product cards, including seller attribution. */
 function displayProducts(category = "all", search = "") {
     const selectedCategory = String(category || "all").trim().toLowerCase();
     const searchText = String(search || "").trim().toLowerCase();
@@ -153,6 +196,7 @@ function displayProducts(category = "all", search = "") {
                 <p class="product-category">${escapeHTML(getProductCategory(product))}</p>
                 <h3 class="product-name">${escapeHTML(product.name)}</h3>
                 <p>${escapeHTML(product.description || "")}</p>
+                <p class="product-seller">Posted by <strong>${escapeHTML(getProductSeller(product))}</strong></p>
                 <p class="product-price">${money(product.price)}</p>
                 <button type="button" class="add-button" data-id="${escapeHTML(product.id)}">Add to Cart</button>
             </div>
@@ -162,6 +206,7 @@ function displayProducts(category = "all", search = "") {
     });
 }
 
+/** Add one product to the cart or increment its existing quantity. */
 function addToCart(productId) {
     const product = products.find(item => Number(item.id) === Number(productId));
     if (!product) return;
@@ -177,12 +222,14 @@ function addToCart(productId) {
     updateCart();
 }
 
+/** Remove a product completely from the current cart. */
 function removeFromCart(productId) {
     cart = cart.filter(item => Number(item.id) !== Number(productId));
     saveCart();
     updateCart();
 }
 
+/** Increase or decrease a cart item's quantity and remove it at zero. */
 function changeQuantity(productId, amount) {
     const item = cart.find(entry => Number(entry.id) === Number(productId));
     if (!item) return;
@@ -197,6 +244,7 @@ function changeQuantity(productId, amount) {
     updateCart();
 }
 
+/** Recalculate and render all cart totals, quantities, and line items. */
 function updateCart() {
     let total = 0;
     let count = 0;
@@ -250,11 +298,13 @@ function updateCart() {
     cartTotal.textContent = money(total);
 }
 
+/** Close the shopping-cart dialog and restore page scrolling. */
 function closeCartModal() {
     cartOverlay.classList.add("hidden");
     document.body.style.overflow = "";
 }
 
+/** Close the checkout dialog and restore page scrolling. */
 function closeCheckoutModal() {
     checkoutOverlay.classList.add("hidden");
     document.body.style.overflow = "";
@@ -378,6 +428,7 @@ document.addEventListener("keydown", event => {
     }
 });
 
+/** Start the storefront data lifecycle and initialize the cart UI. */
 async function startStore() {
     updateCart();
     await Promise.all([loadCategories(), loadProducts()]);
