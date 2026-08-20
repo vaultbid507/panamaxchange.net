@@ -4,13 +4,13 @@
    *
    * Process:
    * 1. Create exactly one Supabase client for the Admin area.
-   * 2. Reuse the same verified public project key as the working Admin order-management client.
+   * 2. Use the current publishable key used by the legacy working Admin client.
    * 3. Persist the session under the shared Admin storage key.
    * 4. Support normal Admin login/logout and optional returnTo navigation.
    * 5. Expose the initialized client to management pages such as Auctions.
    */
   const SUPABASE_URL='https://tagbxmpizwlvgddgcpcl.supabase.co';
-  const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ2J4bXBpendsdmdkZGdjcGNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NjczNDEsImV4cCI6MjEwMjI0MzM0MX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
+  const SUPABASE_KEY='sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0';
   const STORAGE='panamaxchange-auth';
   const $=id=>document.getElementById(id);
   let busy=false,client=null,liveLoaded=false;
@@ -40,7 +40,7 @@
     if(liveLoaded||!document.getElementById('dashboard'))return;
     liveLoaded=true;
     const s=document.createElement('script');
-    s.src='admin-dashboard-live.js?v=20260819-09';
+    s.src='admin-dashboard-live.js?v=20260819-10';
     s.async=true;
     s.onload=()=>window.dispatchEvent(new Event('panamax-dashboard-ready'));
     s.onerror=()=>{liveLoaded=false;console.error('Unable to load live dashboard metrics')};
@@ -90,7 +90,7 @@
       dashboardView(r.data.user);
     }catch(e){
       loginView();
-      message(/invalid api key|api key/i.test(String(e?.message||''))?'Authentication service configuration error. Please reload this page.':(e.message||'Unable to sign in.'));
+      message(/invalid api key|api key/i.test(String(e?.message||''))?'Authentication service configuration error. Reload the Admin page once and try again.':(e.message||'Unable to sign in.'));
     }finally{
       busy=false;
       if(b){b.disabled=false;b.textContent='Sign in securely'}
