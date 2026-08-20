@@ -1,24 +1,25 @@
 /**
- * PanamaXChange — auction management with Product-style popout editing.
+ * PanamaXChange — Auction Management with shared Admin authentication.
  *
  * Process:
- * 1. Reuse the persistent Admin Supabase session shared with admin.html.
- * 2. If no session exists, return the operator to the Admin login and preserve
- *    the requested Auction Management destination.
- * 3. Verify administrator permission with the canonical public.is_admin() helper.
- * 4. Load products and auctions.
- * 5. Render searchable, filterable auction rows.
- * 6. Open Create Auction and Edit Auction in centered modal popouts.
- * 7. Validate and persist changes through Supabase.
- * 8. Refresh the table after every successful mutation.
+ * 1. Reuse the exact Supabase Admin client/session created by admin-auth.js.
+ * 2. Never create a second competing Admin session when the shared client exists.
+ * 3. If no session exists, return to the canonical Admin sign-in page.
+ * 4. Verify administrator permission with public.is_admin().
+ * 5. Load products and auctions through protected Admin RPCs.
+ * 6. Render the searchable auction table.
+ * 7. Open Create/Edit as centered Product-style modal popouts.
+ * 8. Persist changes through protected Admin RPCs and refresh the table.
  */
 (() => {
   const SUPABASE_URL = 'https://tagbxmpizwlvgddgcpcl.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFlZDNkY3B3Z2RkZ2NwY2wiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NjY2NzM0MSwiZXhwIjoxMjEwMjMzNDM0MX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
+  // Keep this identical to the canonical key used by admin-auth.js.
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ2J4bXBpemN2Z2RkZ2NwbCIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzg2NjY3MzQxLCJleHAiOjIxMDIyMzM0MzF9.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
   const STORAGE = 'panamaxchange-auth';
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: STORAGE }
-  });
+
+  let db = null;
+  let auctions = [];
+  let products = [];
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>\"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#039;' }[c]));
@@ -28,31 +29,40 @@
     new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Check Supabase connection and RLS permissions.')), 12000))
   ]);
 
-  let auctions = [];
-  let products = [];
+  /**
+   * Resolve the one canonical Admin Supabase client.
+   * The normal path uses PanamaAdminAuth.client from admin-auth.js; the fallback
+   * exists only for direct page access before the shared client is initialized.
+   */
+  function getClient() {
+    if (db) return db;
+    const shared = window.PanamaAdminAuth?.client;
+    db = shared || window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storageKey:STORAGE }
+    });
+    return db;
+  }
 
   /**
-   * Require the canonical Admin session and administrator permission.
-   *
-   * Anonymous visitors are sent to the same Admin login used by admin.html.
-   * The returnTo parameter sends a successful login back to this page.
+   * Require the same authenticated Admin session used by admin.html.
+   * If the session is absent or not an administrator, return to Admin login.
    */
   async function requireAdmin() {
-    const { data, error } = await wait(db.auth.getSession());
+    const client = getClient();
+    const { data, error } = await wait(client.auth.getSession());
     if (error) throw error;
     if (!data?.session) {
       location.replace(`admin.html?returnTo=${encodeURIComponent('auctions-admin.html')}`);
       return false;
     }
 
-    const permission = await wait(db.rpc('is_admin'));
+    const permission = await wait(client.rpc('is_admin'));
     if (permission.error) throw permission.error;
     if (permission.data !== true) {
-      await db.auth.signOut({ scope: 'local' });
+      await client.auth.signOut({ scope:'local' });
       location.replace(`admin.html?returnTo=${encodeURIComponent('auctions-admin.html')}`);
       return false;
     }
-
     return true;
   }
 
@@ -66,9 +76,10 @@
 
   /** Load products used by auction create/edit selectors. */
   async function loadProducts() {
+    const client = getClient();
     const selects = [$('createProductId'), $('editProductId')].filter(Boolean);
     selects.forEach(select => { select.innerHTML = '<option value="">Loading products...</option>'; });
-    const result = await wait(db.from('products').select('id,name').order('name'));
+    const result = await wait(client.from('products').select('id,name').order('name'));
     if (result.error) throw result.error;
     products = result.data || [];
     const options = products.length
@@ -77,10 +88,11 @@
     selects.forEach(select => { select.innerHTML = options; });
   }
 
-  /** Load all auctions and refresh counters and the management table. */
+  /** Load all auctions through the protected Admin RPC. */
   async function loadAuctions() {
+    const client = getClient();
     $('auctionRows').innerHTML = '<tr><td colspan="7" class="empty">Loading auctions...</td></tr>';
-    const result = await wait(db.rpc('admin_list_auctions'));
+    const result = await wait(client.rpc('admin_list_auctions'));
     if (result.error) throw result.error;
     auctions = result.data || [];
     updateSummary();
@@ -101,7 +113,7 @@
     return localProduct?.name || auctions.find(a => String(a.product_id) === String(id))?.product_name || 'Product';
   }
 
-  /** Render auction table rows according to current search and status filters. */
+  /** Render the filtered auction table. */
   function renderRows() {
     const query = ($('auctionSearch').value || '').trim().toLowerCase();
     const filter = $('auctionFilter').value;
@@ -125,7 +137,7 @@
     bindRows();
   }
 
-  /** Open the New Auction popout and reset its fields. */
+  /** Open the Create Auction popout. */
   function openCreateModal() {
     $('auctionCreateForm').reset();
     $('createStatus').value = 'scheduled';
@@ -138,13 +150,13 @@
     $('createProductId').focus();
   }
 
-  /** Close the New Auction popout. */
+  /** Close the Create Auction popout. */
   function closeCreateModal() {
     $('auctionCreateModal').classList.add('hidden');
     document.body.style.overflow = '';
   }
 
-  /** Open the Edit Auction popout and populate it from the selected auction. */
+  /** Open the Edit Auction popout with the selected auction populated. */
   function openEditModal(id) {
     const auction = auctions.find(item => String(item.id) === String(id));
     if (!auction) return;
@@ -171,7 +183,7 @@
     document.body.style.overflow = '';
   }
 
-  /** Build and validate an auction payload from any supplied field IDs. */
+  /** Build and validate an RPC payload from a form prefix. */
   function buildPayload(prefix) {
     const productId = Number($(prefix+'ProductId').value);
     const title = $(prefix+'Title').value.trim();
@@ -187,27 +199,19 @@
     if (!Number.isFinite(startingBid) || startingBid < 0) throw new Error('Starting bid must be 0 or greater.');
     if (!Number.isFinite(increment) || increment <= 0) throw new Error('Minimum increment must be greater than 0.');
 
-    return {
-      p_product_id: productId,
-      p_title: title,
-      p_description: description,
-      p_starts_at: starts.toISOString(),
-      p_ends_at: ends.toISOString(),
-      p_starting_bid: startingBid,
-      p_minimum_increment: increment,
-      p_status: status
-    };
+    return { p_product_id:productId, p_title:title, p_description:description, p_starts_at:starts.toISOString(), p_ends_at:ends.toISOString(), p_starting_bid:startingBid, p_minimum_increment:increment, p_status:status };
   }
 
-  /** Create a new auction through the canonical Admin RPC and close the popout. */
+  /** Create a new auction through the protected Admin RPC. */
   async function createAuction(event) {
     event.preventDefault();
+    const client = getClient();
     const button = $('auctionCreateForm').querySelector('button[type="submit"]');
     button.disabled = true;
     button.textContent = 'Creating...';
     $('createAuctionMessage').textContent = '';
     try {
-      const result = await wait(db.rpc('admin_create_auction', buildPayload('create')));
+      const result = await wait(client.rpc('admin_create_auction', buildPayload('create')));
       if (result.error) throw result.error;
       $('createAuctionMessage').textContent = 'Auction created successfully.';
       $('createAuctionMessage').className = 'auction-edit-message success';
@@ -222,9 +226,10 @@
     }
   }
 
-  /** Update an existing auction through the canonical Admin RPC and refresh the table. */
+  /** Update an existing auction through the protected Admin RPC. */
   async function saveAuction(event) {
     event.preventDefault();
+    const client = getClient();
     const id = $('editAuctionId').value;
     const button = $('saveEditAuction');
     button.disabled = true;
@@ -232,7 +237,7 @@
     $('editAuctionMessage').textContent = '';
     try {
       if (!id) throw new Error('Auction ID is missing.');
-      const result = await wait(db.rpc('admin_update_auction', { p_id:Number(id), ...buildPayload('edit') }));
+      const result = await wait(client.rpc('admin_update_auction', { p_id:Number(id), ...buildPayload('edit') }));
       if (result.error) throw result.error;
       $('editAuctionMessage').textContent = 'Auction updated successfully.';
       $('editAuctionMessage').className = 'auction-edit-message success';
@@ -247,30 +252,32 @@
     }
   }
 
-  /** End a live auction immediately through the Admin RPC. */
+  /** End a live auction through the protected Admin RPC. */
   async function endAuction(id) {
     if (!confirm('End this auction now?')) return;
-    const result = await wait(db.rpc('admin_set_auction_status', { p_id:Number(id), p_status:'ended' }));
+    const client = getClient();
+    const result = await wait(client.rpc('admin_set_auction_status', { p_id:Number(id), p_status:'ended' }));
     if (result.error) return alert(`Unable to end auction: ${result.error.message}`);
     await loadAuctions();
   }
 
-  /** Delete an auction through the Admin RPC after explicit confirmation. */
+  /** Delete an auction through the protected Admin RPC. */
   async function removeAuction(id) {
     if (!confirm('Remove this auction? This action cannot be undone.')) return;
-    const result = await wait(db.rpc('admin_delete_auction', { p_id:Number(id) }));
+    const client = getClient();
+    const result = await wait(client.rpc('admin_delete_auction', { p_id:Number(id) }));
     if (result.error) return alert(`Unable to remove auction: ${result.error.message}`);
     await loadAuctions();
   }
 
-  /** Attach edit/end/remove handlers after each table render. */
+  /** Bind row-level actions after every render. */
   function bindRows() {
     document.querySelectorAll('[data-edit]').forEach(button => button.onclick = () => openEditModal(button.dataset.edit));
     document.querySelectorAll('[data-end]').forEach(button => button.onclick = () => endAuction(button.dataset.end));
     document.querySelectorAll('[data-remove]').forEach(button => button.onclick = () => removeAuction(button.dataset.remove));
   }
 
-  /** Handle Escape and backdrop clicks for the modal dialogs. */
+  /** Bind modal close behavior. */
   function bindModalDismiss() {
     $('closeCreateAuction').onclick = closeCreateModal;
     $('cancelCreateAuction').onclick = closeCreateModal;
@@ -278,12 +285,10 @@
     $('cancelEditAuction').onclick = closeEditModal;
     $('auctionCreateModal').onclick = event => { if (event.target === $('auctionCreateModal')) closeCreateModal(); };
     $('auctionEditModal').onclick = event => { if (event.target === $('auctionEditModal')) closeEditModal(); };
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') { closeCreateModal(); closeEditModal(); }
-    });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeCreateModal(); closeEditModal(); } });
   }
 
-  /** Initialize the entire Auction Management page. */
+  /** Initialize Auction Management after the shared Admin auth initializer runs. */
   async function start() {
     try {
       if (!(await requireAdmin())) return;
@@ -295,13 +300,14 @@
       $('auctionSearch').oninput = renderRows;
       $('auctionFilter').onchange = renderRows;
       $('refreshAuctions').onclick = async () => { await loadProducts(); await loadAuctions(); };
-      $('logout').onclick = async () => { await db.auth.signOut({ scope:'local' }); location.replace('admin.html?loggedout='+Date.now()); };
-      db.auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') location.replace('admin.html'); });
+      $('logout').onclick = async () => { await getClient().auth.signOut({ scope:'local' }); location.replace('admin.html?loggedout='+Date.now()); };
+      getClient().auth.onAuthStateChange(event => { if (event === 'SIGNED_OUT') location.replace('admin.html'); });
       bindModalDismiss();
     } catch (error) {
       $('auctionRows').innerHTML = `<tr><td colspan="7" class="error">Unable to load auctions: ${esc(error.message || error)}</td></tr>`;
     }
   }
 
-  start();
+  // Wait until admin-auth.js has initialized its shared client on DOMContentLoaded.
+  document.addEventListener('DOMContentLoaded', start);
 })();
