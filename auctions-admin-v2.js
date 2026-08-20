@@ -2,12 +2,12 @@
  * PanamaXChange — professional auction administration.
  *
  * Uses the same Supabase administrator session/storage as the Admin dashboard.
- * Provides Product-style create/edit forms, search, status filtering, summary
- * counters, auction actions, and automatic sign-out handling.
+ * Provides Product-style create workflow, dedicated-screen editing, search,
+ * status filtering, summary counters, auction actions, and automatic sign-out.
  */
 (() => {
   const SUPABASE_URL = 'https://tagbxmpizwlvgddgcpcl.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ2J4bXBpendsdmdkZGdjcGwiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NjY2NzM0MSwiZXhwIjoxMjEwMjMzNDM0MX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ2J4bXBpendsdmdkZGdjcGNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NjczNDEsImV4cCI6MjEwMjIzMzQxMX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'panamaxchange-auth' } });
   const $ = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>\"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c]));
@@ -26,7 +26,9 @@
 
   /** Load products available for auction assignment. */
   async function loadProducts() {
-    const s = $('productId'); s.innerHTML = '<option value="">Loading products...</option>';
+    const s = $('productId');
+    if (!s) return;
+    s.innerHTML = '<option value="">Loading products...</option>';
     const r = await wait(db.from('products').select('id,name').order('name'));
     if (r.error) { s.innerHTML = '<option value="">Products unavailable</option>'; throw r.error; }
     products = r.data || [];
@@ -39,7 +41,8 @@
     const r = await wait(db.from('auctions').select('id,product_id,title,description,starts_at,ends_at,status,starting_bid,minimum_increment,current_bid,created_at').order('created_at',{ascending:false}));
     if (r.error) throw r.error;
     auctions = r.data || [];
-    updateSummary(); render();
+    updateSummary();
+    render();
   }
 
   /** Refresh total/live/scheduled/ended counters. */
@@ -53,7 +56,7 @@
   /** Return a safe display name for an auction product. */
   function productName(id) { return products.find(p => String(p.id) === String(id))?.name || 'Product'; }
 
-  /** Render the filtered auction management table. */
+  /** Render the filtered auction management table with navigation actions. */
   function render() {
     const q = ($('auctionSearch').value || '').trim().toLowerCase();
     const f = $('auctionFilter').value;
@@ -62,18 +65,25 @@
     bindRows();
   }
 
-  /** Open the same form panel used for creating products. */
+  /** Open the shared Product-style create form on the current page. */
   function newAuction() {
-    $('auctionForm').reset(); $('auctionId').value=''; $('status').value='scheduled'; $('startingBid').value='0'; $('increment').value='1'; $('auctionFormTitle').textContent='Add auction'; $('auctionMessage').textContent=''; $('auctionFormPanel').classList.remove('hidden'); $('productId').focus();
+    $('auctionForm').reset();
+    $('auctionId').value='';
+    $('status').value='scheduled';
+    $('startingBid').value='0';
+    $('increment').value='1';
+    $('auctionFormTitle').textContent='Add auction';
+    $('auctionMessage').textContent='';
+    $('auctionFormPanel').classList.remove('hidden');
+    $('productId').focus();
   }
 
-  /** Populate the shared form with an auction for editing. */
+  /** Navigate to the dedicated auction edit screen. */
   function editAuction(id) {
-    const a = auctions.find(x => String(x.id) === String(id)); if (!a) return;
-    $('auctionId').value=a.id; $('productId').value=a.product_id; $('title').value=a.title||''; $('description').value=a.description||''; $('status').value=a.status||'scheduled'; $('startsAt').value=new Date(a.starts_at).toISOString().slice(0,16); $('endsAt').value=new Date(a.ends_at).toISOString().slice(0,16); $('startingBid').value=a.starting_bid ?? 0; $('increment').value=a.minimum_increment ?? 1; $('auctionFormTitle').textContent='Edit auction'; $('auctionMessage').textContent=''; $('auctionFormPanel').classList.remove('hidden'); window.scrollTo({top:0,behavior:'smooth'});
+    location.href = `auction-edit.html?id=${encodeURIComponent(id)}`;
   }
 
-  /** Validate and normalize form values before saving. */
+  /** Validate and normalize values used by the create form. */
   function payload() {
     const s = new Date($('startsAt').value), e = new Date($('endsAt').value);
     if (!Number.isFinite(s.getTime()) || !Number.isFinite(e.getTime()) || e <= s) throw new Error('End time must be after start time.');
@@ -84,21 +94,62 @@
     return p;
   }
 
-  /** Save a new or edited auction and refresh the management list. */
+  /** Save a new auction from the management page and refresh the table. */
   async function saveAuction(e) {
-    e.preventDefault(); const b = $('auctionForm').querySelector('button[type="submit"]'); b.disabled=true; b.textContent='Saving...'; $('auctionMessage').textContent='';
-    try { const p=payload(), id=$('auctionId').value; const r=id ? await wait(db.from('auctions').update(p).eq('id',id)) : await wait(db.from('auctions').insert(p)); if(r.error) throw r.error; $('auctionMessage').textContent=id?'Auction updated successfully.':'Auction created successfully.'; $('auctionMessage').className='message success'; $('auctionForm').reset(); $('auctionId').value=''; $('auctionFormTitle').textContent='Add auction'; $('status').value='scheduled'; await loadAuctions(); }
-    catch(err){ $('auctionMessage').textContent=err.message||'Unable to save auction.'; $('auctionMessage').className='message error'; }
-    finally { b.disabled=false; b.textContent='Save auction'; }
+    e.preventDefault();
+    const b = $('auctionForm').querySelector('button[type="submit"]');
+    b.disabled=true;
+    b.textContent='Saving...';
+    $('auctionMessage').textContent='';
+    try {
+      const r=await wait(db.from('auctions').insert(payload()));
+      if(r.error) throw r.error;
+      $('auctionMessage').textContent='Auction created successfully.';
+      $('auctionMessage').className='message success';
+      $('auctionForm').reset();
+      $('auctionId').value='';
+      $('auctionFormTitle').textContent='Add auction';
+      $('status').value='scheduled';
+      await loadAuctions();
+    } catch(err) {
+      $('auctionMessage').textContent=err.message||'Unable to save auction.';
+      $('auctionMessage').className='message error';
+    } finally {
+      b.disabled=false;
+      b.textContent='Save auction';
+    }
   }
 
   /** End an active auction immediately. */
   async function endAuction(id) { if(!confirm('End this auction now?')) return; const r=await wait(db.from('auctions').update({status:'ended',ends_at:new Date().toISOString()}).eq('id',id)); if(r.error) return alert(r.error.message); await loadAuctions(); }
+
   /** Delete an auction after confirmation. */
   async function removeAuction(id) { if(!confirm('Remove this auction? This action cannot be undone.')) return; const r=await wait(db.from('auctions').delete().eq('id',id)); if(r.error) return alert(r.error.message); await loadAuctions(); }
-  /** Bind table action buttons after a render. */
-  function bindRows(){ document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editAuction(b.dataset.edit)); document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>endAuction(b.dataset.end)); document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>removeAuction(b.dataset.remove)); }
-  /** Initialize authentication, products, auctions and controls. */
-  async function start(){ try { if(!(await requireAdmin())) return; await loadProducts(); await loadAuctions(); $('newAuction').onclick=newAuction; $('cancelAuction').onclick=()=>$('auctionFormPanel').classList.add('hidden'); $('auctionForm').addEventListener('submit',saveAuction); $('auctionSearch').oninput=render; $('auctionFilter').onchange=render; $('refreshAuctions').onclick=async()=>{await loadProducts();await loadAuctions()}; $('logout').onclick=async()=>{await db.auth.signOut({scope:'local'});location.replace('admin.html')}; db.auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT')location.replace('admin.html')}); } catch(err){ $('auctionRows').innerHTML=`<tr><td colspan="7" class="error">Unable to load auctions: ${esc(err.message||err)}</td></tr>`; } }
+
+  /** Bind table action buttons after every render. */
+  function bindRows(){
+    document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editAuction(b.dataset.edit));
+    document.querySelectorAll('[data-end]').forEach(b=>b.onclick=()=>endAuction(b.dataset.end));
+    document.querySelectorAll('[data-remove]').forEach(b=>b.onclick=()=>removeAuction(b.dataset.remove));
+  }
+
+  /** Initialize authentication, products, auctions and page controls. */
+  async function start(){
+    try {
+      if(!(await requireAdmin())) return;
+      await loadProducts();
+      await loadAuctions();
+      $('newAuction').onclick=newAuction;
+      $('cancelAuction').onclick=()=>$('auctionFormPanel').classList.add('hidden');
+      $('auctionForm').addEventListener('submit',saveAuction);
+      $('auctionSearch').oninput=render;
+      $('auctionFilter').onchange=render;
+      $('refreshAuctions').onclick=async()=>{await loadProducts();await loadAuctions()};
+      $('logout').onclick=async()=>{await db.auth.signOut({scope:'local'});location.replace('admin.html')};
+      db.auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT')location.replace('admin.html')});
+    } catch(err) {
+      $('auctionRows').innerHTML=`<tr><td colspan="7" class="error">Unable to load auctions: ${esc(err.message||err)}</td></tr>`;
+    }
+  }
   start();
 })();
