@@ -7,7 +7,7 @@
  */
 (() => {
   const SUPABASE_URL = 'https://tagbxmpizwlvgddgcpcl.supabase.co';
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRhZ2J4bXBpendsdmdkZGdjcGNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NjczNDEsImV4cCI6MjEwMjIzMzQxMX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFlZDNkY3B3Z2RkZ2NwY2wiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc4NjY2NzM0MSwiZXhwIjoxMjEwMjMzNDM0MX0.wOtr8Mxqz79BuXY1nMC0fbR0iAkuC3j282opFR9oZi0';
   const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storageKey: 'panamaxchange-auth' } });
   const $ = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>\"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c]));
@@ -78,9 +78,91 @@
     $('productId').focus();
   }
 
-  /** Navigate to the dedicated auction edit screen. */
+  /** Open the auction edit form as a centered popout overlay inside the current management page. */
   function editAuction(id) {
-    location.href = `auction-edit.html?id=${encodeURIComponent(id)}`;
+    const auction = auctions.find(item => String(item.id) === String(id));
+    if (!auction) return;
+    populateEditForm(auction);
+    $('auctionEditOverlay').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $('editTitle')?.focus(), 0);
+  }
+
+  /** Populate the isolated edit popout with the selected auction values. */
+  function populateEditForm(auction) {
+    $('editAuctionId').value = auction.id;
+    $('editProductId').value = String(auction.product_id);
+    $('editTitle').value = auction.title || '';
+    $('editDescription').value = auction.description || '';
+    $('editStatus').value = auction.status || 'scheduled';
+    $('editStartsAt').value = toLocalInput(auction.starts_at);
+    $('editEndsAt').value = toLocalInput(auction.ends_at);
+    $('editStartingBid').value = auction.starting_bid ?? 0;
+    $('editIncrement').value = auction.minimum_increment ?? 1;
+    $('editMessage').textContent = '';
+    $('editMessage').className = 'message';
+    $('editSave').textContent = 'Save changes';
+    $('editSave').disabled = false;
+  }
+
+  /** Convert an ISO timestamp into a local datetime-local input value. */
+  function toLocalInput(value) {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return '';
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  }
+
+  /** Close the edit popout without changing the stored auction. */
+  function closeEdit() {
+    $('auctionEditOverlay').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  /** Validate the dedicated edit-popout fields and return the database payload. */
+  function editPayload() {
+    const starts = new Date($('editStartsAt').value);
+    const ends = new Date($('editEndsAt').value);
+    const payload = {
+      product_id: Number($('editProductId').value),
+      title: $('editTitle').value.trim(),
+      description: $('editDescription').value.trim() || null,
+      starts_at: starts.toISOString(),
+      ends_at: ends.toISOString(),
+      starting_bid: Number($('editStartingBid').value),
+      minimum_increment: Number($('editIncrement').value),
+      status: $('editStatus').value
+    };
+    if (!payload.product_id || !payload.title) throw new Error('Product and title are required.');
+    if (!Number.isFinite(starts.getTime()) || !Number.isFinite(ends.getTime()) || ends <= starts) throw new Error('End time must be after start time.');
+    if (!Number.isFinite(payload.starting_bid) || payload.starting_bid < 0) throw new Error('Starting bid must be 0 or greater.');
+    if (!Number.isFinite(payload.minimum_increment) || payload.minimum_increment <= 0) throw new Error('Minimum increment must be greater than 0.');
+    return payload;
+  }
+
+  /** Save changes from the edit popout, close it, and refresh the management table. */
+  async function saveEdit() {
+    const id = $('editAuctionId').value;
+    const button = $('editSave');
+    button.disabled = true;
+    button.textContent = 'Saving changes...';
+    $('editMessage').textContent = '';
+    $('editMessage').className = 'message';
+    try {
+      if (!id) throw new Error('Auction ID is missing.');
+      const result = await wait(db.from('auctions').update(editPayload()).eq('id', id));
+      if (result.error) throw result.error;
+      $('editMessage').textContent = 'Auction updated successfully.';
+      $('editMessage').className = 'message success';
+      await loadAuctions();
+      setTimeout(closeEdit, 350);
+    } catch (error) {
+      $('editMessage').textContent = error.message || 'Unable to update auction.';
+      $('editMessage').className = 'message error';
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Save changes';
+    }
   }
 
   /** Validate and normalize values used by the create form. */
@@ -145,6 +227,11 @@
       $('auctionSearch').oninput=render;
       $('auctionFilter').onchange=render;
       $('refreshAuctions').onclick=async()=>{await loadProducts();await loadAuctions()};
+      $('editClose').onclick=closeEdit;
+      $('editCancel').onclick=closeEdit;
+      $('editSave').onclick=saveEdit;
+      $('auctionEditOverlay').addEventListener('click',event=>{if(event.target.id==='auctionEditOverlay')closeEdit()});
+      document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('auctionEditOverlay').classList.contains('hidden'))closeEdit()});
       $('logout').onclick=async()=>{await db.auth.signOut({scope:'local'});location.replace('admin.html')};
       db.auth.onAuthStateChange(e=>{if(e==='SIGNED_OUT')location.replace('admin.html')});
     } catch(err) {
