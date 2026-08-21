@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PanamaXChange — Audit Log</title>
+  <link rel="stylesheet" href="admin.css?v=20260820-12">
+  <link rel="stylesheet" href="admin-audit-log.css?v=20260820-01">
+</head>
+<body class="audit-page">
+  <main class="audit-shell">
+    <header class="audit-header">
+      <div>
+        <div class="audit-brand">Panama<span>X</span>Change</div>
+        <div class="audit-sub">Real-time security and activity log</div>
+      </div>
+      <div class="audit-actions">
+        <a class="btn" href="admin.html?v=20260820-12">← Admin dashboard</a>
+        <button class="btn" id="refreshAudit" type="button">Refresh</button>
+        <button class="btn" id="logoutAudit" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <section class="audit-card audit-controls">
+      <div class="audit-status"><span id="liveDot" class="live-dot"></span><strong id="liveState">Connecting…</strong><span id="auditCount">0 events</span></div>
+      <div class="audit-filters">
+        <input id="auditSearch" type="search" placeholder="Search event, user, table or summary">
+        <select id="auditEventFilter">
+          <option value="">All events</option>
+          <option value="login">Login</option>
+          <option value="logout">Logout</option>
+          <option value="insert">Created</option>
+          <option value="update">Updated</option>
+          <option value="delete">Deleted</option>
+          <option value="security">Security</option>
+        </select>
+        <select id="auditTableFilter">
+          <option value="">All areas</option>
+          <option value="products">Products</option>
+          <option value="orders">Orders</option>
+          <option value="auctions">Auctions</option>
+          <option value="categories">Categories</option>
+          <option value="bids">Bids</option>
+          <option value="profiles">Profiles</option>
+          <option value="user_roles">User roles</option>
+          <option value="admin_users">Admin users</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="audit-card">
+      <div id="auditMessage" class="audit-message"></div>
+      <div class="audit-table-wrap">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Date / time</th>
+              <th>User</th>
+              <th>Event</th>
+              <th>Area</th>
+              <th>Record</th>
+              <th>Activity</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="auditRows">
+            <tr><td colspan="7" class="audit-empty">Loading audit log…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin-auth.js?v=20260820-12"></script>
+  <script src="admin-audit-log.js?v=20260820-01"></script>
+</body>
+</html>
