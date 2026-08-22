@@ -2,15 +2,15 @@
   /** PanamaXChange — canonical Admin authentication. Customer sessions are never treated as staff sessions. */
   const SUPABASE_URL='https://tagbxmpizwlvgddgcpcl.supabase.co';
   const SUPABASE_KEY='sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHK0';
-  const STORAGE='panamaxchange-auth';
+  const STORAGE='panamaxchange-admin-auth';
   const $=id=>document.getElementById(id); let busy=false,client=null,liveLoaded=false;
   const message=t=>{$('loginMessage')&&($('loginMessage').textContent=t||'')};
   const loginView=()=>{$('loginSection')?.classList.remove('hidden');$('dashboard')?.classList.add('hidden')};
-  const getReturnTarget=()=>{const raw=new URLSearchParams(location.search).get('returnTo');if(!raw||raw.includes('://')||raw.startsWith('//'))return '';return raw.startsWith('/')?raw.slice(1):raw};
+  const getReturnTarget=()=>{const raw=new URLSearchParams(location.search).get('returnTo');if(!raw||raw.includes('://')||raw.startsWith('//')) return '';return raw.startsWith('/')?raw.slice(1):raw};
   const continueToReturnTarget=()=>{const target=getReturnTarget();if(!target)return false;const clean=target.split('?')[0].split('#')[0];if(clean===location.pathname.split('/').pop())return false;location.replace(target);return true};
   const timeout=(p,ms)=>new Promise((res,rej)=>{const t=setTimeout(()=>rej(new Error('Supabase connection timed out.')),ms);p.then(v=>{clearTimeout(t);res(v)},e=>{clearTimeout(t);rej(e)})});
   async function audit(eventType,summary,metadata={}){try{if(client)await client.rpc('record_audit_event',{p_event_type:eventType,p_summary:summary,p_source:'admin-auth',p_metadata:metadata})}catch(e){console.warn('[audit]',e?.message||e)}}
-  const loadLive=()=>{if(liveLoaded||!document.getElementById('dashboard'))return;liveLoaded=true;const s=document.createElement('script');s.src='admin-dashboard-live.js?v=20260821-09';s.async=true;s.onerror=()=>{liveLoaded=false};document.head.appendChild(s)};
+  const loadLive=()=>{if(liveLoaded||!document.getElementById('dashboard'))return;liveLoaded=true;const s=document.createElement('script');s.src='admin-dashboard-live.js?v=20260821-10';s.async=true;s.onerror=()=>{liveLoaded=false};document.head.appendChild(s)};
   async function isStaffSession(){
     const user=(await timeout(client.auth.getUser(),8000)).data?.user;
     if(!user)return false;
