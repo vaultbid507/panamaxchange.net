@@ -1,7 +1,36 @@
 let db=null;
 const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c])),money=v=>Number(v||0).toLocaleString('en-US',{style:'currency',currency:'USD'});let products=[],editing=null;const wait=async(p,ms=12000)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('Request timed out. Check Supabase connection and RLS permissions.')),ms))]);
-/** Reuse the canonical Admin session and authorize administrators/moderators. */
-async function auth(){db=window.PanamaAdminAuth?.client||db;if(!db){location.replace('admin.html?returnTo=products-admin.html');return false}const s=await wait(db.auth.getSession());if(s.error||!s.data?.session){location.replace('admin.html?returnTo=products-admin.html');return false}const userId=s.data.session.user.id;let role='';try{const r=await wait(db.rpc('current_user_role'));if(!r.error)role=String(r.data||'').toLowerCase()}catch(error){console.warn('current_user_role unavailable; checking admin membership',error)}if(role==='admin'||role==='moderator')return true;try{const r=await wait(db.from('admin_users').select('user_id').eq('user_id',userId).maybeSingle());if(!r.error&&r.data?.user_id)return true}catch(error){console.warn('admin_users fallback unavailable',error)}location.replace('admin.html?returnTo=products-admin.html');return false}
+/**
+ * Reuse the canonical Admin client and wait for its session restoration before
+ * authorizing Product Management. This prevents a transient redirect loop when
+ * the Admin page links here immediately after login.
+ */
+async function auth(){
+  try{
+    const api=window.PanamaAdminAuth;
+    if(api?.ready) await wait(api.ready,15000);
+    db=api?.client||db;
+    if(!db){location.replace('admin.html?returnTo=products-admin.html');return false}
+    const s=await wait(db.auth.getSession());
+    if(s.error||!s.data?.session){location.replace('admin.html?returnTo=products-admin.html');return false}
+    const userId=s.data.session.user.id;
+    let role='';
+    try{
+      const adminCheck=await wait(db.rpc('is_admin'));
+      if(!adminCheck.error&&adminCheck.data===true)return true;
+    }catch(error){console.warn('is_admin unavailable; checking role',error)}
+    try{
+      const roleCheck=await wait(db.rpc('current_user_role'));
+      if(!roleCheck.error)role=String(roleCheck.data||'').toLowerCase();
+    }catch(error){console.warn('current_user_role unavailable; checking membership',error)}
+    if(role==='admin'||role==='moderator')return true;
+    try{
+      const r=await wait(db.from('admin_users').select('user_id').eq('user_id',userId).maybeSingle());
+      if(!r.error&&r.data?.user_id)return true;
+    }catch(error){console.warn('admin_users fallback unavailable',error)}
+    location.replace('admin.html?returnTo=products-admin.html');return false;
+  }catch(error){console.error('[Product Management auth]',error);location.replace('admin.html?returnTo=products-admin.html');return false}
+}
 /** Load products from Supabase using the authenticated Admin client. */
 async function load(){if(!(await auth()))return;const r=await wait(db.from('products').select('id,name,description,price,category,image_url,stock').order('name'));if(r.error){$('rows').innerHTML=`<tr><td colspan="6" class="error">Unable to load products: ${esc(r.error.message)}</td></tr>`;return}products=r.data||[];editing=null;render();summary()}
 /** Update product summary cards. */function summary(){$('total').textContent=products.length;$('inStock').textContent=products.filter(p=>Number(p.stock||0)>5).length;$('low').textContent=products.filter(p=>Number(p.stock||0)>0&&Number(p.stock)<=5).length;$('out').textContent=products.filter(p=>Number(p.stock||0)<=0).length}
@@ -14,4 +43,4 @@ async function load(){if(!(await auth()))return;const r=await wait(db.from('prod
 const modal=$('productCreateModal'),closeModal=()=>{modal?.classList.add('hidden');document.body.style.overflow=''};$('new').onclick=()=>{modal?.classList.remove('hidden');document.body.style.overflow='hidden';$('name').focus()};$('cancelNew').onclick=closeModal;$('closeProductCreate').onclick=closeModal;modal?.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 /** Create a new product through the protected staff RPC. */$('saveNew').onclick=async()=>{if(!(await auth()))return;const p={name:$('name').value.trim(),category:$('category').value.trim()||null,price:Number($('price').value),stock:Number($('quantity').value),image_url:$('image').value.trim()||null,description:$('description').value.trim()||null};if(!p.name||!Number.isFinite(p.price)||p.price<0||!Number.isInteger(p.stock)||p.stock<0)return alert('Enter a valid name, price and stock.');const b=$('saveNew');b.disabled=true;b.textContent='Creating...';try{const r=await wait(db.rpc('admin_create_product',{p_name:p.name,p_description:p.description,p_price:p.price,p_category:p.category,p_image_url:p.image_url,p_stock:p.stock}));if(r.error)throw r.error;closeModal();['name','category','price','quantity','image','description'].forEach(id=>$(id).value='');await load()}catch(error){alert(`Unable to create product: ${error.message||'Unknown error'}`)}finally{b.disabled=false;b.textContent='Create product'}};
 $('logout').onclick=()=>window.PanamaAdminAuth?.signOut?.();
-document.addEventListener('DOMContentLoaded',()=>{db=window.PanamaAdminAuth?.client||null;load()});
+document.addEventListener('DOMContentLoaded',()=>{load()});
