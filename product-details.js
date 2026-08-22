@@ -3,9 +3,9 @@
  *
  * Process: observe the live product grid rendered by app.js, add a consistent
  * "View details" action to every product card, then open an accessible modal
- * containing the selected product's image, seller, category, description,
- * price, stock status, and cart action. The controller reuses the product
- * objects already loaded by app.js so it never creates a second API client.
+ * using the product card's already-rendered data. The controller deliberately
+ * reuses the existing Add to Cart button instead of creating another API/auth
+ * client, preventing duplicate state and authentication drift.
  */
 (()=>{
   const $ = (id) => document.getElementById(id);
@@ -14,29 +14,6 @@
   const escapeHTML = (value) => String(value ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\"/g, '&quot;').replace(/'/g, '&#039;');
-
-  const money = (value) => {
-    const n = Number(value);
-    return `$${Number.isFinite(n) ? n.toFixed(2) : '0.00'}`;
-  };
-
-  function getProducts(){
-    return Array.isArray(window.products) ? window.products : [];
-  }
-
-  function getSeller(product){
-    try {
-      if (typeof window.getProductSeller === 'function') return window.getProductSeller(product);
-    } catch (_) {}
-    return product?.owner_id ? 'Registered seller' : 'PanamaXChange';
-  }
-
-  function getCategory(product){
-    try {
-      if (typeof window.getProductCategory === 'function') return window.getProductCategory(product);
-    } catch (_) {}
-    return product?.category_slug || product?.category_name || product?.category || 'General';
-  }
 
   function ensureModal(){
     if (modal) return modal;
@@ -78,34 +55,47 @@
     return modal;
   }
 
-  function open(product){
+  function readCard(card){
+    const add = card.querySelector('.add-button');
+    if(!add) return null;
+    const image = card.querySelector('img');
+    const description = Array.from(card.querySelectorAll('.product-info > p'))
+      .find((p)=>!p.classList.contains('product-category')&&!p.classList.contains('product-seller')&&!p.classList.contains('product-price'));
+    return {
+      sourceAdd:add,
+      name: card.querySelector('.product-name')?.textContent?.trim() || 'Product details',
+      category: card.querySelector('.product-category')?.textContent?.trim() || 'General',
+      description: description?.textContent?.trim() || 'No additional description has been provided for this product.',
+      seller: card.querySelector('.product-seller strong')?.textContent?.trim() || 'PanamaXChange',
+      price: card.querySelector('.product-price')?.textContent?.trim() || '$0.00',
+      stock: card.dataset.stock || add.dataset.stock || '',
+      imageUrl: image?.src || ''
+    };
+  }
+
+  function open(card){
+    const product = readCard(card);
+    if(!product) return;
     const m = ensureModal();
-    const media = $('productDetailsMedia');
-    media.innerHTML = product?.image_url
-      ? `<img src="${escapeHTML(product.image_url)}" alt="${escapeHTML(product.name)}">`
+    $('productDetailsMedia').innerHTML = product.imageUrl
+      ? `<img src="${escapeHTML(product.imageUrl)}" alt="${escapeHTML(product.name)}">`
       : '<div class="product-details-placeholder" aria-hidden="true">🛍️</div>';
-    $('productDetailsCategory').textContent = getCategory(product);
-    $('productDetailsTitle').textContent = product?.name || 'Product details';
-    $('productDetailsPrice').textContent = money(product?.price);
-    const qty = Number(product?.stock || 0);
-    const stock = $('productDetailsStock');
-    stock.textContent = qty > 5 ? `✓ In stock · ${qty} available` : qty > 0 ? `⚠ Low stock · ${qty} available` : 'Out of stock';
-    stock.className = `product-details-stock ${qty > 5 ? 'in-stock' : qty > 0 ? 'low-stock' : 'out-stock'}`;
-    $('productDetailsSeller').textContent = `Posted by ${getSeller(product)}`;
-    $('productDetailsDescription').textContent = product?.description || 'No additional description has been provided for this product.';
+    $('productDetailsCategory').textContent = product.category;
+    $('productDetailsTitle').textContent = product.name;
+    $('productDetailsPrice').textContent = product.price;
+    $('productDetailsStock').textContent = product.stock ? `Stock available: ${product.stock}` : 'Stock availability shown on the product card.';
+    $('productDetailsSeller').textContent = `Posted by ${product.seller}`;
+    $('productDetailsDescription').textContent = product.description;
 
     const add = $('productDetailsAdd');
-    add.disabled = qty <= 0;
-    add.textContent = qty > 0 ? 'Add to cart →' : 'Out of stock';
+    add.disabled = !!product.sourceAdd.disabled;
+    add.textContent = product.sourceAdd.disabled ? 'Out of stock' : 'Add to cart →';
     add.onclick = () => {
-      if (qty <= 0) return;
-      if (typeof window.addToCart === 'function') {
-        window.addToCart(Number(product.id));
-        const original = add.textContent;
-        add.textContent = 'Added ✓';
-        add.disabled = true;
-        setTimeout(()=>{ add.textContent = original; add.disabled = false; }, 900);
-      }
+      if(product.sourceAdd.disabled) return;
+      product.sourceAdd.click();
+      add.textContent = 'Added ✓';
+      add.disabled = true;
+      setTimeout(()=>{ add.textContent = 'Add to cart →'; add.disabled = false; }, 900);
     };
     m.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -116,21 +106,17 @@
     if (!grid) return;
     grid.querySelectorAll('.product-card').forEach((card)=>{
       if (card.querySelector('.view-details-button')) return;
-      const id = Number(card.querySelector('.add-button')?.dataset.id);
-      if (!Number.isFinite(id)) return;
-      const product = getProducts().find((item)=>Number(item.id) === id);
-      if (!product) return;
+      if (!card.querySelector('.add-button')) return;
       const actions = document.createElement('div');
       actions.className = 'product-card-actions';
       const add = card.querySelector('.add-button');
-      if (!add) return;
       add.parentNode.insertBefore(actions, add);
       actions.appendChild(add);
       const view = document.createElement('button');
       view.type = 'button';
       view.className = 'secondary-button view-details-button';
       view.textContent = 'View details';
-      view.addEventListener('click', ()=>open(product));
+      view.addEventListener('click', ()=>open(card));
       actions.appendChild(view);
     });
   }
