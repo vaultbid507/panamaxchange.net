@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
+<title>PanamaXChange — Reports</title>
+<link rel="stylesheet" href="admin.css?v=20260821-15">
+<style>
+:root{--blue:#2563eb;--ink:#172033;--muted:#64748b;--line:#e5eaf1;--bg:#f6f8fb;--surface:#fff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}.wrap{max-width:1400px;margin:auto;padding:28px}.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border:1px solid #d8e1eb;border-radius:10px;background:#fff;color:#263449;text-decoration:none;font-size:12px;font-weight:750;cursor:pointer}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.filters,.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}.filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.filters label{display:grid;gap:6px;font-size:12px;font-weight:700;color:#475569}.filters input,.filters select{padding:10px;border:1px solid #d7e0eb;border-radius:9px;background:#fff}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.metric strong{display:block;font-size:28px;margin-top:7px}.metric small{color:var(--muted)}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:12px;border-bottom:1px solid #eef2f7;text-align:left;font-size:12px}.table th{background:#f8fafc;color:#64748b;text-transform:uppercase;font-size:10px}.status{color:#64748b}.empty{text-align:center;padding:35px;color:#64748b}@media(max-width:900px){.filters{grid-template-columns:repeat(2,1fr)}.metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.wrap{padding:16px}.filters,.metrics{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="head"><div><div style="color:#2563eb;font-size:10px;font-weight:900;letter-spacing:1.6px">ADMIN REPORTING</div><h1 style="margin:6px 0">Marketplace Reports</h1><p style="color:#64748b;margin:0">Revenue, orders, products, stock and activity reporting.</p></div><div class="actions"><a class="btn" href="admin.html?v=20260821-15">← Admin dashboard</a><button class="btn" id="exportBtn">Export CSV</button></div></header>
+<section class="filters"><label>From<input id="from" type="date"></label><label>To<input id="to" type="date"></label><label>Order status<select id="status"><option value="">All statuses</option><option>pending</option><option>paid</option><option>processing</option><option>shipped</option><option>completed</option><option>cancelled</option></select></label><label>Search<input id="search" placeholder="Order ID or customer"></label></section>
+<section class="metrics"><div class="card metric"><small>Orders</small><strong id="orders">—</strong></div><div class="card metric"><small>Revenue</small><strong id="revenue">—</strong></div><div class="card metric"><small>Products</small><strong id="products">—</strong></div><div class="card metric"><small>Stock units</small><strong id="stock">—</strong></div></section>
+<section class="card"><table class="table"><thead><tr><th>Order</th><th>Customer</th><th>Date</th><th>Status</th><th>Total</th></tr></thead><tbody id="rows"><tr><td colspan="5" class="empty">Loading report…</td></tr></tbody></table></section>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="admin-auth.js?v=20260821-15"></script>
+<script>
+/**
+ * Admin Reports controller.
+ * Process: wait for staff authentication, query live order/product data, filter in memory,
+ * calculate KPIs, and export the currently displayed order report as CSV.
+ */
+(()=>{
+ const URL='https://tagbxmpizwlvgddgcpcl.supabase.co',KEY='sb_publishable_X36Iq53rm8U8HBkBfL06Vw_zErQRHKbF0';
+ const db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'panamaxchange-admin-auth'}});
+ let orders=[],products=[];const $=id=>document.getElementById(id);const money=v=>`$${Number(v||0).toFixed(2)}`;
+ async function load(){
+  await window.PanamaAdminAuth?.ready;
+  const [o,p]=await Promise.all([
+    db.from('orders').select('id,customer_name,customer_email,status,total,created_at').order('created_at',{ascending:false}).limit(1000),
+    db.from('products').select('id,stock')
+  ]);
+  if(o.error)throw o.error; if(p.error)throw p.error; orders=o.data||[]; products=p.data||[]; render();
+ }
+ function filtered(){const from=$('from').value,to=$('to').value,status=$('status').value,q=$('search').value.trim().toLowerCase();return orders.filter(o=>{const d=String(o.created_at).slice(0,10);return (!from||d>=from)&&(!to||d<=to)&&(!status||o.status===status)&&(!q||`${o.id} ${o.customer_name||''} ${o.customer_email||''}`.toLowerCase().includes(q));})}
+ function render(){const list=filtered();$('orders').textContent=list.length;$('revenue').textContent=money(list.filter(o=>o.status!=='cancelled').reduce((s,o)=>s+Number(o.total||0),0));$('products').textContent=products.length;$('stock').textContent=products.reduce((s,p)=>s+Number(p.stock||0),0);$('rows').innerHTML=list.length?list.map(o=>`<tr><td>#${o.id}</td><td>${esc(o.customer_name||o.customer_email||'Guest')}</td><td>${new Date(o.created_at).toLocaleString()}</td><td>${esc(o.status||'')}</td><td>${money(o.total)}</td></tr>`).join(''):'<tr><td colspan="5" class="empty">No records match the selected filters.</td></tr>';}
+ function esc(v){return String(v??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));}
+ function exportCsv(){const list=filtered();const rows=[['Order','Customer','Email','Date','Status','Total'],...list.map(o=>[o.id,o.customer_name||'',o.customer_email||'',o.created_at,o.status||'',Number(o.total||0).toFixed(2)])];const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`panamaxchange-orders-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);}
+ ['from','to','status','search'].forEach(id=>$(id).addEventListener('input',render));$('exportBtn').addEventListener('click',exportCsv);load().catch(e=>{$('rows').innerHTML=`<tr><td colspan="5" class="empty">Unable to load report: ${esc(e.message||e)}</td></tr>`});
+})();
+</script>
+</body></html>
