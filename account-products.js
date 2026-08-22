@@ -2,23 +2,72 @@
   /**
    * Customer product management controller.
    *
-   * Process: reuse the canonical storefront authentication client, wait for
-   * the unified auth-ready event, load only products owned by the signed-in
-   * customer, and manage listings through protected user_* RPC functions.
-   * Ownership is always derived by the database from auth.uid().
+   * Process: reuse the canonical storefront authentication client, ensure the
+   * editor UI exists before any data request touches it, load only products
+   * owned by the signed-in customer, and manage listings through protected
+   * user_* RPC functions. Ownership is always derived by the database from
+   * auth.uid().
    */
   const $ = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));
   const money = v => Number(v || 0).toLocaleString('en-US', { style:'currency', currency:'USD' });
   let db = null, user = null, products = [], categories = [], bound = false;
 
-  function getAuthClient() {
-    return window.PanamaXChangeAuth?.client || null;
+  function getAuthClient() { return window.PanamaXChangeAuth?.client || null; }
+
+  /** Create the product editor markup when a page version does not contain it. */
+  function ensureEditor() {
+    if ($('accountProductOverlay')) return true;
+    if (!document.body) return false;
+    const overlay = document.createElement('div');
+    overlay.id = 'accountProductOverlay';
+    overlay.className = 'account-product-overlay hidden';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-labelledby', 'accountProductModalTitle');
+    overlay.innerHTML = `
+      <div class="account-product-modal">
+        <button id="accountProductClose" class="account-product-close" type="button" aria-label="Close">✕</button>
+        <p id="accountProductModalEyebrow" class="eyebrow">YOUR LISTING</p>
+        <h2 id="accountProductModalTitle">New product</h2>
+        <form id="accountProductForm">
+          <input id="accountProductId" type="hidden">
+          <div class="account-product-editor-sections">
+            <section class="account-product-editor-section">
+              <div class="account-product-section-heading"><div><span class="editor-step">01</span><div><strong>Product information</strong><small>Name and customer-facing description.</small></div></div></div>
+              <div class="account-form-grid">
+                <label>Product name<input id="accountProductName" maxlength="160" required></label>
+                <label>Category<select id="accountProductCategory" required><option value="">Choose category</option></select></label>
+                <label style="grid-column:1/-1">Description<textarea id="accountProductDescription" rows="4" maxlength="4000"></textarea></label>
+              </div>
+            </section>
+            <section class="account-product-editor-section">
+              <div class="account-product-section-heading"><div><span class="editor-step">02</span><div><strong>Pricing & inventory</strong><small>Control price and available stock.</small></div></div></div>
+              <div class="account-form-grid">
+                <label>Price<input id="accountProductPrice" type="number" min="0" step="0.01" required></label>
+                <label>Stock<input id="accountProductStockInput" type="number" min="0" step="1" required></label>
+              </div>
+            </section>
+            <section class="account-product-editor-section">
+              <div class="account-product-section-heading"><div><span class="editor-step">03</span><div><strong>Product image</strong><small>Use a public image URL for the storefront.</small></div></div></div>
+              <label>Image URL<input id="accountProductImage" type="url" placeholder="https://..."></label>
+              <div id="accountProductImagePreview" class="editor-image-preview" style="margin-top:10px">Image preview</div>
+            </section>
+          </div>
+          <div id="accountProductMessage" class="account-product-message" aria-live="polite"></div>
+          <div class="account-product-modal-actions">
+            <button id="accountProductCancel" class="secondary-button" type="button">Cancel</button>
+            <button id="accountProductSave" class="primary-button" type="submit">Save product</button>
+          </div>
+        </form>
+      </div>`;
+    document.body.appendChild(overlay);
+    return true;
   }
 
   function openModal(product = null) {
+    if (!ensureEditor()) return;
     const overlay = $('accountProductOverlay');
-    if (!overlay) return;
     $('accountProductId').value = product?.id || '';
     $('accountProductModalTitle').textContent = product ? 'Edit product' : 'New product';
     $('accountProductModalEyebrow').textContent = product ? 'EDIT YOUR LISTING' : 'YOUR LISTING';
@@ -29,6 +78,7 @@
     $('accountProductCategory').value = product?.category || '';
     $('accountProductImage').value = product?.image_url || '';
     $('accountProductMessage').textContent = '';
+    updateImagePreview();
     overlay.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
     $('accountProductName')?.focus();
@@ -39,11 +89,23 @@
     document.body.style.overflow = '';
   }
 
+  function updateImagePreview() {
+    const box = $('accountProductImagePreview');
+    if (!box) return;
+    const url = $('accountProductImage')?.value.trim();
+    box.innerHTML = url
+      ? `<img src="${esc(url)}" alt="Product preview" onerror="this.parentElement.textContent='Image could not be loaded.'">`
+      : 'Image preview';
+  }
+
   async function loadCategories() {
+    if (!ensureEditor()) return;
+    const select = $('accountProductCategory');
+    if (!select) return;
     const { data, error } = await db.from('categories').select('name,slug').order('name');
     if (error) throw error;
     categories = data || [];
-    $('accountProductCategory').innerHTML = '<option value="">Choose category</option>' +
+    select.innerHTML = '<option value="">Choose category</option>' +
       categories.map(c => `<option value="${esc(c.slug || c.name)}">${esc(c.name || c.slug)}</option>`).join('');
   }
 
@@ -110,7 +172,9 @@
       p_stock: Number($('accountProductStockInput').value)
     };
     const msg = $('accountProductMessage');
+    const button = $('accountProductSave');
     msg.textContent = 'Saving…';
+    if (button) button.disabled = true;
     try {
       if (!payload.p_name || !Number.isFinite(payload.p_price) || payload.p_price < 0 || !Number.isInteger(payload.p_stock) || payload.p_stock < 0) {
         throw new Error('Enter a valid product name, non-negative price, and whole-number stock quantity.');
@@ -126,6 +190,8 @@
       await loadProducts();
     } catch (error) {
       msg.textContent = error.message || 'Unable to save product.';
+    } finally {
+      if (button) button.disabled = false;
     }
   }
 
@@ -141,11 +207,13 @@
   function bind() {
     if (bound) return;
     bound = true;
+    ensureEditor();
     $('newAccountProduct')?.addEventListener('click', () => openModal());
     $('accountProductCancel')?.addEventListener('click', closeModal);
     $('accountProductClose')?.addEventListener('click', closeModal);
     $('accountProductOverlay')?.addEventListener('click', e => { if (e.target.id === 'accountProductOverlay') closeModal(); });
     $('accountProductForm')?.addEventListener('submit', saveProduct);
+    $('accountProductImage')?.addEventListener('input', updateImagePreview);
     ['accountProductSearch', 'accountProductStock', 'accountProductSort'].forEach(id => $(id)?.addEventListener('input', render));
     $('myProductsList')?.addEventListener('click', e => {
       const edit = e.target.closest('[data-edit]');
@@ -164,15 +232,18 @@
     user = current;
     bind();
     try {
+      ensureEditor();
       await loadCategories();
       await loadProducts();
     } catch (error) {
-      $('myProductsList').innerHTML = `<div class="account-empty-state">Unable to load your products: ${esc(error.message || error)}</div>`;
+      const list = $('myProductsList');
+      if (list) list.innerHTML = `<div class="account-empty-state">Unable to load your products: ${esc(error.message || error)}</div>`;
     }
   }
 
   function boot() {
-    window.addEventListener('panamax-auth-ready', e => start(e.detail?.user || null), { once: true });
+    const startOnce = e => start(e?.detail?.user || null);
+    window.addEventListener('panamax-auth-ready', startOnce, { once: true });
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => start(), { once: true });
     else start();
   }
